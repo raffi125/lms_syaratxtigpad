@@ -1,0 +1,1672 @@
+<!DOCTYPE html>
+<html lang="id" class="light" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kuis Evaluasi - KOLAB SYARAT X TIGPAD UNPAD</title>
+    
+    <!-- Google Fonts Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- DaisyUI & Tailwind CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.7.2/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        syarat: { DEFAULT: '#163C8A', light: '#2557c4', dark: '#0d265c' },
+                        tigpad: { DEFAULT: '#F97316', light: '#fb923c', dark: '#c2410c' }
+                    },
+                    fontFamily: { sans: ['Inter', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; overflow-x: hidden; transition: background-color 0.3s ease, color 0.3s ease; }
+        .orb-container { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 0; overflow: hidden; }
+        .orb { position: absolute; border-radius: 50%; filter: blur(120px); opacity: 0.35; animation: floatOrb 20s infinite alternate ease-in-out; }
+        .orb-blue { width: 600px; height: 600px; background: radial-gradient(circle, rgba(22, 60, 138, 0.7) 0%, transparent 70%); top: -10%; left: -10%; }
+        .orb-orange { width: 500px; height: 500px; background: radial-gradient(circle, rgba(249, 115, 22, 0.65) 0%, transparent 70%); bottom: -10%; right: -10%; animation-delay: -5s; }
+        @keyframes floatOrb { 0% { transform: translate(0px, 0px) scale(1); } 50% { transform: translate(90px, 70px) scale(1.1); } 100% { transform: translate(-40px, 110px) scale(0.95); } }
+        .glass-card { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(226, 232, 240, 0.8); box-shadow: 0 10px 30px rgba(22, 60, 138, 0.05); transition: all 0.3s ease; }
+        .dark .glass-card { background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); }
+        .glass-nav { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(16px); border-bottom: 1px solid rgba(226, 232, 240, 0.8); }
+        .dark .glass-nav { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(16px); border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+        .btn-duotone { background: linear-gradient(135deg, #163C8A 0%, #F97316 100%); color: #ffffff; border: none; transition: all 0.3s ease; }
+        .btn-duotone:hover { box-shadow: 0 10px 25px -5px rgba(249, 115, 22, 0.4); transform: translateY(-2px); }
+        .sidebar-active { background: linear-gradient(90deg, rgba(22, 60, 138, 0.1) 0%, rgba(249, 115, 22, 0.1) 100%); border-left: 4px solid #F97316; color: #F97316 !important; font-weight: 700; }
+        .dark .sidebar-active { background: linear-gradient(90deg, rgba(22, 60, 138, 0.3) 0%, rgba(249, 115, 22, 0.25) 100%); border-left: 4px solid #F97316; color: #fb923c !important; }
+    </style>
+</head>
+<body class="bg-slate-100 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen relative flex flex-col">
+
+    <div class="orb-container">
+        <div class="orb orb-blue"></div>
+        <div class="orb orb-orange"></div>
+    </div>
+
+    <!-- Top Navigation Bar -->
+    <header class="sticky top-0 z-40 glass-nav transition-all">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <button onclick="toggleMobileSidebar()" class="md:hidden text-slate-600 dark:text-slate-300 p-2 rounded-xl hover:bg-slate-200/60 dark:hover:bg-slate-800/60">
+                    <i class="fa-solid fa-bars text-lg"></i>
+                </button>
+                <a href="landing.html" class="flex items-center gap-2">
+                    <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-tr from-syarat to-tigpad flex items-center justify-center text-white text-sm sm:text-base font-bold shadow-md">
+                        <i class="fa-solid fa-hands-asl-interpreting"></i>
+                    </div>
+                    <span class="font-black text-base sm:text-lg tracking-tight bg-gradient-to-r from-syarat to-tigpad bg-clip-text text-transparent">KOLAB UNPAD</span>
+                </a>
+            </div>
+
+            <div class="flex items-center gap-2.5">
+                <button onclick="toggleDarkMode()" aria-label="Ubah Tema Display" class="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-200 hover:text-amber-500 transition-colors shadow-sm">
+                    <i id="themeIcon" class="fa-solid fa-moon text-base"></i>
+                </button>
+
+                <div class="dropdown dropdown-end">
+                    <div tabindex="0" role="button" class="flex items-center gap-2.5 cursor-pointer pl-1">
+                        <div id="userAvatar" class="w-10 h-10 rounded-xl bg-gradient-to-tr from-syarat to-tigpad text-white font-extrabold flex items-center justify-center text-xs shadow-md border-2 border-tigpad overflow-hidden">
+                            <span>RR</span>
+                        </div>
+                        <div class="hidden sm:block text-left">
+                            <div id="userNameHeader" class="font-extrabold text-xs">Rina Rahmawati</div>
+                            <div id="userRoleBadge" class="text-[10px] text-tigpad font-bold">Mahasiswa (Peserta)</div>
+                        </div>
+                    </div>
+                    
+                    <ul tabindex="0" class="dropdown-content z-[50] p-2 shadow-2xl glass-card rounded-2xl w-60 mt-3 text-xs space-y-1">
+                        <li class="px-3 py-2.5 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 rounded-xl">
+                            <div class="font-bold text-slate-700 dark:text-slate-200" id="dropdownHeaderName">Rina Rahmawati</div>
+                            <div id="userEmailDropdown" class="text-[10px] text-slate-500 font-mono truncate">rina.rahmawati@unpad.ac.id</div>
+                        </li>
+                        <li>
+                            <a href="dashboard.html" class="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 font-semibold">
+                                <i class="fa-solid fa-gauge-high text-syarat"></i> Dashboard Overview
+                            </a>
+                        </li>
+                        <li id="dropdownProfileItem">
+                            <a href="profile.html" class="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 font-semibold">
+                                <i class="fa-solid fa-user-gear text-tigpad"></i> Profil Saya & Foto
+                            </a>
+                        </li>
+                        <li>
+                            <a href="sertifikat.html" class="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 font-semibold">
+                                <i class="fa-solid fa-award text-amber-500"></i> Sertifikat Saya
+                            </a>
+                        </li>
+                        <li class="border-t border-slate-200 dark:border-slate-800 pt-1">
+                            <a href="login.html" class="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-red-50 dark:hover:bg-red-950/40 text-red-500 font-bold">
+                                <i class="fa-solid fa-right-from-bracket"></i> Keluar / Logout
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Layout Grid -->
+    <div class="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 grid grid-cols-1 md:grid-cols-12 gap-6 relative z-10">
+        
+        <aside id="sidebarNav" class="md:col-span-3 glass-card p-4 rounded-3xl h-fit space-y-6 hidden md:block">
+            <div class="p-3.5 rounded-2xl bg-gradient-to-br from-syarat/10 to-tigpad/10 border border-syarat/20 flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-syarat text-white flex items-center justify-center font-bold text-lg shadow overflow-hidden" id="sidebarAvatarBox">
+                    <i id="sidebarRoleIcon" class="fa-solid fa-user-graduate"></i>
+                </div>
+                <div>
+                    <h3 id="sidebarRoleTitle" class="font-extrabold text-sm">Mode Peserta</h3>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400">Status Active • BISINDO 2026</p>
+                </div>
+            </div>
+
+            <nav class="space-y-1 text-xs font-semibold">
+                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-3 py-1">Menu Utama</div>
+                
+                <a href="dashboard.html" class="flex items-center gap-3 px-3.5 py-3 rounded-2xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all text-slate-600 dark:text-slate-300">
+                    <i class="fa-solid fa-chart-pie text-sm"></i>
+                    <span>Overview</span>
+                </a>
+
+                <a id="navItem_profile" href="profile.html" class="flex items-center gap-3 px-3.5 py-3 rounded-2xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all text-slate-600 dark:text-slate-300">
+                    <i class="fa-solid fa-user-gear text-sm"></i>
+                    <span>Profil Saya & Foto</span>
+                </a>
+
+                <a href="modul.html" class="flex items-center gap-3 px-3.5 py-3 rounded-2xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all text-slate-600 dark:text-slate-300">
+                    <i class="fa-solid fa-book-open text-sm"></i>
+                    <span id="navText_modul">Modul Video & PDF</span>
+                </a>
+
+                <a href="zoom.html" class="flex items-center gap-3 px-3.5 py-3 rounded-2xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all text-slate-600 dark:text-slate-300">
+                    <i class="fa-solid fa-headset text-sm"></i>
+                    <span id="navText_zoom">Zoom & Presensi</span>
+                </a>
+
+                <a href="kuis.html" class="flex items-center gap-3 px-3.5 py-3 rounded-2xl sidebar-active justify-between">
+                    <div class="flex items-center gap-3">
+                        <i class="fa-solid fa-stopwatch-20 text-sm"></i>
+                        <span id="navText_kuis">Kuis Evaluasi</span>
+                    </div>
+                    <span class="px-2 py-0.5 rounded-full bg-tigpad text-white text-[9px] font-bold">3 Soal</span>
+                </a>
+
+                <a href="game.html" class="flex items-center gap-3 px-3.5 py-3 rounded-2xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all text-slate-600 dark:text-slate-300 justify-between">
+                    <div class="flex items-center gap-3">
+                        <i class="fa-solid fa-gamepad text-sm text-purple-500"></i>
+                        <span id="navText_game">Game BISINDO</span>
+                    </div>
+                    <span class="px-2 py-0.5 rounded-full bg-purple-500 text-white text-[9px] font-bold">Baru</span>
+                </a>
+
+                <a href="sertifikat.html" class="flex items-center gap-3 px-3.5 py-3 rounded-2xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all text-slate-600 dark:text-slate-300">
+                    <i class="fa-solid fa-award text-sm"></i>
+                    <span id="navText_sertifikat">Verifikasi Sertifikat</span>
+                </a>
+
+                <div id="adminNavSection" class="pt-4 space-y-1 hidden">
+                    <div class="text-[10px] font-bold text-tigpad uppercase tracking-wider px-3 py-1 flex items-center gap-1">
+                        <i class="fa-solid fa-shield-halved"></i> Khusus Admin
+                    </div>
+                    <a href="users.html" class="flex items-center gap-3 px-3.5 py-3 rounded-2xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all text-slate-600 dark:text-slate-300">
+                        <i class="fa-solid fa-users-gear text-sm"></i>
+                        <span>Kelola User UNPAD</span>
+                    </a>
+                </div>
+
+                <div id="reportNavSection" class="pt-2 space-y-1 hidden">
+                    <a href="reports.html" class="flex items-center gap-3 px-3.5 py-3 rounded-2xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all text-slate-600 dark:text-slate-300">
+                        <i class="fa-solid fa-file-invoice-dollar text-sm"></i>
+                        <span>Laporan Peserta</span>
+                    </a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content Area: Kuis -->
+        <main class="md:col-span-9 space-y-6">
+            
+            <!-- PESERTA VIEW FOR QUIZ -->
+            <div id="pesertaQuizSection" class="space-y-6">
+
+                <!-- QUIZ LIST SELECTOR FOR PESERTA -->
+                <div id="quizListScreen" class="space-y-6">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
+                        <div>
+                            <span class="px-3 py-1 rounded-full bg-tigpad/15 text-tigpad text-xs font-bold border border-tigpad/30 inline-block mb-1">
+                                <i class="fa-solid fa-stopwatch-20"></i> Evaluasi Pembelajaran BISINDO
+                            </span>
+                            <h1 class="text-2xl sm:text-3xl font-black tracking-tight">Daftar Kuis Evaluasi Mahasiswa</h1>
+                            <p class="text-xs sm:text-sm text-slate-500">Pilih modul kuis yang sudah dibuka oleh Mentor/Admin untuk mulai mengerjakan.</p>
+                        </div>
+                    </div>
+
+                    <!-- Quiz Cards Grid -->
+                    <div id="pesertaQuizGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <!-- PRE-QUIZ START SCREEN (Ready & Anti-Cheat Instructions) -->
+                <div id="quizStartScreen" class="hidden glass-card p-6 sm:p-8 rounded-3xl space-y-6 text-center max-w-2xl mx-auto border-2 border-syarat/30">
+                    <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-syarat to-tigpad text-white flex items-center justify-center text-3xl font-bold mx-auto shadow-xl">
+                        <i class="fa-solid fa-stopwatch-20"></i>
+                    </div>
+
+                    <div class="space-y-2">
+                        <span class="px-3 py-1 rounded-full bg-tigpad/15 text-tigpad text-xs font-bold border border-tigpad/30">Kuis Evaluasi Resmi UNPAD</span>
+                        <h1 id="selectedQuizTitleHeader" class="text-2xl sm:text-3xl font-black">Ujian Kuis BISINDO Komprehensif</h1>
+                        <p id="selectedQuizDescHeader" class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                            Pastikan Anda berada di lokasi yang kondusif dan koneksi stabil sebelum memulai ujian.
+                        </p>
+                    </div>
+
+                    <!-- Anti-Cheat Rules Box -->
+                    <div class="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-left text-xs space-y-2 text-slate-700 dark:text-slate-300">
+                        <div class="font-bold text-red-500 flex items-center gap-2">
+                            <i class="fa-solid fa-shield-halved text-base"></i> Aturan Ketat Anti-Curang (Proctored):
+                        </div>
+                        <ul class="list-disc list-inside space-y-1 text-[11px]">
+                            <li><strong>Timer Real-Time:</strong> Timer berjalan terus begitu Anda menekan tombol Start.</li>
+                            <li><strong>Kunci Anti-Refresh:</strong> Merefresh halaman <em>TIDAK AKAN</em> mereset waktu ujian. Timer tetap berjalan.</li>
+                            <li><strong>Satu Kali Kesempatan:</strong> Jawaban yang telah dikirim bersifat final dan menentukan kelulusan sertifikat.</li>
+                        </ul>
+                    </div>
+
+                    <div class="flex gap-3">
+                        <button onclick="backToQuizList()" class="px-5 py-3 rounded-2xl font-bold text-xs border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">
+                            ← Kembali
+                        </button>
+                        <button onclick="startQuizSession()" class="btn-duotone flex-1 py-3 rounded-2xl font-bold text-sm shadow-xl flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-play"></i>
+                            <span>Saya Siap • Mulai Ujian Sekarang</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- COMPLETED QUIZ RESULT SCREEN (Shown when already submitted) -->
+                <div id="quizCompletedScreen" class="hidden glass-card p-8 rounded-3xl space-y-6 text-center max-w-2xl mx-auto border-2 border-green-500/40">
+                    <div class="w-16 h-16 rounded-2xl bg-green-500 text-white flex items-center justify-center text-3xl font-bold mx-auto shadow-xl">
+                        <i class="fa-solid fa-circle-check"></i>
+                    </div>
+
+                    <div class="space-y-2">
+                        <span class="px-3 py-1 rounded-full bg-green-500/15 text-green-600 dark:text-green-400 text-xs font-bold">Kuis Telah Dikerjakan</span>
+                        <h2 id="completedQuizTitleDisplay" class="text-2xl font-black">Hasil Evaluasi Kuis BISINDO</h2>
+                        <div class="text-4xl font-black text-syarat dark:text-syarat-light pt-2" id="quizFinalScoreDisplay">85 / 100</div>
+                        <p class="text-xs text-slate-500">Status: <strong class="text-green-500">LULUS (≥ 70)</strong> • Sertifikat Resmi Dapat Diterbitkan</p>
+                    </div>
+
+                    <div class="pt-2 flex justify-center gap-3">
+                        <button onclick="backToQuizList()" class="px-5 py-2.5 rounded-xl font-bold text-xs border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800">
+                            ← Pilih Kuis Lain
+                        </button>
+                        <a href="sertifikat.html" class="btn-duotone px-6 py-2.5 rounded-xl font-bold text-xs inline-flex items-center gap-2 shadow-lg">
+                            <i class="fa-solid fa-award"></i>
+                            <span>Lihat Sertifikat Saya →</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- ACTIVE QUIZ ENGINE CONTAINER (Hidden until start clicked) -->
+                <div id="quizActiveContainer" class="hidden space-y-6">
+                    <!-- Quiz Header Card -->
+                    <div class="glass-card p-6 rounded-3xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-2 border-tigpad/40">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="px-2.5 py-1 rounded-full bg-syarat text-white text-[10px] font-bold">Ujian Berlangsung</span>
+                                <span class="text-xs text-slate-500 font-semibold">• Mode Terkunci Anti-Curang</span>
+                            </div>
+                            <h1 id="activeQuizTitleHeader" class="text-xl font-black mt-1">Ujian Kuis Evaluasi Komprehensif BISINDO</h1>
+                        </div>
+
+                        <!-- Quiz Countdown Timer -->
+                        <div id="quizTimerBadge" class="p-3 rounded-2xl bg-white dark:bg-slate-900 text-slate-800 dark:text-white font-mono flex items-center gap-3 border border-slate-200 dark:border-slate-800 shadow-sm">
+                            <i class="fa-solid fa-stopwatch text-tigpad text-lg animate-pulse"></i>
+                            <div>
+                                <div class="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-sans font-bold">Sisa Waktu Timer</div>
+                                <div id="timerDisplay" class="text-lg font-black text-tigpad">15:00</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                        <div class="lg:col-span-8 glass-card p-6 sm:p-8 rounded-3xl space-y-8">
+                            
+                            <div class="space-y-2">
+                                <div class="flex justify-between text-xs font-bold">
+                                    <span>Progress Jawaban Terisi</span>
+                                    <span id="quizProgressText" class="text-tigpad">0 / 3 Soal (0%)</span>
+                                </div>
+                                <div class="w-full bg-slate-200 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
+                                    <div id="quizProgressBar" class="bg-gradient-to-r from-syarat to-tigpad h-full w-0 transition-all duration-300"></div>
+                                </div>
+                            </div>
+
+                            <div id="quizValidationError" class="hidden p-4 rounded-2xl bg-red-500/15 border border-red-500/30 text-red-500 text-xs font-bold flex items-center gap-2 animate-bounce">
+                                <i class="fa-solid fa-triangle-exclamation text-base"></i>
+                                <span id="quizValidationMsg">Masih ada soal yang belum dijawab! Mohon lengkapi seluruh soal.</span>
+                            </div>
+
+                            <form id="quizForm" class="space-y-8">
+                                
+                                <!-- Question 1 -->
+                                <div id="question_box_1" class="p-5 rounded-2xl bg-white/90 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-4 shadow-sm">
+                                    <div class="flex justify-between items-center">
+                                        <span class="px-2.5 py-1 rounded-full bg-syarat text-white text-[10px] font-bold">Soal 1 • Pilihan Ganda</span>
+                                        <span class="text-xs font-mono text-slate-500 dark:text-slate-400">Bobot: 33.3 Poin</span>
+                                    </div>
+                                    <h3 class="font-extrabold text-sm sm:text-base">
+                                        Bentuk gestur tangan membentuk lingkaran dengan ibu jari dan jari telunjuk saling menyentuh mewakili huruf apakah dalam BISINDO?
+                                    </h3>
+                                    <div class="space-y-2 text-xs">
+                                        <label class="flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-tigpad transition-all">
+                                            <input type="radio" name="q1" value="A" onchange="updateQuizProgress()" class="radio radio-xs radio-primary">
+                                            <span>A. Huruf 'O'</span>
+                                        </label>
+                                        <label class="flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-tigpad transition-all">
+                                            <input type="radio" name="q1" value="B" onchange="updateQuizProgress()" class="radio radio-xs radio-primary">
+                                            <span>B. Huruf 'A'</span>
+                                        </label>
+                                        <label class="flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-tigpad transition-all">
+                                            <input type="radio" name="q1" value="C" onchange="updateQuizProgress()" class="radio radio-xs radio-primary">
+                                            <span>C. Huruf 'C'</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <!-- Question 2 -->
+                                <div id="question_box_2" class="p-5 rounded-2xl bg-white/90 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-4 shadow-sm">
+                                    <div class="flex justify-between items-center">
+                                        <span class="px-2.5 py-1 rounded-full bg-syarat text-white text-[10px] font-bold">Soal 2 • Benar / Salah</span>
+                                        <span class="text-xs font-mono text-slate-500 dark:text-slate-400">Bobot: 33.3 Poin</span>
+                                    </div>
+                                    <h3 class="font-extrabold text-sm sm:text-base">
+                                        Dalam BISINDO, ekspresi wajah (non-manual markers) tidak memiliki pengaruh terhadap makna kalimat isyarat yang disampaikan.
+                                    </h3>
+                                    <div class="grid grid-cols-2 gap-3 text-xs">
+                                        <label class="flex items-center justify-center gap-2 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-tigpad transition-all font-bold">
+                                            <input type="radio" name="q2" value="BENAR" onchange="updateQuizProgress()" class="radio radio-xs radio-primary">
+                                            <span>BENAR</span>
+                                        </label>
+                                        <label class="flex items-center justify-center gap-2 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-tigpad transition-all font-bold">
+                                            <input type="radio" name="q2" value="SALAH" onchange="updateQuizProgress()" class="radio radio-xs radio-primary">
+                                            <span>SALAH</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <!-- Question 3 -->
+                                <div id="question_box_3" class="p-5 rounded-2xl bg-white/90 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-4 shadow-sm">
+                                    <div class="flex justify-between items-center">
+                                        <span class="px-2.5 py-1 rounded-full bg-syarat text-white text-[10px] font-bold">Soal 3 • Esai Singkat</span>
+                                        <span class="text-xs font-mono text-slate-500 dark:text-slate-400">Bobot: 33.4 Poin</span>
+                                    </div>
+                                    <h3 class="font-extrabold text-sm sm:text-base">
+                                        Jelaskan pentingnya menerapkan etika dan kontak mata saat berkomunikasi menggunakan bahasa isyarat dengan teman Tuli di kampus UNPAD!
+                                    </h3>
+                                    <textarea name="q3" rows="3" oninput="updateQuizProgress()" placeholder="Tuliskan jawaban esai Anda di sini..." class="w-full p-3 rounded-xl bg-white dark:bg-slate-800/50 border border-slate-300 dark:border-slate-700 text-xs focus:ring-2 focus:ring-tigpad"></textarea>
+                                </div>
+
+                                <button type="button" onclick="submitQuiz()" class="btn-duotone w-full py-4 rounded-2xl font-bold text-sm shadow-xl flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-paper-plane"></i>
+                                    <span>Kirim Jawaban Kuis Evaluasi</span>
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Navigator Grid -->
+                        <div class="lg:col-span-4 glass-card p-6 rounded-3xl space-y-6 h-fit">
+                            <h3 class="font-bold text-sm border-b border-slate-200 dark:border-slate-800 pb-3 flex items-center justify-between">
+                                <span>Navigasi Soal</span>
+                                <span class="text-[10px] text-slate-400">Total 3 Soal</span>
+                            </h3>
+
+                            <div class="grid grid-cols-3 gap-3">
+                                <button onclick="scrollToQuestion(1)" id="navNum1" class="py-3 rounded-xl border border-slate-300 dark:border-slate-700 font-extrabold text-sm flex flex-col items-center gap-1 bg-red-500/10 text-red-500 border-red-500/30">
+                                    <span>1</span>
+                                    <span class="text-[9px] font-normal">Belum</span>
+                                </button>
+
+                                <button onclick="scrollToQuestion(2)" id="navNum2" class="py-3 rounded-xl border border-slate-300 dark:border-slate-700 font-extrabold text-sm flex flex-col items-center gap-1 bg-red-500/10 text-red-500 border-red-500/30">
+                                    <span>2</span>
+                                    <span class="text-[9px] font-normal">Belum</span>
+                                </button>
+
+                                <button onclick="scrollToQuestion(3)" id="navNum3" class="py-3 rounded-xl border border-slate-300 dark:border-slate-700 font-extrabold text-sm flex flex-col items-center gap-1 bg-red-500/10 text-red-500 border-red-500/30">
+                                    <span>3</span>
+                                    <span class="text-[9px] font-normal">Belum</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MENTOR & ADMIN VIEW FOR BANK SOAL & KUIS CONTROL -->
+            <div id="mentorQuizManagementSection" class="space-y-6 hidden">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
+                    <div>
+                        <span class="px-3 py-1 rounded-full bg-tigpad/15 text-tigpad text-xs font-bold border border-tigpad/30 inline-block mb-1">
+                            <i class="fa-solid fa-sliders"></i> Panel Mentor / Admin
+                        </span>
+                        <h1 class="text-2xl font-black">Kelola Paket Kuis & Bank Soal</h1>
+                        <p class="text-xs text-slate-500">Klik paket kuis untuk mengelola, mengedit, menghapus, atau menambah soal kuis.</p>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <button onclick="openAddQuizModal()" class="btn-duotone px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 shadow-lg">
+                            <i class="fa-solid fa-folder-plus"></i>
+                            <span>+ Buat Paket Kuis Baru</span>
+                        </button>
+                        <button onclick="openAddQuestionModal()" class="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold flex items-center gap-2 shadow-lg transition-all">
+                            <i class="fa-solid fa-plus"></i>
+                            <span>+ Tambah Soal ke Bank</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- SCREEN 1: Quiz List Grid for Mentor -->
+                <div id="mentorQuizListScreen" class="space-y-4">
+                    <h3 class="font-extrabold text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-layer-group text-syarat"></i> Daftar Paket Kuis Aktif (Klik Paket Untuk Masuk & Edit Soal)
+                    </h3>
+
+                    <div id="mentorQuizGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <!-- SCREEN 2: Quiz Detail & Question Editor for Mentor -->
+                <div id="mentorQuizDetailScreen" class="space-y-6 hidden">
+                    <div class="flex items-center justify-between gap-4 bg-slate-200/50 dark:bg-slate-900/50 p-4 rounded-2xl border border-slate-300 dark:border-slate-800">
+                        <button onclick="backToMentorQuizList()" class="px-4 py-2 rounded-xl font-bold text-xs border border-slate-300 dark:border-slate-700 hover:bg-white dark:hover:bg-slate-800 transition-all flex items-center gap-2">
+                            <i class="fa-solid fa-arrow-left"></i> Kembali ke Daftar Paket Kuis
+                        </button>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <button onclick="openEditQuizModal(currentMentorQuizId)" class="px-3.5 py-2 rounded-xl text-xs font-bold border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-1.5">
+                                <i class="fa-solid fa-pen-to-square text-syarat"></i> Edit Info Paket
+                            </button>
+                            <button onclick="openAddQuestionModal(currentMentorQuizId)" class="btn-duotone px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-md">
+                                <i class="fa-solid fa-plus"></i> + Tambah Soal Baru
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Quiz Detail Banner -->
+                    <div id="mentorQuizDetailBanner" class="glass-card p-6 rounded-3xl space-y-3 border-2 border-syarat/30">
+                        <!-- Populated by JS -->
+                    </div>
+
+                    <!-- Questions List Container -->
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <h3 class="font-extrabold text-sm flex items-center gap-2">
+                                <i class="fa-solid fa-list-check text-tigpad"></i> Daftar Pertanyaan Soal Dalam Paket Ini
+                            </h3>
+                            <span id="questionCountBadge" class="px-3 py-1 rounded-full bg-syarat/10 text-syarat dark:text-syarat-light text-xs font-bold">0 Soal</span>
+                        </div>
+
+                        <div id="mentorQuestionsContainer" class="space-y-4">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- MODAL: BUAT PAKET KUIS BARU -->
+    <dialog id="addQuizModal" class="modal">
+        <div class="modal-box glass-card p-6 rounded-3xl max-w-md space-y-4">
+            <h3 class="font-extrabold text-base text-tigpad flex items-center gap-2">
+                <i class="fa-solid fa-folder-plus"></i> Buat Paket Kuis Evaluasi Baru
+            </h3>
+            <form onsubmit="handleAddQuizSubmit(event)" class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-bold mb-1">Judul Paket Kuis</label>
+                    <input id="newQuizTitle" type="text" placeholder="Contoh: Kuis 4: Evaluasi Modul 4" required class="input input-bordered input-sm w-full text-xs" />
+                </div>
+                <div>
+                    <label class="block font-bold mb-1">Deskripsi Singkat</label>
+                    <textarea id="newQuizDesc" rows="2" placeholder="Jelaskan cakupan materi kuis..." required class="textarea textarea-bordered w-full text-xs"></textarea>
+                </div>
+                <div>
+                    <label class="block font-bold mb-1">Waktu Timer (Menit)</label>
+                    <input id="newQuizDuration" type="number" min="5" max="180" value="20" required class="input input-bordered input-sm w-full text-xs" />
+                </div>
+                <div>
+                    <label class="block font-bold mb-1">Status Akses Awal</label>
+                    <select id="newQuizStatus" class="select select-bordered select-sm w-full text-xs">
+                        <option value="open">🟢 Langsung DIBUKA (Peserta BISA Mengerjakan)</option>
+                        <option value="locked" selected>🔒 DIKUNCI (Perlu Dibuka Mentor Nanti)</option>
+                    </select>
+                </div>
+
+                <div class="modal-action pt-2">
+                    <button type="button" onclick="document.getElementById('addQuizModal').close()" class="px-4 py-2 rounded-xl text-xs font-bold border border-slate-300 dark:border-slate-700">Batal</button>
+                    <button type="submit" class="btn-duotone px-5 py-2 rounded-xl text-xs font-bold">Simpan Paket Kuis</button>
+                </div>
+            </form>
+        </div>
+    </dialog>
+
+    <!-- MODAL: EDIT PAKET KUIS -->
+    <dialog id="editQuizModal" class="modal">
+        <div class="modal-box glass-card p-6 rounded-3xl max-w-md space-y-4">
+            <h3 class="font-extrabold text-base text-tigpad flex items-center gap-2">
+                <i class="fa-solid fa-pen-to-square"></i> Edit Info Paket Kuis
+            </h3>
+            <form onsubmit="handleEditQuizSubmit(event)" class="space-y-3 text-xs">
+                <input type="hidden" id="editQuizId" value="" />
+                <div>
+                    <label class="block font-bold mb-1">Judul Paket Kuis</label>
+                    <input id="editQuizTitle" type="text" required class="input input-bordered input-sm w-full text-xs" />
+                </div>
+                <div>
+                    <label class="block font-bold mb-1">Deskripsi Singkat</label>
+                    <textarea id="editQuizDesc" rows="2" required class="textarea textarea-bordered w-full text-xs"></textarea>
+                </div>
+                <div>
+                    <label class="block font-bold mb-1">Waktu Timer (Menit)</label>
+                    <input id="editQuizDuration" type="number" min="5" max="180" required class="input input-bordered input-sm w-full text-xs" />
+                </div>
+                <div>
+                    <label class="block font-bold mb-1">Status Akses Mahasiswa</label>
+                    <select id="editQuizStatus" class="select select-bordered select-sm w-full text-xs">
+                        <option value="open">🟢 DIBUKA (Peserta BISA Mengerjakan)</option>
+                        <option value="locked">🔒 DIKUNCI (Peserta TIDAK BISA Mengerjakan)</option>
+                    </select>
+                </div>
+
+                <div class="modal-action pt-2">
+                    <button type="button" onclick="document.getElementById('editQuizModal').close()" class="px-4 py-2 rounded-xl text-xs font-bold border border-slate-300 dark:border-slate-700">Batal</button>
+                    <button type="submit" class="btn-duotone px-5 py-2 rounded-xl text-xs font-bold">Simpan Perubahan</button>
+                </div>
+            </form>
+        </div>
+    </dialog>
+
+    <!-- MODAL: TAMBAH / EDIT SOAL KUIS -->
+    <dialog id="questionModal" class="modal">
+        <div class="modal-box glass-card p-6 rounded-3xl max-w-lg space-y-4">
+            <h3 class="font-extrabold text-base text-tigpad flex items-center gap-2">
+                <i class="fa-solid fa-circle-question"></i> <span id="questionModalTitleText">Tambah Soal Kuis Baru</span>
+            </h3>
+            <form onsubmit="handleQuestionSubmit(event)" class="space-y-4 text-xs">
+                <input type="hidden" id="questionEditId" value="" />
+                
+                <div>
+                    <label class="block font-bold mb-1">Paket Kuis Target</label>
+                    <select id="questionQuizTarget" class="select select-bordered select-sm w-full text-xs font-semibold">
+                        <!-- Populated by JS -->
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold mb-1">Tipe Soal</label>
+                        <select id="questionType" onchange="toggleQuestionTypeFields()" class="select select-bordered select-sm w-full text-xs">
+                            <option value="Pilihan Ganda">Pilihan Ganda</option>
+                            <option value="Benar / Salah">Benar / Salah</option>
+                            <option value="Esai Singkat">Esai Singkat</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold mb-1">Bobot Poin Soal</label>
+                        <input id="questionPoints" type="number" step="0.1" min="1" max="100" value="25" required class="input input-bordered input-sm w-full text-xs" />
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-bold mb-1">Pertanyaan Soal</label>
+                    <textarea id="questionText" required placeholder="Tuliskan teks pertanyaan soal di sini..." rows="3" class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs focus:ring-2 focus:ring-tigpad"></textarea>
+                </div>
+
+                <!-- Dynamic Fields for Pilihan Ganda Options -->
+                <div id="optionsContainer" class="space-y-2.5 p-3.5 rounded-2xl bg-slate-100 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800">
+                    <label class="block font-bold text-slate-700 dark:text-slate-200">Pilihan Jawaban (A, B, C, D)</label>
+                    <div class="space-y-2">
+                        <div class="flex items-center gap-2">
+                            <span class="font-black text-syarat w-5 text-center">A.</span>
+                            <input id="optA" type="text" placeholder="Pilihan Jawaban A" class="input input-bordered input-xs flex-1 text-xs" />
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="font-black text-syarat w-5 text-center">B.</span>
+                            <input id="optB" type="text" placeholder="Pilihan Jawaban B" class="input input-bordered input-xs flex-1 text-xs" />
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="font-black text-syarat w-5 text-center">C.</span>
+                            <input id="optC" type="text" placeholder="Pilihan Jawaban C" class="input input-bordered input-xs flex-1 text-xs" />
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="font-black text-syarat w-5 text-center">D.</span>
+                            <input id="optD" type="text" placeholder="Pilihan Jawaban D" class="input input-bordered input-xs flex-1 text-xs" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Correct Answer Selection -->
+                <div id="correctAnswerContainer" class="p-3.5 rounded-2xl bg-green-500/10 border border-green-500/20 space-y-1.5">
+                    <label class="block font-bold text-green-700 dark:text-green-400">Kunci Jawaban Benar</label>
+                    <div id="selectAnswerBox">
+                        <select id="correctAnswerSelect" class="select select-bordered select-sm w-full text-xs font-bold">
+                            <!-- Populated by JS -->
+                        </select>
+                    </div>
+                    <div id="essayKeyContainer" class="hidden">
+                        <input id="essayKeyInput" type="text" placeholder="Masukkan acuan jawaban esai..." class="input input-bordered input-sm w-full text-xs" />
+                    </div>
+                </div>
+
+                <div class="modal-action pt-2">
+                    <button type="button" onclick="document.getElementById('questionModal').close()" class="px-4 py-2 rounded-xl text-xs font-bold border border-slate-300 dark:border-slate-700">Batal</button>
+                    <button type="submit" class="btn-duotone px-5 py-2 rounded-xl text-xs font-bold shadow-md">Simpan Soal</button>
+                </div>
+            </form>
+        </div>
+    </dialog>
+
+    <script>
+        let currentRole = localStorage.getItem('kolab_role') || 'peserta';
+        let quizTimerInterval = null;
+        let selectedQuizId = 1;
+        let currentMentorQuizId = 1;
+        const TOTAL_QUIZ_SECONDS = 30 * 60; // 30 Menit
+
+        const DEFAULT_QUIZZES = [
+            {
+                id: 1,
+                title: "Kuis 1: Pengenalan Abjad & Gestur Tangan",
+                desc: "Evaluasi dasar mengenai gestur jemari tangan A-Z dan pemahaman isyarat dasar BISINDO.",
+                soalCount: 3,
+                durationMinutes: 15,
+                status: "open",
+                questions: [
+                    {
+                        id: 101,
+                        type: "Pilihan Ganda",
+                        question: "Bentuk gestur tangan membentuk lingkaran dengan ibu jari dan jari telunjuk saling menyentuh mewakili huruf apakah dalam BISINDO?",
+                        options: ["Huruf 'O'", "Huruf 'A'", "Huruf 'C'", "Huruf 'D'"],
+                        correctAnswer: "A",
+                        points: 33.3
+                    },
+                    {
+                        id: 102,
+                        type: "Benar / Salah",
+                        question: "Dalam BISINDO, ekspresi wajah (non-manual markers) tidak memiliki pengaruh terhadap makna kalimat isyarat yang disampaikan.",
+                        options: ["BENAR", "SALAH"],
+                        correctAnswer: "SALAH",
+                        points: 33.3
+                    },
+                    {
+                        id: 103,
+                        type: "Esai Singkat",
+                        question: "Jelaskan pentingnya menerapkan etika dan kontak mata saat berkomunikasi menggunakan bahasa isyarat dengan teman Tuli di kampus UNPAD!",
+                        options: [],
+                        correctAnswer: "Kontak mata menunjukkan rasa hormat, perhatian penuh, dan keterlibatan aktif saat berkomunikasi.",
+                        points: 33.4
+                    }
+                ]
+            },
+            {
+                id: 2,
+                title: "Kuis 2: Kosakata & Interaksi Lingkungan Kampus",
+                desc: "Evaluasi mengenai kosakata di perpustakaan, ruang kuliah, dan sapaan sivitas akademika UNPAD.",
+                soalCount: 2,
+                durationMinutes: 20,
+                status: "locked",
+                questions: [
+                    {
+                        id: 201,
+                        type: "Pilihan Ganda",
+                        question: "Isyarat menyilangkan kedua telapak tangan di dada sambil tersenyum ramah melambangkan ungkapan apa?",
+                        options: ["Terima Kasih Banyak", "Selamat Datang & Salam Hangat", "Mohon Maaf", "Sampai Jumpa"],
+                        correctAnswer: "B",
+                        points: 50.0
+                    },
+                    {
+                        id: 202,
+                        type: "Benar / Salah",
+                        question: "Saat menyapa teman Tuli di area kampus UNPAD, menepuk pundak secara perlahan adalah cara yang sopan untuk mendapatkan perhatian.",
+                        options: ["BENAR", "SALAH"],
+                        correctAnswer: "BENAR",
+                        points: 50.0
+                    }
+                ]
+            },
+            {
+                id: 3,
+                title: "Kuis 3: Ujian Komprehensif Sertifikasi UNPAD",
+                desc: "Ujian evaluasi akhir untuk pemenuhan kelayakan penerbitan sertifikat resmi.",
+                soalCount: 2,
+                durationMinutes: 30,
+                status: "locked",
+                questions: [
+                    {
+                        id: 301,
+                        type: "Pilihan Ganda",
+                        question: "Apa tujuan utama dari program kolaborasi KOLAB SYARAT X TIGPAD UNPAD?",
+                        options: ["Menciptakan lingkungan kampus inklusif dan ramah disabilitas Tuli", "Pelatihan olahraga mahasiswa", "Pengembangan kompetensi bisnis digital", "Pementasan teater budaya"],
+                        correctAnswer: "A",
+                        points: 50.0
+                    },
+                    {
+                        id: 302,
+                        type: "Benar / Salah",
+                        question: "Peserta yang berhasil menyelesaikan seluruh kuis evaluasi dengan batas nilai minimal 70 berhak mengunduh sertifikat resmi berkode verifikasi.",
+                        options: ["BENAR", "SALAH"],
+                        correctAnswer: "BENAR",
+                        points: 50.0
+                    }
+                ]
+            }
+        ];
+
+        function getQuizzesData() {
+            try {
+                const saved = localStorage.getItem('kolab_quizzes_data');
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        return parsed.map(q => {
+                            if (!q.questions || !Array.isArray(q.questions)) {
+                                const defaultMatch = DEFAULT_QUIZZES.find(d => d.id === q.id);
+                                q.questions = defaultMatch ? defaultMatch.questions : [];
+                            }
+                            q.soalCount = q.questions.length;
+                            return q;
+                        });
+                    }
+                }
+            } catch(e) {}
+            return DEFAULT_QUIZZES;
+        }
+
+        function saveQuizzesData(data) {
+            localStorage.setItem('kolab_quizzes_data', JSON.stringify(data));
+            renderQuizzesUI();
+        }
+
+        function initApp() {
+            initTheme();
+            applyRoleUI(currentRole);
+            renderQuizzesUI();
+            checkQuizSessionStatus();
+            loadSavedProfilePhoto();
+        }
+
+        function initTheme() {
+            const savedTheme = localStorage.getItem('kolab_theme') || 'light';
+            if (savedTheme === 'dark') {
+                document.documentElement.classList.add('dark');
+                document.documentElement.setAttribute('data-theme', 'dark');
+                document.getElementById('themeIcon').className = 'fa-solid fa-sun text-amber-400 text-base';
+            } else {
+                document.documentElement.classList.remove('dark');
+                document.documentElement.setAttribute('data-theme', 'light');
+                document.getElementById('themeIcon').className = 'fa-solid fa-moon text-slate-700 text-base';
+            }
+        }
+
+        function toggleDarkMode() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+            localStorage.setItem('kolab_theme', isDark ? 'dark' : 'light');
+            const icon = document.getElementById('themeIcon');
+            icon.className = isDark ? 'fa-solid fa-sun text-amber-400 text-base' : 'fa-solid fa-moon text-slate-700 text-base';
+        }
+
+        function toggleMobileSidebar() {
+            let mobileDrawer = document.getElementById('mobileSidebarDrawer');
+            if (!mobileDrawer) {
+                mobileDrawer = document.createElement('div');
+                mobileDrawer.id = 'mobileSidebarDrawer';
+                mobileDrawer.className = 'fixed inset-0 z-50 flex md:hidden';
+                mobileDrawer.innerHTML = `
+                    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="toggleMobileSidebar()"></div>
+                    <div class="relative w-72 max-w-[80vw] bg-white dark:bg-slate-900 h-full p-5 space-y-6 shadow-2xl flex flex-col justify-between overflow-y-auto z-10">
+                        <div class="space-y-6">
+                            <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
+                                <div class="flex items-center gap-2 font-black text-syarat dark:text-syarat-light text-base">
+                                    <i class="fa-solid fa-hands-asl-interpreting"></i> KOLAB UNPAD
+                                </div>
+                                <button onclick="toggleMobileSidebar()" class="p-2 text-slate-500 hover:text-red-500">
+                                    <i class="fa-solid fa-xmark text-lg"></i>
+                                </button>
+                            </div>
+                            ${document.getElementById('sidebarNav').innerHTML}
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(mobileDrawer);
+            } else {
+                mobileDrawer.classList.toggle('hidden');
+            }
+        }
+
+        function applyRoleUI(role) {
+            const userNameHeader = document.getElementById('userNameHeader');
+            const dropdownHeaderName = document.getElementById('dropdownHeaderName');
+            const userRoleBadge = document.getElementById('userRoleBadge');
+            const userEmailDropdown = document.getElementById('userEmailDropdown');
+            const sidebarRoleTitle = document.getElementById('sidebarRoleTitle');
+            const sidebarRoleIcon = document.getElementById('sidebarRoleIcon');
+            const adminNavSection = document.getElementById('adminNavSection');
+            const reportNavSection = document.getElementById('reportNavSection');
+            const navItemProfile = document.getElementById('navItem_profile');
+            const dropdownProfileItem = document.getElementById('dropdownProfileItem');
+
+            const navTextModul = document.getElementById('navText_modul');
+            const navTextZoom = document.getElementById('navText_zoom');
+            const navTextKuis = document.getElementById('navText_kuis');
+            const navTextGame = document.getElementById('navText_game');
+
+            if (role === 'peserta') {
+                userNameHeader.innerText = "Rina Rahmawati";
+                if(dropdownHeaderName) dropdownHeaderName.innerText = "Rina Rahmawati";
+                userRoleBadge.innerText = "Mahasiswa (Peserta)";
+                userEmailDropdown.innerText = "rina.rahmawati@unpad.ac.id";
+                sidebarRoleTitle.innerText = "Mode Peserta";
+                sidebarRoleIcon.className = "fa-solid fa-user-graduate";
+
+                if (navItemProfile) navItemProfile.classList.remove('hidden');
+                if (dropdownProfileItem) dropdownProfileItem.classList.remove('hidden');
+                
+                navTextModul.innerText = "Modul Video & PDF";
+                navTextZoom.innerText = "Zoom & Presensi";
+                navTextKuis.innerText = "Kuis Evaluasi";
+                if (navTextGame) navTextGame.innerText = "Game BISINDO";
+
+                document.getElementById('pesertaQuizSection').classList.remove('hidden');
+                document.getElementById('mentorQuizManagementSection').classList.add('hidden');
+                adminNavSection.classList.add('hidden');
+                reportNavSection.classList.add('hidden');
+            } else if (role === 'mentor' || role === 'admin') {
+                const isMentor = role === 'mentor';
+                userNameHeader.innerText = isMentor ? "Budi Santoso" : "Engkus Kuswandi";
+                if(dropdownHeaderName) dropdownHeaderName.innerText = isMentor ? "Budi Santoso" : "Engkus Kuswandi";
+                userRoleBadge.innerText = isMentor ? "Mentor BISINDO" : "Administrator";
+                userEmailDropdown.innerText = isMentor ? "mentor@unpad.ac.id" : "admin@unpad.ac.id";
+                sidebarRoleTitle.innerText = isMentor ? "Mode Mentor" : "Mode Admin";
+                sidebarRoleIcon.className = isMentor ? "fa-solid fa-chalkboard-user" : "fa-solid fa-user-shield";
+
+                if (isMentor) {
+                    if (navItemProfile) navItemProfile.classList.remove('hidden');
+                    if (dropdownProfileItem) dropdownProfileItem.classList.remove('hidden');
+                } else {
+                    if (navItemProfile) navItemProfile.classList.add('hidden');
+                    if (dropdownProfileItem) dropdownProfileItem.classList.add('hidden');
+                }
+
+                navTextModul.innerText = "Kelola Modul";
+                navTextZoom.innerText = "Kelola Zoom & Presensi";
+                navTextKuis.innerText = "Kelola Kuis & Soal";
+                if (navTextGame) navTextGame.innerText = "Kelola Game";
+
+                document.getElementById('pesertaQuizSection').classList.add('hidden');
+                document.getElementById('mentorQuizManagementSection').classList.remove('hidden');
+                reportNavSection.classList.remove('hidden');
+                if (role === 'admin') adminNavSection.classList.remove('hidden');
+            }
+        }
+
+        // RENDER MULTI-QUIZ UI FOR BOTH ROLES
+        function renderQuizzesUI() {
+            const quizzes = getQuizzesData();
+
+            // Render for Peserta Grid
+            const pesertaGrid = document.getElementById('pesertaQuizGrid');
+            if (pesertaGrid) {
+                pesertaGrid.innerHTML = quizzes.map(q => {
+                    const isOpen = q.status === 'open';
+                    return `
+                        <div class="glass-card p-6 rounded-3xl space-y-4 flex flex-col justify-between border-2 ${isOpen ? 'border-syarat/30' : 'border-slate-200 dark:border-slate-800 opacity-85'} shadow-sm hover:shadow-xl transition-all">
+                            <div class="space-y-3">
+                                <div class="flex justify-between items-start gap-2">
+                                    <span class="px-2.5 py-1 rounded-full text-[10px] font-bold border ${isOpen ? 'bg-green-500/15 text-green-600 border-green-500/30' : 'bg-red-500/15 text-red-600 border-red-500/30'} flex items-center gap-1">
+                                        <i class="fa-solid ${isOpen ? 'fa-lock-open' : 'fa-lock'}"></i> ${isOpen ? 'DIBUKA' : 'DIKUNCI MENTOR'}
+                                    </span>
+                                    <span class="text-[11px] font-bold text-slate-400"><i class="fa-solid fa-stopwatch"></i> ${q.durationMinutes} Menit</span>
+                                </div>
+                                <h3 class="font-black text-base text-slate-800 dark:text-white">${q.title}</h3>
+                                <p class="text-xs text-slate-500 leading-relaxed">${q.desc}</p>
+                            </div>
+
+                            <div class="space-y-3 pt-2">
+                                <div class="flex justify-between items-center text-[11px] font-bold border-t border-slate-200 dark:border-slate-800 pt-3">
+                                    <span class="text-slate-400"><i class="fa-solid fa-file-lines"></i> ${q.soalCount} Soal Evaluasi</span>
+                                    <span class="text-syarat dark:text-syarat-light">100 Poin Maksimal</span>
+                                </div>
+                                ${isOpen ? `
+                                    <button onclick="selectQuizToStart(${q.id})" class="btn-duotone w-full py-2.5 rounded-xl font-bold text-xs shadow-md flex items-center justify-center gap-2">
+                                        <i class="fa-solid fa-play"></i>
+                                        <span>Kerjakan Kuis Ini</span>
+                                    </button>
+                                ` : `
+                                    <button disabled class="w-full py-2.5 rounded-xl font-bold text-xs bg-slate-200 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 cursor-not-allowed flex items-center justify-center gap-2 border border-slate-300 dark:border-slate-700">
+                                        <i class="fa-solid fa-lock"></i>
+                                        <span>Dikunci oleh Mentor</span>
+                                    </button>
+                                `}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            // Render for Mentor Grid
+            const mentorGrid = document.getElementById('mentorQuizGrid');
+            if (mentorGrid) {
+                mentorGrid.innerHTML = quizzes.map(q => {
+                    const isOpen = q.status === 'open';
+                    return `
+                        <div class="glass-card p-6 rounded-3xl space-y-4 flex flex-col justify-between border-2 border-slate-200 dark:border-slate-800 hover:border-tigpad/50 shadow-sm transition-all">
+                            <div class="space-y-3">
+                                <div class="flex justify-between items-start gap-2">
+                                    <span class="px-2.5 py-1 rounded-full text-[10px] font-bold border ${isOpen ? 'bg-green-500/15 text-green-600 border-green-500/30' : 'bg-red-500/15 text-red-600 border-red-500/30'} flex items-center gap-1">
+                                        <i class="fa-solid ${isOpen ? 'fa-lock-open' : 'fa-lock'}"></i> ${isOpen ? 'Status: DIBUKA' : 'Status: DIKUNCI'}
+                                    </span>
+                                    <span class="text-[11px] font-bold text-slate-400"><i class="fa-solid fa-list-check"></i> ${q.soalCount} Soal • ${q.durationMinutes}m</span>
+                                </div>
+                                <h3 class="font-black text-base text-slate-800 dark:text-white">${q.title}</h3>
+                                <p class="text-xs text-slate-500 leading-relaxed">${q.desc}</p>
+                            </div>
+
+                            <div class="space-y-2 pt-3 border-t border-slate-200 dark:border-slate-800">
+                                <button onclick="openMentorQuizDetail(${q.id})" class="btn-duotone w-full py-2.5 rounded-xl font-bold text-xs shadow-md flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-folder-open"></i>
+                                    <span>Masuk & Kelola Soal (${q.soalCount} Soal) →</span>
+                                </button>
+                                
+                                <div class="flex items-center gap-2">
+                                    <button onclick="toggleQuizLockStatus(${q.id})" class="flex-1 py-2 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1.5 ${isOpen ? 'bg-red-500/15 text-red-600 border border-red-500/30 hover:bg-red-500/25' : 'bg-green-500/15 text-green-600 border border-green-500/30 hover:bg-green-500/25'}">
+                                        <i class="fa-solid ${isOpen ? 'fa-lock' : 'fa-lock-open'}"></i>
+                                        <span>${isOpen ? 'Kunci' : 'Buka'}</span>
+                                    </button>
+                                    <button onclick="openEditQuizModal(${q.id})" class="p-2 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-500 hover:text-syarat hover:border-syarat transition-all" title="Edit Info Paket">
+                                        <i class="fa-solid fa-pen-to-square"></i>
+                                    </button>
+                                    <button onclick="deleteQuizPackage(${q.id})" class="p-2 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-400 hover:text-red-500 hover:border-red-500 transition-all" title="Hapus Kuis">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            // Re-render detail screen if open
+            if (!document.getElementById('mentorQuizDetailScreen').classList.contains('hidden')) {
+                renderMentorQuizDetailScreen();
+            }
+        }
+
+        // MENTOR SCREEN NAVIGATION & DETAIL EDITOR
+        function openMentorQuizDetail(quizId) {
+            currentMentorQuizId = quizId;
+            document.getElementById('mentorQuizListScreen').classList.add('hidden');
+            document.getElementById('mentorQuizDetailScreen').classList.remove('hidden');
+            renderMentorQuizDetailScreen();
+        }
+
+        function backToMentorQuizList() {
+            document.getElementById('mentorQuizDetailScreen').classList.add('hidden');
+            document.getElementById('mentorQuizListScreen').classList.remove('hidden');
+        }
+
+        function renderMentorQuizDetailScreen() {
+            const quizzes = getQuizzesData();
+            const quiz = quizzes.find(q => q.id === currentMentorQuizId);
+            if (!quiz) {
+                backToMentorQuizList();
+                return;
+            }
+
+            const isOpen = quiz.status === 'open';
+            const banner = document.getElementById('mentorQuizDetailBanner');
+            banner.innerHTML = `
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-200 dark:border-slate-800 pb-3">
+                    <div class="space-y-1">
+                        <span class="px-2.5 py-1 rounded-full text-[10px] font-bold border ${isOpen ? 'bg-green-500/15 text-green-600 border-green-500/30' : 'bg-red-500/15 text-red-600 border-red-500/30'} inline-flex items-center gap-1">
+                            <i class="fa-solid ${isOpen ? 'fa-lock-open' : 'fa-lock'}"></i> ${isOpen ? 'Status: DIBUKA PESERTA' : 'Status: DIKUNCI'}
+                        </span>
+                        <h2 class="text-xl font-black text-slate-800 dark:text-white">${quiz.title}</h2>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="toggleQuizLockStatus(${quiz.id})" class="px-3 py-1.5 rounded-xl font-bold text-xs border ${isOpen ? 'bg-red-500/15 text-red-600 border-red-500/30' : 'bg-green-500/15 text-green-600 border-green-500/30'}">
+                            <i class="fa-solid ${isOpen ? 'fa-lock' : 'fa-lock-open'}"></i> ${isOpen ? 'Kunci Akses' : 'Buka Akses'}
+                        </button>
+                    </div>
+                </div>
+                <p class="text-xs text-slate-500 leading-relaxed">${quiz.desc}</p>
+                <div class="flex flex-wrap gap-4 text-xs font-bold text-slate-400 pt-1">
+                    <span><i class="fa-solid fa-stopwatch text-tigpad"></i> Waktu Timer: ${quiz.durationMinutes} Menit</span>
+                    <span><i class="fa-solid fa-list-check text-syarat"></i> Jumlah Soal: ${quiz.questions ? quiz.questions.length : 0} Pertanyaan</span>
+                </div>
+            `;
+
+            document.getElementById('questionCountBadge').innerText = `${quiz.questions ? quiz.questions.length : 0} Soal Tersedia`;
+            renderMentorQuestionsContainer(quiz);
+        }
+
+        function renderMentorQuestionsContainer(quiz) {
+            const container = document.getElementById('mentorQuestionsContainer');
+            if (!quiz.questions || quiz.questions.length === 0) {
+                container.innerHTML = `
+                    <div class="glass-card p-8 rounded-3xl text-center space-y-3 border-2 border-dashed border-slate-300 dark:border-slate-700">
+                        <div class="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center text-xl mx-auto">
+                            <i class="fa-solid fa-folder-open"></i>
+                        </div>
+                        <h4 class="font-bold text-sm">Belum Ada Soal Dalam Paket Kuis Ini</h4>
+                        <p class="text-xs text-slate-500 max-w-sm mx-auto">Tambahkan pertanyaan soal pilihan ganda, benar/salah, atau esai singkat untuk kuis ini.</p>
+                        <button onclick="openAddQuestionModal(${quiz.id})" class="btn-duotone px-5 py-2.5 rounded-xl text-xs font-bold shadow-md inline-flex items-center gap-2">
+                            <i class="fa-solid fa-plus"></i> + Tambah Soal Pertama
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = quiz.questions.map((q, idx) => {
+                let optionsHtml = '';
+                if (q.type === 'Pilihan Ganda' && q.options && q.options.length > 0) {
+                    optionsHtml = `
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs pt-1">
+                            ${q.options.map((opt, oIdx) => {
+                                const letter = String.fromCharCode(65 + oIdx);
+                                const isCorrect = q.correctAnswer === letter || q.correctAnswer === opt;
+                                return `
+                                    <div class="p-2.5 rounded-xl border ${isCorrect ? 'bg-green-500/15 border-green-500/40 text-green-700 dark:text-green-300 font-bold' : 'bg-slate-50 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400'} flex items-center justify-between">
+                                        <span><strong>${letter}.</strong> ${opt}</span>
+                                        ${isCorrect ? '<i class="fa-solid fa-circle-check text-green-500"></i>' : ''}
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    `;
+                } else if (q.type === 'Benar / Salah') {
+                    optionsHtml = `
+                        <div class="flex gap-2 text-xs pt-1">
+                            <span class="px-3 py-1.5 rounded-xl border ${q.correctAnswer === 'BENAR' ? 'bg-green-500/15 border-green-500/40 text-green-700 font-bold' : 'bg-slate-100 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-400'}">BENAR ${q.correctAnswer === 'BENAR' ? '✓ (Kunci)' : ''}</span>
+                            <span class="px-3 py-1.5 rounded-xl border ${q.correctAnswer === 'SALAH' ? 'bg-green-500/15 border-green-500/40 text-green-700 font-bold' : 'bg-slate-100 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-400'}">SALAH ${q.correctAnswer === 'SALAH' ? '✓ (Kunci)' : ''}</span>
+                        </div>
+                    `;
+                } else {
+                    optionsHtml = `
+                        <div class="p-3 rounded-xl bg-slate-100 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 text-xs italic text-slate-500">
+                            <strong>Acuan Kunci Jawaban:</strong> ${q.correctAnswer || 'Kriteria jawaban terbuka esai.'}
+                        </div>
+                    `;
+                }
+
+                return `
+                    <div class="glass-card p-5 rounded-3xl space-y-3 border border-slate-200 dark:border-slate-800 hover:border-syarat/40 transition-all shadow-sm">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-800 pb-2.5">
+                            <div class="flex items-center gap-2">
+                                <span class="px-2.5 py-0.5 rounded-full bg-syarat text-white text-[10px] font-bold">Soal #${idx + 1}</span>
+                                <span class="px-2 py-0.5 rounded-full bg-tigpad/15 text-tigpad text-[10px] font-bold">${q.type}</span>
+                                <span class="text-[11px] font-mono text-slate-400">• Bobot: ${q.points || 25} Poin</span>
+                            </div>
+                            <div class="flex items-center gap-1.5 self-end sm:self-auto">
+                                <button onclick="openEditQuestionModal(${quiz.id}, ${q.id})" class="px-3 py-1.5 rounded-xl bg-syarat/10 text-syarat hover:bg-syarat hover:text-white text-xs font-bold transition-all flex items-center gap-1">
+                                    <i class="fa-solid fa-pen-to-square"></i> Edit Soal
+                                </button>
+                                <button onclick="deleteQuestion(${quiz.id}, ${q.id})" class="px-3 py-1.5 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white text-xs font-bold transition-all flex items-center gap-1">
+                                    <i class="fa-solid fa-trash-can"></i> Hapus
+                                </button>
+                            </div>
+                        </div>
+
+                        <h4 class="font-extrabold text-sm text-slate-800 dark:text-white leading-relaxed">${q.question}</h4>
+                        ${optionsHtml}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // TOGGLE LOCK STATUS FOR A QUIZ PACKAGE
+        function toggleQuizLockStatus(quizId) {
+            let quizzes = getQuizzesData();
+            const quiz = quizzes.find(q => q.id === quizId);
+            if (quiz) {
+                quiz.status = (quiz.status === 'open') ? 'locked' : 'open';
+                saveQuizzesData(quizzes);
+                const statusText = quiz.status === 'open' ? 'DIBUKA 🔓 (Mahasiswa BISA Mengerjakan)' : 'DIKUNCI 🔒 (Mahasiswa TIDAK BISA Mengerjakan)';
+                alert(`✨ Status akses "${quiz.title}" berhasil diubah menjadi: ${statusText}`);
+            }
+        }
+
+        function deleteQuizPackage(quizId) {
+            let quizzes = getQuizzesData();
+            if (quizzes.length <= 1) {
+                alert('Tidak dapat menghapus kuis terakhir.');
+                return;
+            }
+            if (confirm('Apakah Anda yakin ingin menghapus paket kuis ini beserta seluruh soalnya?')) {
+                quizzes = quizzes.filter(q => q.id !== quizId);
+                saveQuizzesData(quizzes);
+                backToMentorQuizList();
+            }
+        }
+
+        // EDIT QUIZ PACKAGE MODAL HANDLERS
+        function openEditQuizModal(quizId) {
+            const quizzes = getQuizzesData();
+            const quiz = quizzes.find(q => q.id === quizId);
+            if (!quiz) return;
+
+            document.getElementById('editQuizId').value = quiz.id;
+            document.getElementById('editQuizTitle').value = quiz.title;
+            document.getElementById('editQuizDesc').value = quiz.desc;
+            document.getElementById('editQuizDuration').value = quiz.durationMinutes;
+            document.getElementById('editQuizStatus').value = quiz.status;
+
+            document.getElementById('editQuizModal').showModal();
+        }
+
+        function handleEditQuizSubmit(e) {
+            e.preventDefault();
+            const quizId = parseInt(document.getElementById('editQuizId').value);
+            let quizzes = getQuizzesData();
+            const quiz = quizzes.find(q => q.id === quizId);
+
+            if (quiz) {
+                quiz.title = document.getElementById('editQuizTitle').value.trim();
+                quiz.desc = document.getElementById('editQuizDesc').value.trim();
+                quiz.durationMinutes = parseInt(document.getElementById('editQuizDuration').value) || 20;
+                quiz.status = document.getElementById('editQuizStatus').value;
+
+                saveQuizzesData(quizzes);
+                document.getElementById('editQuizModal').close();
+                alert(`✨ Info paket kuis "${quiz.title}" berhasil diperbarui!`);
+            }
+        }
+
+        // QUESTION MODAL HANDLERS (ADD & EDIT QUESTION)
+        function toggleQuestionTypeFields() {
+            const type = document.getElementById('questionType').value;
+            const optionsContainer = document.getElementById('optionsContainer');
+            const selectAnswerBox = document.getElementById('selectAnswerBox');
+            const essayKeyContainer = document.getElementById('essayKeyContainer');
+            const correctAnswerSelect = document.getElementById('correctAnswerSelect');
+
+            if (type === 'Pilihan Ganda') {
+                optionsContainer.classList.remove('hidden');
+                selectAnswerBox.classList.remove('hidden');
+                essayKeyContainer.classList.add('hidden');
+                correctAnswerSelect.innerHTML = `
+                    <option value="A">A (Opsi Jawaban A)</option>
+                    <option value="B">B (Opsi Jawaban B)</option>
+                    <option value="C">C (Opsi Jawaban C)</option>
+                    <option value="D">D (Opsi Jawaban D)</option>
+                `;
+            } else if (type === 'Benar / Salah') {
+                optionsContainer.classList.add('hidden');
+                selectAnswerBox.classList.remove('hidden');
+                essayKeyContainer.classList.add('hidden');
+                correctAnswerSelect.innerHTML = `
+                    <option value="BENAR">BENAR</option>
+                    <option value="SALAH">SALAH</option>
+                `;
+            } else if (type === 'Esai Singkat') {
+                optionsContainer.classList.add('hidden');
+                selectAnswerBox.classList.add('hidden');
+                essayKeyContainer.classList.remove('hidden');
+            }
+        }
+
+        function openAddQuestionModal(targetQuizId = null) {
+            const quizzes = getQuizzesData();
+            const targetSelect = document.getElementById('questionQuizTarget');
+            targetSelect.innerHTML = quizzes.map(q => `<option value="${q.id}">${q.title}</option>`).join('');
+
+            if (targetQuizId) {
+                targetSelect.value = targetQuizId;
+            } else if (currentMentorQuizId) {
+                targetSelect.value = currentMentorQuizId;
+            }
+
+            document.getElementById('questionModalTitleText').innerText = "Tambah Soal Kuis Baru";
+            document.getElementById('questionEditId').value = "";
+            document.getElementById('questionText').value = "";
+            document.getElementById('optA').value = "";
+            document.getElementById('optB').value = "";
+            document.getElementById('optC').value = "";
+            document.getElementById('optD').value = "";
+            document.getElementById('essayKeyInput').value = "";
+            document.getElementById('questionType').value = "Pilihan Ganda";
+            document.getElementById('questionPoints').value = "25";
+
+            toggleQuestionTypeFields();
+            document.getElementById('questionModal').showModal();
+        }
+
+        function openEditQuestionModal(quizId, questionId) {
+            const quizzes = getQuizzesData();
+            const quiz = quizzes.find(q => q.id === quizId);
+            if (!quiz || !quiz.questions) return;
+
+            const q = quiz.questions.find(item => item.id === questionId);
+            if (!q) return;
+
+            const targetSelect = document.getElementById('questionQuizTarget');
+            targetSelect.innerHTML = quizzes.map(item => `<option value="${item.id}">${item.title}</option>`).join('');
+            targetSelect.value = quizId;
+
+            document.getElementById('questionModalTitleText').innerText = "Edit Soal Kuis";
+            document.getElementById('questionEditId').value = q.id;
+            document.getElementById('questionType').value = q.type || "Pilihan Ganda";
+            document.getElementById('questionPoints').value = q.points || 25;
+            document.getElementById('questionText').value = q.question || "";
+
+            toggleQuestionTypeFields();
+
+            if (q.type === 'Pilihan Ganda' && q.options) {
+                document.getElementById('optA').value = q.options[0] || "";
+                document.getElementById('optB').value = q.options[1] || "";
+                document.getElementById('optC').value = q.options[2] || "";
+                document.getElementById('optD').value = q.options[3] || "";
+                document.getElementById('correctAnswerSelect').value = q.correctAnswer || "A";
+            } else if (q.type === 'Benar / Salah') {
+                document.getElementById('correctAnswerSelect').value = q.correctAnswer || "BENAR";
+            } else if (q.type === 'Esai Singkat') {
+                document.getElementById('essayKeyInput').value = q.correctAnswer || "";
+            }
+
+            document.getElementById('questionModal').showModal();
+        }
+
+        function handleQuestionSubmit(e) {
+            e.preventDefault();
+            const targetQuizId = parseInt(document.getElementById('questionQuizTarget').value);
+            const questionEditId = document.getElementById('questionEditId').value;
+            const type = document.getElementById('questionType').value;
+            const points = parseFloat(document.getElementById('questionPoints').value) || 25;
+            const questionText = document.getElementById('questionText').value.trim();
+
+            if (!questionText) return;
+
+            let options = [];
+            let correctAnswer = "A";
+
+            if (type === 'Pilihan Ganda') {
+                const a = document.getElementById('optA').value.trim();
+                const b = document.getElementById('optB').value.trim();
+                const c = document.getElementById('optC').value.trim();
+                const d = document.getElementById('optD').value.trim();
+                if (!a || !b) {
+                    alert('Mohon isi minimal Opsi A dan Opsi B untuk soal pilihan ganda.');
+                    return;
+                }
+                options = [a, b, c, d].filter(opt => opt.length > 0);
+                correctAnswer = document.getElementById('correctAnswerSelect').value;
+            } else if (type === 'Benar / Salah') {
+                options = ["BENAR", "SALAH"];
+                correctAnswer = document.getElementById('correctAnswerSelect').value;
+            } else if (type === 'Esai Singkat') {
+                options = [];
+                correctAnswer = document.getElementById('essayKeyInput').value.trim();
+            }
+
+            let quizzes = getQuizzesData();
+            const targetQuiz = quizzes.find(q => q.id === targetQuizId);
+            if (!targetQuiz) return;
+
+            if (!targetQuiz.questions) targetQuiz.questions = [];
+
+            if (questionEditId) {
+                // EDIT EXISTING QUESTION
+                const existingQuestion = targetQuiz.questions.find(q => q.id == questionEditId);
+                if (existingQuestion) {
+                    existingQuestion.type = type;
+                    existingQuestion.question = questionText;
+                    existingQuestion.options = options;
+                    existingQuestion.correctAnswer = correctAnswer;
+                    existingQuestion.points = points;
+                }
+                alert('✨ Soal berhasil diperbarui!');
+            } else {
+                // ADD NEW QUESTION
+                const newQuestion = {
+                    id: Date.now(),
+                    type: type,
+                    question: questionText,
+                    options: options,
+                    correctAnswer: correctAnswer,
+                    points: points
+                };
+                targetQuiz.questions.push(newQuestion);
+                alert('✨ Soal baru berhasil ditambahkan!');
+            }
+
+            targetQuiz.soalCount = targetQuiz.questions.length;
+            saveQuizzesData(quizzes);
+
+            document.getElementById('questionModal').close();
+
+            // If we added/edited inside the current detail view
+            if (currentMentorQuizId === targetQuizId) {
+                renderMentorQuizDetailScreen();
+            }
+        }
+
+        function deleteQuestion(quizId, questionId) {
+            if (!confirm('Apakah Anda yakin ingin menghapus soal ini dari paket kuis?')) return;
+
+            let quizzes = getQuizzesData();
+            const quiz = quizzes.find(q => q.id === quizId);
+            if (quiz && quiz.questions) {
+                quiz.questions = quiz.questions.filter(q => q.id !== questionId);
+                quiz.soalCount = quiz.questions.length;
+                saveQuizzesData(quizzes);
+                renderMentorQuizDetailScreen();
+                alert('🗑️ Soal berhasil dihapus.');
+            }
+        }
+
+        function handleAddQuizSubmit(e) {
+            e.preventDefault();
+            const title = document.getElementById('newQuizTitle').value.trim();
+            const desc = document.getElementById('newQuizDesc').value.trim();
+            const duration = parseInt(document.getElementById('newQuizDuration').value) || 20;
+            const status = document.getElementById('newQuizStatus').value;
+
+            if (!title || !desc) return;
+
+            let quizzes = getQuizzesData();
+            const newQuiz = {
+                id: Date.now(),
+                title: title,
+                desc: desc,
+                soalCount: 0,
+                durationMinutes: duration,
+                status: status,
+                questions: []
+            };
+
+            quizzes.push(newQuiz);
+            saveQuizzesData(quizzes);
+
+            document.getElementById('addQuizModal').close();
+            e.target.reset();
+            alert(`✨ Paket Kuis Baru "${title}" Berhasil Dibuat! Anda dapat memasukkan soal sekarang.`);
+            openMentorQuizDetail(newQuiz.id);
+        }
+
+        function openAddQuizModal() {
+            document.getElementById('addQuizModal').showModal();
+        }
+
+        // PESERTA DYNAMIC QUIZ TAKING ENGINE
+        function selectQuizToStart(quizId) {
+            const quizzes = getQuizzesData();
+            const quiz = quizzes.find(q => q.id === quizId);
+            if (!quiz) return;
+
+            if (quiz.status === 'locked') {
+                alert('⚠️ Kuis ini sedang dikunci oleh Mentor/Admin.');
+                return;
+            }
+
+            selectedQuizId = quizId;
+            document.getElementById('selectedQuizTitleHeader').innerText = quiz.title;
+            document.getElementById('selectedQuizDescHeader').innerText = quiz.desc;
+            document.getElementById('activeQuizTitleHeader').innerText = quiz.title;
+
+            document.getElementById('quizListScreen').classList.add('hidden');
+            document.getElementById('quizStartScreen').classList.remove('hidden');
+        }
+
+        function backToQuizList() {
+            document.getElementById('quizStartScreen').classList.add('hidden');
+            document.getElementById('quizActiveContainer').classList.add('hidden');
+            document.getElementById('quizCompletedScreen').classList.add('hidden');
+            document.getElementById('quizListScreen').classList.remove('hidden');
+        }
+
+        function checkQuizSessionStatus() {
+            const isSubmitted = localStorage.getItem('kolab_quiz_submitted_' + selectedQuizId) === 'true';
+            const isStarted = localStorage.getItem('kolab_quiz_started_' + selectedQuizId) === 'true';
+
+            const listScreen = document.getElementById('quizListScreen');
+            const startScreen = document.getElementById('quizStartScreen');
+            const activeContainer = document.getElementById('quizActiveContainer');
+            const completedScreen = document.getElementById('quizCompletedScreen');
+
+            if (isSubmitted) {
+                const savedScore = localStorage.getItem('kolab_quiz_score_' + selectedQuizId) || '85';
+                document.getElementById('quizFinalScoreDisplay').innerText = `${savedScore} / 100`;
+                listScreen.classList.add('hidden');
+                startScreen.classList.add('hidden');
+                activeContainer.classList.add('hidden');
+                completedScreen.classList.remove('hidden');
+            } else if (isStarted) {
+                listScreen.classList.add('hidden');
+                startScreen.classList.add('hidden');
+                completedScreen.classList.add('hidden');
+                activeContainer.classList.remove('hidden');
+                renderActiveQuizForm();
+                resumeQuizTimer();
+            } else {
+                listScreen.classList.remove('hidden');
+                startScreen.classList.add('hidden');
+                activeContainer.classList.add('hidden');
+                completedScreen.classList.add('hidden');
+            }
+        }
+
+        function startQuizSession() {
+            localStorage.setItem('kolab_quiz_started_' + selectedQuizId, 'true');
+            localStorage.setItem('kolab_quiz_start_timestamp_' + selectedQuizId, Date.now());
+            localStorage.setItem('kolab_quiz_submitted_' + selectedQuizId, 'false');
+
+            const quizzes = getQuizzesData();
+            const quiz = quizzes.find(q => q.id === selectedQuizId);
+            const durationSecs = (quiz ? quiz.durationMinutes : 15) * 60;
+
+            document.getElementById('quizStartScreen').classList.add('hidden');
+            document.getElementById('quizActiveContainer').classList.remove('hidden');
+            
+            renderActiveQuizForm();
+            resumeQuizTimer(durationSecs);
+        }
+
+        function renderActiveQuizForm() {
+            const quizzes = getQuizzesData();
+            const quiz = quizzes.find(q => q.id === selectedQuizId);
+            const questions = (quiz && quiz.questions && quiz.questions.length > 0) ? quiz.questions : DEFAULT_QUIZZES[0].questions;
+
+            const form = document.getElementById('quizForm');
+            form.innerHTML = questions.map((q, idx) => {
+                const num = idx + 1;
+                let inputsHtml = '';
+
+                if (q.type === 'Pilihan Ganda' && q.options) {
+                    inputsHtml = `
+                        <div class="space-y-2 text-xs">
+                            ${q.options.map((opt, oIdx) => {
+                                const letter = String.fromCharCode(65 + oIdx);
+                                return `
+                                    <label class="flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-tigpad transition-all">
+                                        <input type="radio" name="q_${num}" value="${letter}" onchange="updateQuizProgress()" class="radio radio-xs radio-primary">
+                                        <span><strong>${letter}.</strong> ${opt}</span>
+                                    </label>
+                                `;
+                            }).join('')}
+                        </div>
+                    `;
+                } else if (q.type === 'Benar / Salah') {
+                    inputsHtml = `
+                        <div class="grid grid-cols-2 gap-3 text-xs">
+                            <label class="flex items-center justify-center gap-2 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-tigpad transition-all font-bold">
+                                <input type="radio" name="q_${num}" value="BENAR" onchange="updateQuizProgress()" class="radio radio-xs radio-primary">
+                                <span>BENAR</span>
+                            </label>
+                            <label class="flex items-center justify-center gap-2 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-tigpad transition-all font-bold">
+                                <input type="radio" name="q_${num}" value="SALAH" onchange="updateQuizProgress()" class="radio radio-xs radio-primary">
+                                <span>SALAH</span>
+                            </label>
+                        </div>
+                    `;
+                } else {
+                    inputsHtml = `
+                        <textarea name="q_${num}" rows="3" oninput="updateQuizProgress()" placeholder="Tuliskan jawaban esai Anda di sini..." class="w-full p-3 rounded-xl bg-white dark:bg-slate-800/50 border border-slate-300 dark:border-slate-700 text-xs focus:ring-2 focus:ring-tigpad"></textarea>
+                    `;
+                }
+
+                return `
+                    <div id="question_box_${num}" class="p-5 rounded-2xl bg-white/90 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-4 shadow-sm">
+                        <div class="flex justify-between items-center">
+                            <span class="px-2.5 py-1 rounded-full bg-syarat text-white text-[10px] font-bold">Soal ${num} • ${q.type}</span>
+                            <span class="text-xs font-mono text-slate-500 dark:text-slate-400">Bobot: ${q.points || 25} Poin</span>
+                        </div>
+                        <h3 class="font-extrabold text-sm sm:text-base text-slate-800 dark:text-white">
+                            ${q.question}
+                        </h3>
+                        ${inputsHtml}
+                    </div>
+                `;
+            }).join('') + `
+                <button type="button" onclick="submitQuiz()" class="btn-duotone w-full py-4 rounded-2xl font-bold text-sm shadow-xl flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-paper-plane"></i>
+                    <span>Kirim Jawaban Kuis Evaluasi</span>
+                </button>
+            `;
+
+            // Render Navigator Grid
+            const navGrid = document.querySelector('#quizActiveContainer .grid-cols-3');
+            if (navGrid) {
+                navGrid.className = `grid grid-cols-${Math.min(questions.length, 5)} gap-2.5`;
+                navGrid.innerHTML = questions.map((_, idx) => {
+                    const num = idx + 1;
+                    return `
+                        <button onclick="scrollToQuestion(${num})" id="navNum${num}" class="py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 font-extrabold text-xs flex flex-col items-center gap-0.5 bg-red-500/10 text-red-500 border-red-500/30">
+                            <span>${num}</span>
+                            <span class="text-[8px] font-normal">Belum</span>
+                        </button>
+                    `;
+                }).join('');
+            }
+
+            updateQuizProgress();
+        }
+
+        function resumeQuizTimer(customDurationSecs) {
+            if (quizTimerInterval) clearInterval(quizTimerInterval);
+
+            const startTime = parseInt(localStorage.getItem('kolab_quiz_start_timestamp_' + selectedQuizId)) || Date.now();
+            const quizzes = getQuizzesData();
+            const quiz = quizzes.find(q => q.id === selectedQuizId);
+            const totalSecs = customDurationSecs || (quiz ? quiz.durationMinutes * 60 : 900);
+
+            quizTimerInterval = setInterval(() => {
+                const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+                const remainingSeconds = totalSecs - elapsedSeconds;
+
+                if (remainingSeconds <= 0) {
+                    clearInterval(quizTimerInterval);
+                    document.getElementById('timerDisplay').innerText = "00:00";
+                    alert("Waktu ujian telah habis! Jawaban otomatis dikirim.");
+                    submitQuiz(true);
+                    return;
+                }
+
+                const mins = Math.floor(remainingSeconds / 60);
+                const secs = remainingSeconds % 60;
+                document.getElementById('timerDisplay').innerText = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+            }, 1000);
+        }
+
+        function updateQuizProgress() {
+            const form = document.getElementById('quizForm');
+            const quizzes = getQuizzesData();
+            const quiz = quizzes.find(q => q.id === selectedQuizId);
+            const questions = (quiz && quiz.questions && quiz.questions.length > 0) ? quiz.questions : DEFAULT_QUIZZES[0].questions;
+
+            let answeredCount = 0;
+            questions.forEach((q, idx) => {
+                const num = idx + 1;
+                let isAnswered = false;
+                if (q.type === 'Esai Singkat') {
+                    const textarea = form.querySelector(`textarea[name="q_${num}"]`);
+                    if (textarea && textarea.value.trim().length > 0) isAnswered = true;
+                } else {
+                    const checked = form.querySelector(`input[name="q_${num}"]:checked`);
+                    if (checked) isAnswered = true;
+                }
+
+                if (isAnswered) answeredCount++;
+                updateNavButton(num, isAnswered);
+            });
+
+            const percent = Math.round((answeredCount / questions.length) * 100);
+            const progressText = document.getElementById('quizProgressText');
+            const progressBar = document.getElementById('quizProgressBar');
+            if (progressText) progressText.innerText = `${answeredCount} / ${questions.length} Soal (${percent}%)`;
+            if (progressBar) progressBar.style.width = `${percent}%`;
+            
+            const errBox = document.getElementById('quizValidationError');
+            if (errBox) errBox.classList.add('hidden');
+        }
+
+        function updateNavButton(qNum, isAnswered) {
+            const btn = document.getElementById(`navNum${qNum}`);
+            if (!btn) return;
+            if (isAnswered) {
+                btn.className = "py-2.5 rounded-xl border font-extrabold text-xs flex flex-col items-center gap-0.5 bg-green-500/20 text-green-600 dark:text-green-400 border-green-500/40";
+                btn.querySelector('span:nth-child(2)').innerText = "Terjawab";
+            } else {
+                btn.className = "py-2.5 rounded-xl border font-extrabold text-xs flex flex-col items-center gap-0.5 bg-red-500/10 text-red-500 border-red-500/30";
+                btn.querySelector('span:nth-child(2)').innerText = "Belum";
+            }
+        }
+
+        function scrollToQuestion(qNum) {
+            const box = document.getElementById(`question_box_${qNum}`);
+            if (box) box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function submitQuiz(force = false) {
+            const form = document.getElementById('quizForm');
+            const quizzes = getQuizzesData();
+            const quiz = quizzes.find(q => q.id === selectedQuizId);
+            const questions = (quiz && quiz.questions && quiz.questions.length > 0) ? quiz.questions : DEFAULT_QUIZZES[0].questions;
+
+            if (!force) {
+                let allAnswered = true;
+                questions.forEach((q, idx) => {
+                    const num = idx + 1;
+                    if (q.type === 'Esai Singkat') {
+                        const val = form.querySelector(`textarea[name="q_${num}"]`)?.value.trim();
+                        if (!val) allAnswered = false;
+                    } else {
+                        const checked = form.querySelector(`input[name="q_${num}"]:checked`);
+                        if (!checked) allAnswered = false;
+                    }
+                });
+
+                if (!allAnswered) {
+                    const errBox = document.getElementById('quizValidationError');
+                    if (errBox) errBox.classList.remove('hidden');
+                    return;
+                }
+            }
+
+            // CALCULATE SCORE
+            let totalEarned = 0;
+            let totalPoints = 0;
+            questions.forEach((q, idx) => {
+                const num = idx + 1;
+                const pts = q.points || (100 / questions.length);
+                totalPoints += pts;
+
+                if (q.type === 'Pilihan Ganda' || q.type === 'Benar / Salah') {
+                    const userVal = form.querySelector(`input[name="q_${num}"]:checked`)?.value;
+                    if (userVal === q.correctAnswer) {
+                        totalEarned += pts;
+                    }
+                } else {
+                    // Esai gets full/partial score upon submit
+                    const userVal = form.querySelector(`textarea[name="q_${num}"]`)?.value.trim();
+                    if (userVal && userVal.length >= 10) {
+                        totalEarned += pts;
+                    }
+                }
+            });
+
+            const score = totalPoints > 0 ? Math.min(100, Math.round((totalEarned / totalPoints) * 100)) : 85;
+
+            localStorage.setItem('kolab_quiz_submitted_' + selectedQuizId, 'true');
+            localStorage.setItem('kolab_quiz_score_' + selectedQuizId, score);
+            if (quizTimerInterval) clearInterval(quizTimerInterval);
+
+            alert(`Kuis Evaluasi Berhasil Dikirim!\nNilai Akhir Ujian Anda: ${score}/100 (${score >= 70 ? 'LULUS' : 'REMIDI'})`);
+            checkQuizSessionStatus();
+        }
+
+        function loadSavedProfilePhoto() {
+            const savedPhoto = localStorage.getItem('kolab_profile_photo');
+            if (savedPhoto && currentRole === 'peserta') {
+                const avatar = document.getElementById('userAvatar');
+                if (avatar) avatar.innerHTML = `<img src="${savedPhoto}" class="w-full h-full object-cover">`;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>

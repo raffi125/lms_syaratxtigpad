@@ -1,0 +1,411 @@
+/* =========================================================
+   style.css
+   ---------
+   Design tokens live in :root (light) and [data-theme="dark"]
+   (dark mode) as CSS custom properties, so toggling dark mode
+   in JS is just one attribute swap — no class-juggling needed
+   per element.
+   ========================================================= */
+
+:root {
+  --color-bg: #f3f6fb;
+  --color-bg-elevated: #ffffff;
+  --color-text: #1c2333;
+  --color-text-muted: #5b6478;
+  --color-primary: #4f7dfa;
+  --color-primary-dark: #3660d6;
+  --color-accent: #ff8a4c;
+  --color-success: #2fbf71;
+  --color-danger: #ef4d5e;
+  --color-border: #e1e6f0;
+  --shadow-soft: 0 8px 24px rgba(30, 41, 80, 0.08);
+  --radius-lg: 20px;
+  --radius-md: 14px;
+  --radius-sm: 8px;
+  --font-main: 'Segoe UI', 'Trebuchet MS', system-ui, -apple-system, sans-serif;
+}
+
+[data-theme="dark"] {
+  --color-bg: #12141c;
+  --color-bg-elevated: #1c1f2b;
+  --color-text: #eef1f8;
+  --color-text-muted: #9aa2b8;
+  --color-primary: #7096ff;
+  --color-primary-dark: #4f7dfa;
+  --color-accent: #ffa869;
+  --color-success: #3fd888;
+  --color-danger: #ff6b7a;
+  --color-border: #2b2f40;
+  --shadow-soft: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+/* When this page is loaded inside an <iframe> (see the early inline script
+   in index.html and the postMessage handshake in js/main.js), we don't want
+   the layout to stretch to fill "100vh" of the iframe's own box — that
+   creates a circular dependency where the reported content height is just
+   whatever height the iframe currently happens to have. Instead, the page
+   should hug its real content height so the parent can size the iframe
+   to fit it exactly ("pas", no wasted space, no scrollbar). */
+html.embedded, html.embedded body {
+  height: auto;
+}
+html.embedded .app {
+  min-height: 0;
+}
+
+body {
+  font-family: var(--font-main);
+  background: var(--color-bg);
+  color: var(--color-text);
+  transition: background 0.25s ease, color 0.25s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.app {
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto;
+  min-height: auto;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+}
+
+/* ---------------- Header ---------------- */
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 800;
+  font-size: 1.3rem;
+}
+
+.logo-hand { font-size: 1.6rem; }
+.logo-accent { color: var(--color-primary); }
+
+.header-actions { display: flex; gap: 8px; }
+
+.icon-btn {
+  border: none;
+  background: var(--color-bg-elevated);
+  box-shadow: var(--shadow-soft);
+  border-radius: 50%;
+  width: 42px;
+  height: 42px;
+  font-size: 1.15rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s ease;
+}
+.icon-btn:active { transform: scale(0.9); }
+
+/* ---------------- Screens ---------------- */
+.screen {
+  display: none;
+  flex: 1;
+  flex-direction: column;
+  animation: fadeIn 0.35s ease;
+}
+.screen.active { display: flex; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ---------------- Menu screen ---------------- */
+.title {
+  font-size: 1.6rem;
+  margin: 8px 0 4px;
+  text-align: center;
+}
+.subtitle {
+  text-align: center;
+  color: var(--color-text-muted);
+  margin: 0 0 24px;
+  font-size: 0.95rem;
+}
+
+.level-select {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.level-card {
+  background: var(--color-bg-elevated);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 16px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+  color: var(--color-text);
+  width: 100%;
+}
+.level-card:hover { transform: translateY(-2px); }
+.level-card.selected {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-soft);
+  background: rgba(79, 125, 250, 0.08);
+}
+
+.level-name { font-weight: 700; font-size: 1.05rem; }
+.level-desc { font-size: 0.78rem; color: var(--color-text-muted); text-align: center; }
+.level-highscore { font-size: 0.7rem; color: var(--color-accent); font-weight: 600; margin-top: 4px; }
+
+.hint {
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: 0.82rem;
+  margin-top: 8px;
+}
+
+/* ---------------- Buttons ---------------- */
+.btn {
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 12px 20px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.12s ease, opacity 0.15s ease, box-shadow 0.15s ease;
+}
+.btn:active { transform: scale(0.96); }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+  color: white;
+  box-shadow: 0 6px 18px rgba(79, 125, 250, 0.35);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--color-text-muted);
+  border: 2px solid var(--color-border);
+}
+
+.btn-large {
+  width: 100%;
+  padding: 16px;
+  font-size: 1.1rem;
+}
+
+/* ---------------- HUD ---------------- */
+.hud {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) auto;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0 12px;
+}
+
+.hud-stat {
+  background: var(--color-bg-elevated);
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  text-align: center;
+  box-shadow: var(--shadow-soft);
+}
+
+.hud-label {
+  display: block;
+  font-size: 0.65rem;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.hud-value { font-weight: 800; font-size: 1rem; }
+.hud-value.combo { color: var(--color-accent); }
+.hud-timer .hud-value { color: var(--color-danger); }
+
+/* ---------------- Progress bar ---------------- */
+.progress-bar-track {
+  width: 100%;
+  height: 8px;
+  background: var(--color-border);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.progress-bar-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
+  transition: width 0.35s ease;
+}
+
+/* ---------------- Stage (sprite canvas) ---------------- */
+.stage {
+  background: var(--color-bg-elevated);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  margin-bottom: 16px;
+  width: 100%;
+}
+
+#sprite-canvas {
+  width: 100%;
+  max-width: 520px;
+  height: auto;
+  aspect-ratio: 700 / 501;
+  border-radius: var(--radius-md);
+  image-rendering: -webkit-optimize-contrast;
+  object-fit: contain;
+}
+
+.stage-caption {
+  margin-top: 8px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  min-height: 1.2em;
+}
+
+/* ---------------- Answer form ---------------- */
+.answer-form {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  width: 100%;
+}
+
+.answer-input {
+  flex: 1;
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
+  border: 2px solid var(--color-border);
+  background: var(--color-bg-elevated);
+  color: var(--color-text);
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  width: 100%;
+}
+.answer-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+/* ---------------- Feedback panel ---------------- */
+.feedback-panel {
+  background: var(--color-bg-elevated);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-soft);
+  padding: 16px;
+  text-align: center;
+  margin-bottom: 12px;
+  animation: fadeIn 0.3s ease;
+}
+.feedback-message { font-weight: 700; font-size: 1.05rem; margin: 0 0 12px; }
+.feedback-message.correct { color: var(--color-success); }
+.feedback-message.wrong { color: var(--color-danger); }
+
+/* ---------------- Game controls ---------------- */
+.game-controls {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: auto;
+}
+
+/* ---------------- Overlays (pause / game over) ---------------- */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 14, 25, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  padding: 16px;
+}
+.overlay[hidden] { display: none; }
+
+.overlay-card {
+  background: var(--color-bg-elevated);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+  padding: 28px 24px;
+  text-align: center;
+  max-width: 360px;
+  width: 100%;
+}
+.overlay-card h2 { margin-top: 0; }
+
+.screen-gameover {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 14, 25, 0.55);
+  align-items: center;
+  justify-content: center;
+  z-index: 40;
+}
+.screen-gameover.active { display: flex; }
+
+.gameover-score { font-size: 1.3rem; font-weight: 800; }
+.gameover-highscore { color: var(--color-accent); font-weight: 700; min-height: 1.4em; }
+.gameover-actions { display: flex; gap: 10px; margin-top: 16px; }
+.gameover-actions .btn { flex: 1; }
+
+/* ---------------- Responsive Rules ---------------- */
+@media (max-width: 640px) {
+  .level-select {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .hud {
+    grid-template-columns: repeat(2, 1fr) auto;
+  }
+  .hud-stat {
+    padding: 6px 8px;
+  }
+  .answer-form {
+    flex-direction: column;
+  }
+  .answer-input {
+    width: 100%;
+    font-size: 1rem;
+    padding: 12px;
+  }
+  .answer-form .btn {
+    width: 100%;
+  }
+  .gameover-actions {
+    flex-direction: column;
+  }
+}
+
+@media (min-width: 768px) {
+  .stage {
+    padding: 24px;
+  }
+}
