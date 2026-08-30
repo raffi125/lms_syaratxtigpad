@@ -61,6 +61,22 @@ class AudioManager {
     this._tone({ freq: 400, duration: 0.05, type: 'sine', gain: 0.12 });
   }
 
+  playFlip() {
+    this._tone({ freq: 480, glideTo: 600, duration: 0.08, type: 'sine', gain: 0.1 });
+  }
+
+  playFever() {
+    this._tone({ freq: 880, glideTo: 1320, duration: 0.2, type: 'square', gain: 0.16 });
+  }
+
+  playWin() {
+    if (this.muted) return;
+    const fanfare = [523.25, 659.25, 783.99, 1046.50];
+    fanfare.forEach((f, i) => {
+      setTimeout(() => this._tone({ freq: f, duration: 0.22, type: 'triangle', gain: 0.2 }), i * 120);
+    });
+  }
+
   playGameOver() {
     if (this.muted) return;
     const notes = [392, 349.23, 293.66, 261.63];
@@ -75,3 +91,4 @@ class AudioManager {
 }
 
 window.AudioManager = AudioManager;
+

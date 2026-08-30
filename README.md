@@ -1,139 +1,91 @@
-# BISINDO Fingerspelling — Game Edukasi
+# KOLAB SYARAT X TIGPAD UNPAD
+### Platform Edukasi & Pembelajaran Interaktif Bahasa Isyarat Indonesia (BISINDO)
 
-Game web edukasi untuk berlatih membaca fingerspelling (peraga huruf) BISINDO.
-Dibuat dengan **HTML5 + CSS3 + Vanilla JavaScript (ES6)** murni — tanpa
-framework, tanpa library eksternal, tanpa build step.
+Platform Pembelajaran Daring (LMS) modern, inklusif, dan interaktif hasil kolaborasi resmi antara **SYARAT** (Bahasa Isyarat UNPAD) dan **TIGPAD** (Teknologi Inklusi Guna Padjadjaran) - Universitas Padjadjaran.
 
-> Konsep & alur permainan terinspirasi dari
-> https://www.signlanguageforum.com/bsl/fingerspelling/fingerspelling-game/
-> Tidak ada kode maupun aset dari situs tersebut yang disalin — seluruh kode
-> dan CSS di project ini dibuat dari nol. Foto peraga huruf A–Z memakai
-> koleksi "Abjad BISINDO JABAR" yang kamu berikan.
+---
 
-## Cara menjalankan
+## 🌟 Fitur Utama & Halaman Web
 
-Cukup buka `index.html` langsung di browser (double click, atau
-klik-kanan → Open with → browser pilihanmu). Tidak perlu server, tidak perlu
-`npm install`.
+1. **`index.html` & `landing.html` (Portal Beranda & Edukasi Publik)**
+   - **Hero Feature Bento Showcase**: Menampilkan pilar utama platform (5 Modul Video & PDF, Kuis Proctoring 30 Menit, Game Fingerspelling Interaktif, dan Sertifikat Resmi UNPAD).
+   - Kurikulum 5 modul BISINDO, statistik civitas akademika, card peranan pengguna multi-role, dan FAQ interaktif.
+   - Desain ultra responsif untuk perangkat Ponsel (Mobile), Tablet, dan Komputer (PC Desktop), dilengkapi drawer navigasi mobile dan sinkronisasi tema gelap/terang.
 
-```
-project/
-├── index.html          ← buka file ini
-├── css/style.css
-├── js/*.js
-├── data/words.json
-├── assets/sprites/*.webp
-├── sounds/README.md
-└── tools/generate_sprites.py
-```
 
-## Tentang aset gambar
+2. **`login.html` (Portal Autentikasi Single Sign-On UNPAD)**
+   - Role switcher instan (Mahasiswa/Peserta, Mentor, Administrator) dengan auto-fill demo kredensial akun SSO.
+   - Feedback animasi dan sinkronisasi sesi peran ke `localStorage` (`kolab_role`).
 
-`assets/sprites/*.webp` berisi foto peraga huruf BISINDO asli (A–Z) dari
-koleksi yang kamu berikan ("Abjad BISINDO JABAR"), sudah dikompres ke WebP
-(diresize ke lebar 700px, quality 82) supaya ringan — total ukuran turun
-dari ±14.5MB jadi ±0.3MB tanpa terlihat penurunan kualitas yang berarti di
-ukuran tampil game. Kontennya tidak diubah (tidak di-crop, watermark/label
-"R (Right) / L (Left)" pada foto asli tetap dibiarkan apa adanya).
+3. **`dashboard.html` (Dashboard Overview Pembelajaran)**
+   - Salam waktu dinamis (*Selamat Pagi / Siang / Sore / Malam*).
+   - Bento grid KPI adaptif sesuai peran (`peserta`, `mentor`, `admin`).
+   - Progress ring kurikulum (80% Selesai), banner CTA Lanjutkan Belajar, countdown sesi Live Zoom tatap muka, dan timeline aktivitas.
 
-Karena tiap huruf adalah **satu foto statis** (bukan rekaman multi-frame),
-animasi di canvas berupa transisi *fade-in → tahan tampil → fade-out*
-antar huruf (lihat `js/spriteAnimator.js`), bukan animasi gerak tangan
-frame-per-frame.
+4. **`modul.html` (Video Player & Pembaca Dokumen Kurikulum)**
+   - 6 Pertemuan Lengkap BISINDO (Budaya Tuli, Isyarat Dasar 1-3, Percakapan, Simulasi & Evaluasi).
+   - Dual-mode player: Video Tutorial (YouTube Embed + Local HTML5 `video_dummy.mp4`) & PDF Reader Dokumen (`connectpdf_dummy_5page.pdf`).
+   - Fitur "Tandai Selesai" tersimpan permanen di `localStorage`, serta modal kelola materi untuk Mentor/Admin.
 
-### Mengganti / menambah foto huruf lain
+5. **`kuis.html` (Engine Ujian Evaluasi & Anti-Cheat)**
+   - Ujian 30 menit dengan countdown timer otomatis.
+   - Dialog tata tertib & anti-cheat proctoring.
+   - Palet navigasi nomor soal, ragam tipe soal (Pilihan Ganda, Benar/Salah, Isian), review hasil instan, dan Bank Soal CRUD untuk Mentor.
 
-1. Siapkan foto baru, disimpan sebagai `assets/sprites/<HURUF>.webp`
-   (huruf besar, satu file per huruf).
-2. Tidak perlu ukuran/rasio yang persis sama — `SpriteAnimator` otomatis
-   menyesuaikan (`contain`, tidak crop) ke ukuran canvas.
-3. Kalau mau mengubah kecepatan tampil (fade-in/hold/fade-out), ubah
-   `HOLD_MS`, `FADE_IN_MS`, `FADE_OUT_MS` di `js/spriteAnimator.js`.
+6. **`game.html` (BISINDO Arcade Hub 3-in-1)**
+   - **Mode 1 (Fingerspelling Ejaan Kata)**: Animasi rangkaian abjad BISINDO pada kanvas dengan transisi fade delta-time (`js/spriteAnimator.js`), input form / virtual keyboard, dan timer.
+   - **Mode 2 (Sign Rush - Refleks Cepat 4 Pilihan)**: Drill kecepatan tinggi dengan timer mundur 4 detik per soal, sistem 3 nyawa (❤️❤️❤️), dan Fever Multiplier bonus (x1 s/d x5).
+   - **Mode 3 (Memory Match - Kartu 3D Flip)**: Permainan mencocokkan kartu 3D flip antara foto peraga isyarat BISINDO dan huruf abjad (Tingkat Mudah: 6 pasang, Sedang: 8 pasang, Sulit: 10 pasang), skor langkah, timer, dan rating bintang (⭐⭐⭐).
+   - Dilengkapi synthesizer audio Web Audio API terintegrasi, master audio toggle, dan Panel Kelola Bank Kata untuk Mentor/Admin.
 
-Skrip pembuat placeholder lama (`tools/generate_sprites.py`) masih
-disertakan sebagai cadangan — berguna kalau suatu saat kamu butuh
-placeholder sementara untuk huruf yang belum ada fotonya.
+7. **`zoom.html` (Live Zoom & Presensi Mahasiswa)**
+   - Countdown penghitung waktu mundur sesi tatap muka daring.
+   - Tombol satu-klik salin Meeting ID & Passcode.
+   - Formulir Presensi Check-in peserta dan tabel verifikasi kehadiran untuk Mentor.
 
-## Arsitektur kode
+8. **`sertifikat.html` (Sertifikat Kelulusan Resmi & Verifikasi)**
+   - Bingkai ornamen emas klasik Universitas Padjadjaran.
+   - QR Code verifikasi keaslian dokumen dan tanda tangan pembina/mentor.
+   - Mode cetak ramah printer (`@media print`) dan form pencarian nomor registrasi sertifikat.
 
-Semua modul JS ditulis sebagai `class` terpisah, di-load sebagai script
-biasa (bukan ES module) supaya tetap bisa jalan dari `file://` tanpa
-CORS error, dengan urutan dependency yang jelas di `index.html`:
+9. **`reports.html` (Laporan & Analitik Perkembangan)**
+   - Ringkasan KPI kelulusan, skor rata-rata, dan kehadiran Zoom.
+   - Tabel rekapitulasi nilai mahasiswa dengan filter pencarian instan dan ekspor PDF.
 
-| File | Tanggung jawab |
-|---|---|
-| `js/storageManager.js` | Wrapper `localStorage` — high score & preferensi (dark mode, mute). |
-| `js/audioManager.js` | Efek suara, disintesis lewat Web Audio API (tidak perlu file audio). |
-| `js/data.js` | `WordDatabase` — daftar kata per level & pemilihan kata acak (anti-repeat). |
-| `js/spriteAnimator.js` | `SpriteCache` (lazy load + cache foto), `SpriteAnimator` (render 1 huruf via Canvas + `requestAnimationFrame`, transisi fade-in/hold/fade-out), `SequencePlayer` (mainkan seluruh kata huruf-per-huruf). |
-| `js/game.js` | `Game` — state machine inti: ronde, skor, combo, timer, pause/restart. Tidak menyentuh DOM sama sekali (bisa diuji terpisah). |
-| `js/ui.js` | `UIManager` — satu-satunya file yang menyentuh DOM. Menjembatani event dari `Game` ke tampilan, dan input pengguna kembali ke `Game`. |
-| `js/main.js` | Merangkai semua modul saat halaman dimuat. |
+10. **`users.html` (Kelola Pengguna UNPAD - Khusus Admin)**
+    - Manajemen data akun Civitas Akademika UNPAD.
+    - Filter tab peranan (Semua, Peserta, Mentor, Admin), pencarian live, dan modal tambah/edit pengguna.
 
-Pemisahan `game.js` (logika) vs `ui.js` (tampilan) ini sengaja dibuat agar:
-- Kode mudah dibaca (tiap file fokus satu tanggung jawab).
-- Logika game bisa dites tanpa browser/DOM.
-- Tampilan bisa diubah total tanpa menyentuh logika skor/combo/timer.
+11. **`profile.html` (Profil Pengguna & Kartu Mahasiswa Virtual)**
+    - Kartu Tanda Mahasiswa (KTM) digital UNPAD beraksen gradien duotone.
+    - Pengunggah pasfoto profil langsung tersimpan di `localStorage` (`kolab_profile_photo`).
+    - Editor data diri dan statistik kemajuan akademik.
 
-### Alur permainan (`Game` state machine)
+---
 
-```
-menu → showing (animasi huruf berjalan) → answering (input dibuka + timer jalan)
-     → feedback (benar/salah ditampilkan) → showing (ronde berikutnya)
-     → ... → gameover (setelah 8 ronde)
-```
+## 🎨 Desain & Teknologi
 
-State `paused` bisa "menimpa" `showing`/`answering` kapan saja lewat tombol
-jeda, dan kembali ke state semula saat dilanjutkan.
+- **Vanilla HTML5 + Modern CSS3 + JavaScript (ES6)**: Didesain murni tanpa framework berat atau build tool tambahan. Dapat dijalankan langsung melalui protokol `file://` atau server lokal.
+- **Tailwind CSS & DaisyUI CDN**: Styling modern dengan palet warna resmi Syarat Blue (`#163C8A`) dan Tigpad Orange (`#F97316`).
+- **Glassmorphism & Dark Mode**: Efek kaca frosted glass (`.glass-card`, `.glass-nav`) dan ambient floating orbs yang tersinkronisasi dengan dark mode (`kolab_theme`).
 
-### Sprite & animasi
+---
 
-- 1 file WebP per huruf = 1 foto peraga BISINDO asli (bukan sprite sheet
-  multi-frame).
-- `SpriteCache` memuat gambar **lazy** (baru di-download saat huruf itu
-  benar-benar akan tampil) dan **cache** di memori (`Map`) supaya huruf yang
-  sama tidak pernah di-download dua kali.
-- `SpriteAnimator` menggambar foto ke `<canvas>` dengan `drawImage`, dengan
-  transisi fade-in → tahan tampil → fade-out yang dihitung dari delta-time
-  murni via `requestAnimationFrame` (bukan `setInterval`), jadi FPS stabil
-  dan hemat baterai saat tab tidak aktif.
-- `SequencePlayer` mengurutkan pemutaran seluruh huruf dalam satu kata, plus
-  jeda singkat antar huruf, dan melaporkan progres ke UI (untuk progress bar).
+## 🚀 Cara Menjalankan
 
-### Skor & combo
+Cukup buka `index.html` langsung di peramban web (Google Chrome, Firefox, Safari, Microsoft Edge). Tidak memerlukan dependensi Node.js atau instalasi server tambahan.
 
-- Setiap huruf bernilai poin dasar sesuai level (Mudah/Sedang/Sulit —
-  lihat `LEVEL_CONFIG` di `js/game.js`), dikalikan panjang kata.
-- Combo naik 1 setiap jawaban benar berturut-turut, beri bonus poin kecil
-  (dibatasi maksimum), dan reset ke 0 saat jawaban salah/waktu habis.
-- High score disimpan **per level** di `localStorage` lewat `StorageManager`.
+---
 
-## Fitur yang tersedia
+## 👥 Hak Akses & Peran (Multi-Role Demo)
 
-- ✅ Kata acak (anti-repeat dalam sesi) dari `data/words.json` / `js/data.js`
-- ✅ 3 tingkat kesulitan (Mudah 3–4 huruf, Sedang 5–6, Sulit 7+)
-- ✅ Timer mundur per ronde
-- ✅ Combo multiplier
-- ✅ High score per level (localStorage)
-- ✅ Efek suara (benar/salah/combo/tick/game over) via Web Audio API
-- ✅ Pause & Resume
-- ✅ Restart
-- ✅ Dark mode (tersimpan di localStorage, mengikuti preferensi sistem di awal)
-- ✅ Responsive — nyaman dipakai di desktop maupun mobile
-- ✅ Progress bar huruf per kata
-- ✅ Lazy loading + caching sprite
+| Peran | Akun Demo SSO | Fitur Utama |
+|---|---|---|
+| **Peserta (Mahasiswa)** | `rina.rahmawati@unpad.ac.id` | Belajar 5 Modul Video/PDF, Ujian Kuis Proctoring, Game Tebak BISINDO, Presensi Zoom, Unduh Sertifikat Resmi |
+| **Mentor (Pengajar)** | `mentor@unpad.ac.id` | Kelola Materi Modul, Kelola Sesi & Presensi Zoom, Bank Soal Kuis, Bank Kata Game, Pantau Nilai Peserta |
+| **Admin Sistem** | `admin@unpad.ac.id` | Manajemen Pengguna UNPAD (CRUD Akun), Laporan & Analitik Kelulusan Komprehensif |
 
-## Menambah / mengubah kata
+---
 
-Edit array di `js/data.js` (`WORD_BANK`). File `data/words.json` disediakan
-sebagai sumber referensi yang mudah dibaca/diedit manusia — tapi karena
-`fetch()` terhadap file lokal diblokir browser saat dibuka lewat `file://`
-(kebijakan CORS), yang benar-benar dipakai saat runtime adalah salinan di
-`js/data.js`. Kalau kamu meng-host project ini lewat server HTTP, kamu bisa
-mengubah `WordDatabase` untuk `fetch('data/words.json')` sungguhan.
+*Dikembangkan untuk Civitas Akademika Universitas Padjadjaran — Inklusi untuk Semua.*
 
-## Menyesuaikan tingkat kesulitan / jumlah ronde
-
-Ubah konstanta di `js/game.js`:
-- `LEVEL_CONFIG` — durasi timer & poin per huruf per level.
-- `ROUNDS_PER_GAME` — jumlah kata per sesi sebelum layar Game Over muncul.

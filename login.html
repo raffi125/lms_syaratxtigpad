@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - KOLAB SYARAT X TIGPAD LMS UNPAD</title>
+    <title>Masuk Portal - KOLAB SYARAT X TIGPAD LMS UNPAD</title>
     
     <!-- Google Fonts Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -16,6 +16,9 @@
     <!-- DaisyUI & Tailwind CDN -->
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.7.2/dist/full.min.css" rel="stylesheet" type="text/css" />
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Custom Stylesheet -->
+    <link rel="stylesheet" href="css/style.css">
     
     <script>
         tailwind.config = {
@@ -41,130 +44,40 @@
             }
         }
     </script>
-    
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            overflow-x: hidden;
-            transition: background-color 0.3s ease, color 0.3s ease;
-        }
-
-        /* Ambient Twin Orbs Background */
-        .orb-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            pointer-events: none;
-            z-index: 0;
-            overflow: hidden;
-        }
-
-        .orb {
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(110px);
-            opacity: 0.4;
-            animation: floatOrb 18s infinite alternate ease-in-out;
-        }
-
-        .orb-blue {
-            width: 550px;
-            height: 550px;
-            background: radial-gradient(circle, rgba(22, 60, 138, 0.85) 0%, rgba(37, 87, 196, 0.4) 60%, transparent 100%);
-            top: -15%;
-            left: -10%;
-        }
-
-        .orb-orange {
-            width: 500px;
-            height: 500px;
-            background: radial-gradient(circle, rgba(249, 115, 22, 0.85) 0%, rgba(251, 146, 60, 0.35) 60%, transparent 100%);
-            bottom: -15%;
-            right: -10%;
-            animation-delay: -6s;
-        }
-
-        @keyframes floatOrb {
-            0% { transform: translate(0px, 0px) scale(1); }
-            50% { transform: translate(100px, 60px) scale(1.1); }
-            100% { transform: translate(-50px, 120px) scale(0.95); }
-        }
-
-        /* Glassmorphism 2.0 (Clean & Bright) */
-        .glass-card {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
-            border: 1px solid rgba(226, 232, 240, 0.8);
-            box-shadow: 0 12px 40px 0 rgba(22, 60, 138, 0.08);
-            transition: all 0.3s ease;
-        }
-
-        .dark .glass-card {
-            background: rgba(15, 23, 42, 0.75);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.37);
-        }
-
-        /* Duotone Gradient Button */
-        .btn-duotone {
-            background: linear-gradient(135deg, #163C8A 0%, #F97316 100%);
-            color: #ffffff;
-            border: none;
-            transition: all 0.3s ease;
-        }
-
-        .btn-duotone:hover {
-            box-shadow: 0 10px 25px -5px rgba(249, 115, 22, 0.5);
-            transform: translateY(-2px);
-        }
-
-        /* Active Tab Highlight */
-        .role-tab-active {
-            background: linear-gradient(135deg, #163C8A 0%, #F97316 100%);
-            color: #ffffff !important;
-            font-weight: 700;
-            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
-        }
-    </style>
 </head>
-<body class="bg-slate-100 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen relative flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen relative flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 selection:bg-tigpad selection:text-white">
 
     <!-- Ambient Glowing Background Orbs -->
     <div class="orb-container">
         <div class="orb orb-blue"></div>
         <div class="orb orb-orange"></div>
+        <div class="orb orb-purple"></div>
     </div>
 
-    <!-- Back to Landing Link & Dark Mode Toggle -->
-    <div class="fixed top-6 left-6 z-50">
-        <a href="landing.html" class="glass-card px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 hover:border-tigpad transition-all">
+    <!-- Top Navigation Bar for Mobile & Desktop -->
+    <div class="w-full max-w-md sm:max-w-none sm:fixed sm:top-5 sm:left-0 sm:right-0 sm:px-6 z-50 flex items-center justify-between mb-4 sm:mb-0">
+        <a href="index.html" class="glass-card px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-2xl text-xs font-bold flex items-center gap-2 hover:border-tigpad hover:text-tigpad transition-all shadow-md">
             <i class="fa-solid fa-arrow-left"></i>
-            <span>Kembali Ke Beranda</span>
+            <span>Beranda</span>
         </a>
-    </div>
 
-    <div class="fixed top-6 right-6 z-50">
-        <button onclick="toggleDarkMode()" class="w-10 h-10 rounded-xl bg-white/80 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/50 flex items-center justify-center text-slate-700 dark:text-slate-200 shadow-sm">
-            <i id="themeIcon" class="fa-solid fa-moon text-base"></i>
+        <button onclick="toggleDarkMode()" aria-label="Ubah Tema Display" class="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl glass-card flex items-center justify-center text-slate-700 dark:text-slate-200 hover:text-amber-500 transition-colors shadow-md">
+            <i id="themeIcon" class="fa-solid fa-moon text-sm sm:text-base"></i>
         </button>
     </div>
 
     <!-- Main Login Container Card -->
-    <main class="w-full max-w-md relative z-10 space-y-6">
+    <main class="w-full max-w-md relative z-10 space-y-5 sm:space-y-6 my-auto">
+
         
         <!-- Header Branding -->
         <div class="text-center space-y-3">
-            <a href="landing.html" class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-tr from-syarat to-tigpad text-white text-2xl font-bold shadow-xl shadow-syarat/30">
+            <a href="index.html" class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-tr from-syarat to-tigpad text-white text-2xl font-bold shadow-xl shadow-syarat/30 hover:scale-105 transition-transform">
                 <i class="fa-solid fa-hands-asl-interpreting"></i>
             </a>
             <div>
-                <h1 class="text-2xl font-black tracking-tight">KOLAB LMS UNPAD</h1>
-                <p class="text-xs text-slate-500 font-medium">Pembelajaran Bahasa Isyarat (BISINDO) Inklusif</p>
+                <h1 class="text-2xl font-black tracking-tight bg-gradient-to-r from-syarat via-blue-600 to-tigpad bg-clip-text text-transparent">KOLAB LMS UNPAD</h1>
+                <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Pembelajaran Bahasa Isyarat (BISINDO) Inklusif</p>
             </div>
         </div>
 
@@ -173,17 +86,17 @@
             
             <!-- Multi-Role Tab Switcher -->
             <div class="space-y-2">
-                <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider text-center">Pilih Peran / Hak Akses Login</label>
-                <div class="grid grid-cols-3 gap-1.5 p-1 bg-slate-200/80 dark:bg-slate-900/80 rounded-2xl border border-slate-300/80 dark:border-slate-700">
-                    <button type="button" onclick="selectRole('peserta')" id="tabRole_peserta" class="py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 role-tab-active">
+                <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider text-center">Pilih Peran Login Akun</label>
+                <div class="grid grid-cols-3 gap-1.5 p-1 bg-slate-200/80 dark:bg-slate-900/80 rounded-2xl border border-slate-300/80 dark:border-slate-800">
+                    <button type="button" onclick="selectRole('peserta')" id="tabRole_peserta" class="py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 bg-gradient-to-r from-syarat to-tigpad text-white shadow-md">
                         <i class="fa-solid fa-user-graduate"></i>
                         <span>Peserta</span>
                     </button>
-                    <button type="button" onclick="selectRole('mentor')" id="tabRole_mentor" class="py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">
+                    <button type="button" onclick="selectRole('mentor')" id="tabRole_mentor" class="py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">
                         <i class="fa-solid fa-chalkboard-user"></i>
                         <span>Mentor</span>
                     </button>
-                    <button type="button" onclick="selectRole('admin')" id="tabRole_admin" class="py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">
+                    <button type="button" onclick="selectRole('admin')" id="tabRole_admin" class="py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">
                         <i class="fa-solid fa-user-shield"></i>
                         <span>Admin</span>
                     </button>
@@ -192,10 +105,12 @@
 
             <!-- SSO Info Badge Dynamic -->
             <div id="roleInfoBadge" class="p-3.5 rounded-2xl bg-syarat/10 border border-syarat/20 text-xs flex items-center gap-3">
-                <i class="fa-solid fa-graduation-cap text-syarat text-lg"></i>
+                <div class="w-8 h-8 rounded-xl bg-syarat text-white flex items-center justify-center font-bold text-sm flex-shrink-0" id="roleBadgeIcon">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                </div>
                 <div>
                     <div id="roleBadgeTitle" class="font-bold text-syarat dark:text-syarat-light">Akses Login Mahasiswa (Peserta)</div>
-                    <div id="roleBadgeDesc" class="text-[10px] text-slate-500">Gunakan email SSO UNPAD (@unpad.ac.id) Anda.</div>
+                    <div id="roleBadgeDesc" class="text-[10px] text-slate-500 dark:text-slate-400">Gunakan akun SSO UNPAD (@unpad.ac.id) Anda.</div>
                 </div>
             </div>
 
@@ -209,22 +124,22 @@
                         <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                             <i class="fa-solid fa-envelope"></i>
                         </span>
-                        <input type="email" id="loginEmail" required placeholder="nama.mahasiswa@unpad.ac.id" value="rina.rahmawati@unpad.ac.id" class="w-full pl-10 pr-4 py-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 font-medium focus:ring-2 focus:ring-tigpad transition-all">
+                        <input type="email" id="loginEmail" required placeholder="nama.mahasiswa@unpad.ac.id" value="rina.rahmawati@unpad.ac.id" class="w-full pl-10 pr-4 py-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 font-medium focus:ring-2 focus:ring-tigpad outline-none transition-all">
                     </div>
                 </div>
 
                 <!-- Password Input -->
                 <div class="space-y-1.5">
                     <div class="flex justify-between items-center">
-                        <label class="block font-bold text-slate-700 dark:text-slate-300">Kata Sandi / Password</label>
-                        <a href="#" onclick="alert('Silakan hubungi Unit Layanan SSO UNPAD untuk pemulihan sandi.')" class="text-[11px] text-tigpad font-semibold hover:underline">Lupa Sandi?</a>
+                        <label class="block font-bold text-slate-700 dark:text-slate-300">Kata Sandi Akun</label>
+                        <a href="javascript:void(0)" onclick="alert('Silakan hubungi Unit Layanan Terpadu / Helpdesk SSO UNPAD untuk pemulihan sandi.')" class="text-[11px] text-tigpad font-semibold hover:underline">Lupa Sandi?</a>
                     </div>
                     <div class="relative">
                         <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                             <i class="fa-solid fa-lock"></i>
                         </span>
-                        <input type="password" id="loginPassword" required placeholder="••••••••" value="unpad2026" class="w-full pl-10 pr-10 py-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 font-medium focus:ring-2 focus:ring-tigpad transition-all">
-                        <button type="button" onclick="togglePasswordVisibility()" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600">
+                        <input type="password" id="loginPassword" required placeholder="••••••••" value="unpad2026" class="w-full pl-10 pr-10 py-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 font-medium focus:ring-2 focus:ring-tigpad outline-none transition-all">
+                        <button type="button" onclick="togglePasswordVisibility()" aria-label="Lihat Password" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
                             <i id="eyeIcon" class="fa-solid fa-eye"></i>
                         </button>
                     </div>
@@ -233,13 +148,13 @@
                 <!-- Remember Me Checkbox -->
                 <div class="flex items-center justify-between pt-1">
                     <label class="flex items-center gap-2 cursor-pointer">
-                        <input type="checkbox" checked class="checkbox checkbox-xs checkbox-primary">
+                        <input type="checkbox" checked class="checkbox checkbox-xs checkbox-primary rounded-md">
                         <span class="text-xs text-slate-600 dark:text-slate-400 font-medium">Ingat Sesi Login Saya</span>
                     </label>
                 </div>
 
                 <!-- Submit Button -->
-                <button type="submit" class="btn-duotone w-full py-3.5 rounded-xl font-bold text-sm shadow-xl flex items-center justify-center gap-2 mt-2">
+                <button type="submit" id="btnSubmitLogin" class="btn-duotone w-full py-3.5 rounded-xl font-bold text-sm shadow-xl flex items-center justify-center gap-2 mt-2">
                     <span>Masuk Ke Dashboard</span>
                     <i class="fa-solid fa-arrow-right"></i>
                 </button>
@@ -249,7 +164,7 @@
 
         <!-- Footer Help -->
         <p class="text-center text-xs text-slate-500">
-            Kendala Login SSO? Hubungi <a href="#" class="text-syarat dark:text-syarat-light font-bold hover:underline">Helpdesk UNPAD</a>
+            Kendala Login SSO? Hubungi <a href="javascript:void(0)" onclick="alert('Helpdesk SSO UNPAD: helpdesk@unpad.ac.id / WhatsApp: +62 811-2233-4455')" class="text-syarat dark:text-syarat-light font-bold hover:underline">Helpdesk UNPAD</a>
         </p>
 
     </main>
@@ -263,11 +178,13 @@
             if (savedTheme === 'dark') {
                 document.documentElement.classList.add('dark');
                 document.documentElement.setAttribute('data-theme', 'dark');
-                document.getElementById('themeIcon').className = 'fa-solid fa-sun text-amber-400 text-base';
+                const icon = document.getElementById('themeIcon');
+                if (icon) icon.className = 'fa-solid fa-sun text-amber-400 text-base';
             } else {
                 document.documentElement.classList.remove('dark');
                 document.documentElement.setAttribute('data-theme', 'light');
-                document.getElementById('themeIcon').className = 'fa-solid fa-moon text-slate-700 text-base';
+                const icon = document.getElementById('themeIcon');
+                if (icon) icon.className = 'fa-solid fa-moon text-slate-700 text-base';
             }
         }
 
@@ -276,7 +193,7 @@
             document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
             localStorage.setItem('kolab_theme', isDark ? 'dark' : 'light');
             const icon = document.getElementById('themeIcon');
-            icon.className = isDark ? 'fa-solid fa-sun text-amber-400 text-base' : 'fa-solid fa-moon text-slate-700 text-base';
+            if (icon) icon.className = isDark ? 'fa-solid fa-sun text-amber-400 text-base' : 'fa-solid fa-moon text-slate-700 text-base';
         }
 
         function selectRole(role) {
@@ -284,28 +201,35 @@
             ['peserta', 'mentor', 'admin'].forEach(r => {
                 const btn = document.getElementById(`tabRole_${r}`);
                 if (r === role) {
-                    btn.className = "py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 role-tab-active";
+                    btn.className = "py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 bg-gradient-to-r from-syarat to-tigpad text-white shadow-md";
                 } else {
-                    btn.className = "py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white";
+                    btn.className = "py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white";
                 }
             });
 
             const emailInput = document.getElementById('loginEmail');
             const badgeTitle = document.getElementById('roleBadgeTitle');
             const badgeDesc = document.getElementById('roleBadgeDesc');
+            const badgeIcon = document.getElementById('roleBadgeIcon');
 
             if (role === 'peserta') {
                 emailInput.value = 'rina.rahmawati@unpad.ac.id';
                 badgeTitle.innerText = "Akses Login Mahasiswa (Peserta)";
                 badgeDesc.innerText = "Gunakan email SSO UNPAD (@unpad.ac.id) Anda.";
+                badgeIcon.className = "w-8 h-8 rounded-xl bg-syarat text-white flex items-center justify-center font-bold text-sm flex-shrink-0";
+                badgeIcon.innerHTML = '<i class="fa-solid fa-graduation-cap"></i>';
             } else if (role === 'mentor') {
-                emailInput.value = 'mentor@unpad.ac.id';
-                badgeTitle.innerText = "Akses Login Mentor / Pengajar";
-                badgeDesc.innerText = "Kredensial khusus pengajar BISINDO UNPAD.";
+                emailInput.value = 'budi.santoso@unpad.ac.id';
+                badgeTitle.innerText = "Akses Login Mentor BISINDO";
+                badgeDesc.innerText = "Kredensial khusus pengajar & penguji BISINDO UNPAD.";
+                badgeIcon.className = "w-8 h-8 rounded-xl bg-tigpad text-white flex items-center justify-center font-bold text-sm flex-shrink-0";
+                badgeIcon.innerHTML = '<i class="fa-solid fa-chalkboard-user"></i>';
             } else if (role === 'admin') {
-                emailInput.value = 'admin@unpad.ac.id';
+                emailInput.value = 'engkus.kuswandi@unpad.ac.id';
                 badgeTitle.innerText = "Akses Login Administrator LMS";
-                badgeDesc.innerText = "Hak akses penuh manajemen pengguna & sistem.";
+                badgeDesc.innerText = "Hak akses penuh manajemen pengguna & kurikulum.";
+                badgeIcon.className = "w-8 h-8 rounded-xl bg-slate-800 text-white flex items-center justify-center font-bold text-sm flex-shrink-0";
+                badgeIcon.innerHTML = '<i class="fa-solid fa-user-shield"></i>';
             }
         }
 
@@ -323,11 +247,19 @@
 
         function handleLoginSubmit(e) {
             e.preventDefault();
+            const btn = document.getElementById('btnSubmitLogin');
+            btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> <span>Memverifikasi SSO...</span>';
+            btn.disabled = true;
+
             localStorage.setItem('kolab_role', selectedRoleState);
-            window.location.href = `dashboard.html?role=${selectedRoleState}`;
+            
+            setTimeout(() => {
+                window.location.href = `dashboard.html?role=${selectedRoleState}`;
+            }, 600);
         }
 
         document.addEventListener('DOMContentLoaded', initTheme);
     </script>
 </body>
 </html>
+

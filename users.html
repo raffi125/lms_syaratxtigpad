@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kelola User - KOLAB SYARAT X TIGPAD UNPAD</title>
+    <title>Kelola Pengguna - KOLAB SYARAT X TIGPAD UNPAD</title>
     
     <!-- Google Fonts Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -16,6 +16,9 @@
     <!-- DaisyUI & Tailwind CDN -->
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.7.2/dist/full.min.css" rel="stylesheet" type="text/css" />
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Custom Stylesheet -->
+    <link rel="stylesheet" href="css/style.css" />
     
     <script>
         tailwind.config = {
@@ -31,48 +34,36 @@
             }
         }
     </script>
-    
-    <style>
-        body { font-family: 'Inter', sans-serif; overflow-x: hidden; transition: background-color 0.3s ease, color 0.3s ease; }
-        .orb-container { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 0; overflow: hidden; }
-        .orb { position: absolute; border-radius: 50%; filter: blur(120px); opacity: 0.35; animation: floatOrb 20s infinite alternate ease-in-out; }
-        .orb-blue { width: 600px; height: 600px; background: radial-gradient(circle, rgba(22, 60, 138, 0.7) 0%, transparent 70%); top: -10%; left: -10%; }
-        .orb-orange { width: 500px; height: 500px; background: radial-gradient(circle, rgba(249, 115, 22, 0.65) 0%, transparent 70%); bottom: -10%; right: -10%; animation-delay: -5s; }
-        @keyframes floatOrb { 0% { transform: translate(0px, 0px) scale(1); } 50% { transform: translate(90px, 70px) scale(1.1); } 100% { transform: translate(-40px, 110px) scale(0.95); } }
-        .glass-card { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(226, 232, 240, 0.8); box-shadow: 0 10px 30px rgba(22, 60, 138, 0.05); transition: all 0.3s ease; }
-        .dark .glass-card { background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); }
-        .glass-nav { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(16px); border-bottom: 1px solid rgba(226, 232, 240, 0.8); }
-        .dark .glass-nav { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(16px); border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
-        .btn-duotone { background: linear-gradient(135deg, #163C8A 0%, #F97316 100%); color: #ffffff; border: none; transition: all 0.3s ease; }
-        .btn-duotone:hover { box-shadow: 0 10px 25px -5px rgba(249, 115, 22, 0.4); transform: translateY(-2px); }
-        .sidebar-active { background: linear-gradient(90deg, rgba(22, 60, 138, 0.1) 0%, rgba(249, 115, 22, 0.1) 100%); border-left: 4px solid #F97316; color: #F97316 !important; font-weight: 700; }
-        .dark .sidebar-active { background: linear-gradient(90deg, rgba(22, 60, 138, 0.3) 0%, rgba(249, 115, 22, 0.25) 100%); border-left: 4px solid #F97316; color: #fb923c !important; }
-    </style>
 </head>
-<body class="bg-slate-100 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen relative flex flex-col">
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen relative flex flex-col antialiased selection:bg-tigpad selection:text-white">
 
+    <!-- Ambient Background Orbs -->
     <div class="orb-container">
         <div class="orb orb-blue"></div>
         <div class="orb orb-orange"></div>
+        <div class="orb orb-purple"></div>
     </div>
 
     <!-- Top Navigation Bar -->
     <header class="sticky top-0 z-40 glass-nav transition-all">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
             <div class="flex items-center gap-3">
-                <button onclick="toggleMobileSidebar()" class="md:hidden text-slate-600 dark:text-slate-300 p-2 rounded-xl hover:bg-slate-200/60 dark:hover:bg-slate-800/60">
+                <button onclick="toggleMobileSidebar()" class="md:hidden text-slate-600 dark:text-slate-300 p-2 rounded-xl hover:bg-slate-200/60 dark:hover:bg-slate-800/60" aria-label="Buka Menu">
                     <i class="fa-solid fa-bars text-lg"></i>
                 </button>
-                <a href="landing.html" class="flex items-center gap-2">
-                    <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-tr from-syarat to-tigpad flex items-center justify-center text-white text-sm sm:text-base font-bold shadow-md">
+                <a href="index.html" class="flex items-center gap-2.5 group">
+                    <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-syarat to-tigpad flex items-center justify-center text-white text-base font-bold shadow-md group-hover:scale-105 transition-transform">
                         <i class="fa-solid fa-hands-asl-interpreting"></i>
                     </div>
-                    <span class="font-black text-base sm:text-lg tracking-tight bg-gradient-to-r from-syarat to-tigpad bg-clip-text text-transparent">KOLAB UNPAD</span>
+                    <div class="flex flex-col">
+                        <span class="font-black text-base sm:text-lg tracking-tight bg-gradient-to-r from-syarat via-blue-600 to-tigpad bg-clip-text text-transparent leading-none">KOLAB UNPAD</span>
+                        <span class="text-[9px] font-extrabold tracking-widest text-slate-400 uppercase mt-0.5">SYARAT X TIGPAD</span>
+                    </div>
                 </a>
             </div>
 
             <div class="flex items-center gap-2.5">
-                <button onclick="toggleDarkMode()" aria-label="Ubah Tema Display" class="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-200 hover:text-amber-500 transition-colors shadow-sm">
+                <button onclick="toggleDarkMode()" aria-label="Ubah Tema Display" class="w-10 h-10 rounded-xl glass-card flex items-center justify-center text-slate-700 dark:text-slate-200 hover:text-amber-500 transition-colors shadow-sm">
                     <i id="themeIcon" class="fa-solid fa-moon text-base"></i>
                 </button>
 
@@ -123,7 +114,7 @@
                 </div>
                 <div>
                     <h3 id="sidebarRoleTitle" class="font-extrabold text-sm">Mode Admin</h3>
-                    <p class="text-[11px] text-slate-500 dark:text-slate-400">Status Active • BISINDO 2026</p>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400">Status Aktif • BISINDO 2026</p>
                 </div>
             </div>
 
@@ -150,7 +141,7 @@
                         <i class="fa-solid fa-stopwatch-20 text-sm"></i>
                         <span>Kelola Kuis & Soal</span>
                     </div>
-                    <span class="px-2 py-0.5 rounded-full bg-tigpad text-white text-[9px] font-bold">3 Soal</span>
+                    <span class="px-2 py-0.5 rounded-full bg-tigpad text-white text-[9px] font-bold">10 Soal</span>
                 </a>
 
                 <a href="game.html" class="flex items-center gap-3 px-3.5 py-3 rounded-2xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all text-slate-600 dark:text-slate-300 justify-between">
@@ -158,7 +149,7 @@
                         <i class="fa-solid fa-gamepad text-sm text-purple-500"></i>
                         <span>Game BISINDO</span>
                     </div>
-                    <span class="px-2 py-0.5 rounded-full bg-purple-500 text-white text-[9px] font-bold">Baru</span>
+                    <span class="px-2 py-0.5 rounded-full bg-purple-500 text-white text-[9px] font-bold">Main</span>
                 </a>
 
                 <a href="sertifikat.html" class="flex items-center gap-3 px-3.5 py-3 rounded-2xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all text-slate-600 dark:text-slate-300">
@@ -178,8 +169,8 @@
 
                 <div class="pt-2 space-y-1">
                     <a href="reports.html" class="flex items-center gap-3 px-3.5 py-3 rounded-2xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all text-slate-600 dark:text-slate-300">
-                        <i class="fa-solid fa-file-invoice-dollar text-sm"></i>
-                        <span>Laporan Peserta</span>
+                        <i class="fa-solid fa-file-invoice text-sm"></i>
+                        <span>Laporan & Analitik</span>
                     </a>
                 </div>
             </nav>
@@ -187,60 +178,49 @@
 
         <!-- Main Content Area: Kelola User -->
         <main class="md:col-span-9 space-y-6">
-            <div class="flex justify-between items-center">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 class="text-2xl font-black">Kelola Pengguna UNPAD</h1>
-                    <p class="text-xs text-slate-500">Manajemen akun Peserta, Mentor, dan Administrator.</p>
+                    <h1 class="text-2xl font-black bg-gradient-to-r from-syarat to-tigpad bg-clip-text text-transparent">Kelola Pengguna UNPAD</h1>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Manajemen akun Peserta (Mahasiswa), Mentor Pengajar, dan Administrator Sistem.</p>
                 </div>
-                <button onclick="alert('Form Tambah User')" class="btn-duotone px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 shadow-lg">
+                <button onclick="openAddUserModal()" class="btn-duotone px-4 py-2.5 rounded-2xl text-xs font-bold flex items-center gap-2 shadow-lg hover:scale-105 transition-all">
                     <i class="fa-solid fa-user-plus"></i>
                     <span>Tambah User Baru</span>
                 </button>
             </div>
 
-            <div class="glass-card p-6 rounded-3xl space-y-4">
+            <!-- Role Filter Pills & Search Box -->
+            <div class="glass-card p-4 rounded-3xl flex flex-col sm:flex-row justify-between items-center gap-3">
+                <div class="flex flex-wrap gap-2 w-full sm:w-auto" id="roleFilterButtons">
+                    <button onclick="filterByRole('all')" class="px-3.5 py-1.5 rounded-xl bg-syarat text-white text-xs font-bold transition-all" id="btnFilterAll">Semua (5)</button>
+                    <button onclick="filterByRole('peserta')" class="px-3.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 text-xs font-bold transition-all" id="btnFilterPeserta">Peserta (3)</button>
+                    <button onclick="filterByRole('mentor')" class="px-3.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 text-xs font-bold transition-all" id="btnFilterMentor">Mentor (1)</button>
+                    <button onclick="filterByRole('admin')" class="px-3.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 text-xs font-bold transition-all" id="btnFilterAdmin">Admin (1)</button>
+                </div>
+
+                <div class="relative w-full sm:w-64">
+                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                        <i class="fa-solid fa-magnifying-glass text-xs"></i>
+                    </span>
+                    <input type="text" id="userSearchInput" oninput="filterUsersTable()" placeholder="Cari nama / email..." class="w-full pl-9 pr-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-semibold focus:ring-2 focus:ring-tigpad outline-none">
+                </div>
+            </div>
+
+            <!-- Users Table Card -->
+            <div class="glass-card p-5 sm:p-7 rounded-3xl space-y-4">
                 <div class="overflow-x-auto">
-                    <table class="table table-sm w-full text-xs">
+                    <table class="w-full text-left text-xs border-collapse" id="usersTable">
                         <thead>
-                            <tr class="text-slate-400 border-slate-200 dark:border-slate-800">
-                                <th>Nama Pengguna</th>
-                                <th>Email SSO</th>
-                                <th>Role Sesi</th>
-                                <th>Status</th>
-                                <th>Aksi Admin</th>
+                            <tr class="border-b border-slate-200 dark:border-slate-800 text-slate-400 font-bold uppercase text-[10px]">
+                                <th class="py-3 px-3">Nama Pengguna</th>
+                                <th class="py-3 px-3">Email Akun UNPAD</th>
+                                <th class="py-3 px-3">Peran (Role)</th>
+                                <th class="py-3 px-3">Status</th>
+                                <th class="py-3 px-3 text-right">Aksi Admin</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <tr class="border-slate-200 dark:border-slate-800">
-                                <td class="font-bold flex items-center gap-2">
-                                    <div class="w-6 h-6 rounded-lg bg-syarat/10 text-syarat dark:text-syarat-light font-extrabold flex items-center justify-center text-[10px]">RR</div>
-                                    <span>Rina Rahmawati</span>
-                                </td>
-                                <td class="font-mono text-slate-500">rina.rahmawati@unpad.ac.id</td>
-                                <td><span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300">Peserta</span></td>
-                                <td><span class="text-green-500 font-bold">Aktif</span></td>
-                                <td><button onclick="alert('Edit user Rina')" class="btn btn-xs border-none bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-200"><i class="fa-solid fa-pen"></i> Edit</button></td>
-                            </tr>
-                            <tr class="border-slate-200 dark:border-slate-800">
-                                <td class="font-bold flex items-center gap-2">
-                                    <div class="w-6 h-6 rounded-lg bg-tigpad/10 text-tigpad font-extrabold flex items-center justify-center text-[10px]">BS</div>
-                                    <span>Budi Santoso</span>
-                                </td>
-                                <td class="font-mono text-slate-500">mentor@unpad.ac.id</td>
-                                <td><span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase bg-tigpad text-white">Mentor</span></td>
-                                <td><span class="text-green-500 font-bold">Aktif</span></td>
-                                <td><button onclick="alert('Edit user Budi')" class="btn btn-xs border-none bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-200"><i class="fa-solid fa-pen"></i> Edit</button></td>
-                            </tr>
-                            <tr class="border-slate-200 dark:border-slate-800">
-                                <td class="font-bold flex items-center gap-2">
-                                    <div class="w-6 h-6 rounded-lg bg-syarat text-white font-extrabold flex items-center justify-center text-[10px]">EK</div>
-                                    <span>Engkus Kuswandi</span>
-                                </td>
-                                <td class="font-mono text-slate-500">admin@unpad.ac.id</td>
-                                <td><span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase bg-syarat text-white">Admin</span></td>
-                                <td><span class="text-green-500 font-bold">Aktif</span></td>
-                                <td><button onclick="alert('Edit user Engkus')" class="btn btn-xs border-none bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-200"><i class="fa-solid fa-pen"></i> Edit</button></td>
-                            </tr>
+                        <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 font-medium" id="usersTableBody">
+                            <!-- Populated via JavaScript -->
                         </tbody>
                     </table>
                 </div>
@@ -248,10 +228,188 @@
         </main>
     </div>
 
+    <!-- Modal Tambah / Edit User -->
+    <dialog id="userModal" class="modal modal-bottom sm:modal-middle">
+        <div class="modal-box glass-card border border-slate-200 dark:border-slate-700 rounded-3xl p-6 text-slate-800 dark:text-slate-100 max-w-md">
+            <h3 class="font-extrabold text-base mb-1" id="modalUserTitle">Tambah Pengguna Baru</h3>
+            <p class="text-xs text-slate-500 mb-4">Lengkapi data pengguna terdaftar di lingkungan Universitas Padjadjaran.</p>
+
+            <form onsubmit="handleSaveUser(event)" class="space-y-3.5 text-xs font-semibold">
+                <input type="hidden" id="editUserId" value="">
+
+                <div>
+                    <label class="block mb-1 text-slate-600 dark:text-slate-300">Nama Lengkap</label>
+                    <input type="text" id="formUserName" required placeholder="Contoh: Rina Rahmawati" class="w-full p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 outline-none focus:ring-2 focus:ring-tigpad">
+                </div>
+
+                <div>
+                    <label class="block mb-1 text-slate-600 dark:text-slate-300">Email UNPAD / SSO</label>
+                    <input type="email" id="formUserEmail" required placeholder="Contoh: rina@unpad.ac.id" class="w-full p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 outline-none focus:ring-2 focus:ring-tigpad">
+                </div>
+
+                <div>
+                    <label class="block mb-1 text-slate-600 dark:text-slate-300">Peran Akun (Role)</label>
+                    <select id="formUserRole" class="w-full p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 outline-none focus:ring-2 focus:ring-tigpad font-semibold">
+                        <option value="peserta">Peserta (Mahasiswa)</option>
+                        <option value="mentor">Mentor Pengajar</option>
+                        <option value="admin">Administrator Sistem</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block mb-1 text-slate-600 dark:text-slate-300">Status Akun</label>
+                    <select id="formUserStatus" class="w-full p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 outline-none focus:ring-2 focus:ring-tigpad font-semibold">
+                        <option value="Aktif">Aktif</option>
+                        <option value="Nonaktif">Nonaktif</option>
+                    </select>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-4 border-t border-slate-200 dark:border-slate-800">
+                    <button type="button" onclick="userModal.close()" class="px-4 py-2 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 font-bold transition-all">Batal</button>
+                    <button type="submit" class="btn-duotone px-5 py-2 rounded-xl font-bold shadow-md">Simpan Data</button>
+                </div>
+            </form>
+        </div>
+    </dialog>
+
     <script>
+        let usersData = [
+            { id: '1', name: 'Rina Rahmawati', email: 'rina.rahmawati@unpad.ac.id', role: 'peserta', status: 'Aktif' },
+            { id: '2', name: 'Budi Santoso', email: 'mentor@unpad.ac.id', role: 'mentor', status: 'Aktif' },
+            { id: '3', name: 'Engkus Kuswandi', email: 'admin@unpad.ac.id', role: 'admin', status: 'Aktif' },
+            { id: '4', name: 'Dimas Anggara', email: 'dimas.anggara@unpad.ac.id', role: 'peserta', status: 'Aktif' },
+            { id: '5', name: 'Siti Permatasari', email: 'siti.permatasari@unpad.ac.id', role: 'peserta', status: 'Aktif' }
+        ];
+
+        let activeRoleFilter = 'all';
+
         function initApp() {
             initTheme();
             localStorage.setItem('kolab_role', 'admin');
+            renderUsersTable();
+        }
+
+        function renderUsersTable() {
+            const tbody = document.getElementById('usersTableBody');
+            const searchVal = document.getElementById('userSearchInput').value.toLowerCase();
+            tbody.innerHTML = '';
+
+            const filtered = usersData.filter(u => {
+                const matchRole = activeRoleFilter === 'all' || u.role === activeRoleFilter;
+                const matchSearch = u.name.toLowerCase().includes(searchVal) || u.email.toLowerCase().includes(searchVal);
+                return matchRole && matchSearch;
+            });
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-6 text-slate-400">Tidak ada pengguna ditemukan.</td></tr>`;
+                return;
+            }
+
+            filtered.forEach(u => {
+                const initials = u.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+                let roleBadge = '';
+                if (u.role === 'peserta') roleBadge = `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/15 text-syarat dark:text-blue-400 border border-blue-500/30">Peserta</span>`;
+                else if (u.role === 'mentor') roleBadge = `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-tigpad/15 text-tigpad border border-tigpad/30">Mentor</span>`;
+                else roleBadge = `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-500/15 text-purple-600 dark:text-purple-400 border border-purple-500/30">Admin</span>`;
+
+                const statusBadge = u.status === 'Aktif' 
+                    ? `<span class="text-green-500 font-bold flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-green-500"></span> Aktif</span>`
+                    : `<span class="text-slate-400 font-bold flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-slate-400"></span> Nonaktif</span>`;
+
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors';
+                tr.innerHTML = `
+                    <td class="py-3 px-3 font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-syarat to-tigpad text-white font-extrabold flex items-center justify-center text-[10px] shadow-sm">${initials}</div>
+                        <span>${u.name}</span>
+                    </td>
+                    <td class="py-3 px-3 font-mono text-slate-500 dark:text-slate-400">${u.email}</td>
+                    <td class="py-3 px-3">${roleBadge}</td>
+                    <td class="py-3 px-3">${statusBadge}</td>
+                    <td class="py-3 px-3 text-right space-x-1.5">
+                        <button onclick="editUser('${u.id}')" class="px-2.5 py-1 rounded-lg bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition-all">
+                            <i class="fa-solid fa-pen-to-square"></i> Edit
+                        </button>
+                        <button onclick="deleteUser('${u.id}')" class="px-2.5 py-1 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-500 text-xs font-bold transition-all">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function filterByRole(role) {
+            activeRoleFilter = role;
+            const buttons = {
+                all: document.getElementById('btnFilterAll'),
+                peserta: document.getElementById('btnFilterPeserta'),
+                mentor: document.getElementById('btnFilterMentor'),
+                admin: document.getElementById('btnFilterAdmin')
+            };
+            Object.keys(buttons).forEach(k => {
+                if (k === role) {
+                    buttons[k].className = 'px-3.5 py-1.5 rounded-xl bg-syarat text-white text-xs font-bold transition-all';
+                } else {
+                    buttons[k].className = 'px-3.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 text-xs font-bold transition-all';
+                }
+            });
+            renderUsersTable();
+        }
+
+        function filterUsersTable() {
+            renderUsersTable();
+        }
+
+        function openAddUserModal() {
+            document.getElementById('modalUserTitle').innerText = "Tambah Pengguna Baru";
+            document.getElementById('editUserId').value = "";
+            document.getElementById('formUserName').value = "";
+            document.getElementById('formUserEmail').value = "";
+            document.getElementById('formUserRole').value = "peserta";
+            document.getElementById('formUserStatus').value = "Aktif";
+            userModal.showModal();
+        }
+
+        function editUser(id) {
+            const user = usersData.find(u => u.id === id);
+            if (!user) return;
+            document.getElementById('modalUserTitle').innerText = "Edit Data Pengguna";
+            document.getElementById('editUserId').value = user.id;
+            document.getElementById('formUserName').value = user.name;
+            document.getElementById('formUserEmail').value = user.email;
+            document.getElementById('formUserRole').value = user.role;
+            document.getElementById('formUserStatus').value = user.status;
+            userModal.showModal();
+        }
+
+        function deleteUser(id) {
+            if (confirm("Apakah Anda yakin ingin menghapus pengguna ini?")) {
+                usersData = usersData.filter(u => u.id !== id);
+                renderUsersTable();
+            }
+        }
+
+        function handleSaveUser(e) {
+            e.preventDefault();
+            const id = document.getElementById('editUserId').value;
+            const name = document.getElementById('formUserName').value;
+            const email = document.getElementById('formUserEmail').value;
+            const role = document.getElementById('formUserRole').value;
+            const status = document.getElementById('formUserStatus').value;
+
+            if (id) {
+                const idx = usersData.findIndex(u => u.id === id);
+                if (idx !== -1) {
+                    usersData[idx] = { id, name, email, role, status };
+                }
+            } else {
+                const newId = (Date.now()).toString();
+                usersData.push({ id: newId, name, email, role, status });
+            }
+
+            userModal.close();
+            renderUsersTable();
         }
 
         function initTheme() {
@@ -259,11 +417,13 @@
             if (savedTheme === 'dark') {
                 document.documentElement.classList.add('dark');
                 document.documentElement.setAttribute('data-theme', 'dark');
-                document.getElementById('themeIcon').className = 'fa-solid fa-sun text-amber-400 text-base';
+                const icon = document.getElementById('themeIcon');
+                if (icon) icon.className = 'fa-solid fa-sun text-amber-400 text-base';
             } else {
                 document.documentElement.classList.remove('dark');
                 document.documentElement.setAttribute('data-theme', 'light');
-                document.getElementById('themeIcon').className = 'fa-solid fa-moon text-slate-700 text-base';
+                const icon = document.getElementById('themeIcon');
+                if (icon) icon.className = 'fa-solid fa-moon text-slate-700 text-base';
             }
         }
 
@@ -272,7 +432,7 @@
             document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
             localStorage.setItem('kolab_theme', isDark ? 'dark' : 'light');
             const icon = document.getElementById('themeIcon');
-            icon.className = isDark ? 'fa-solid fa-sun text-amber-400 text-base' : 'fa-solid fa-moon text-slate-700 text-base';
+            if (icon) icon.className = isDark ? 'fa-solid fa-sun text-amber-400 text-base' : 'fa-solid fa-moon text-slate-700 text-base';
         }
 
         function toggleMobileSidebar() {
@@ -287,7 +447,7 @@
                         <div class="space-y-6">
                             <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
                                 <div class="flex items-center gap-2 font-black text-syarat dark:text-syarat-light text-base">
-                                    <i class="fa-solid fa-hands-asl-interpreting"></i> KOLAB UNPAD
+                                    <i class="fa-solid fa-hands-asl-interpreting text-tigpad"></i> KOLAB UNPAD
                                 </div>
                                 <button onclick="toggleMobileSidebar()" class="p-2 text-slate-500 hover:text-red-500">
                                     <i class="fa-solid fa-xmark text-lg"></i>
@@ -307,3 +467,4 @@
     </script>
 </body>
 </html>
+

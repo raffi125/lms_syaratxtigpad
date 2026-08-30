@@ -17,6 +17,9 @@
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.7.2/dist/full.min.css" rel="stylesheet" type="text/css" />
     <script src="https://cdn.tailwindcss.com"></script>
     
+    <!-- Custom Stylesheet -->
+    <link rel="stylesheet" href="css/style.css">
+    
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -41,118 +44,55 @@
             }
         }
     </script>
-    
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            overflow-x: hidden;
-            transition: background-color 0.3s ease, color 0.3s ease;
-        }
-
-        .orb-container {
-            position: fixed; top: 0; left: 0;
-            width: 100vw; height: 100vh;
-            pointer-events: none; z-index: 0; overflow: hidden;
-        }
-
-        .orb {
-            position: absolute; border-radius: 50%;
-            filter: blur(120px); opacity: 0.35;
-            animation: floatOrb 20s infinite alternate ease-in-out;
-        }
-
-        .orb-blue {
-            width: 600px; height: 600px;
-            background: radial-gradient(circle, rgba(22, 60, 138, 0.7) 0%, transparent 70%);
-            top: -10%; left: -10%;
-        }
-
-        .orb-orange {
-            width: 500px; height: 500px;
-            background: radial-gradient(circle, rgba(249, 115, 22, 0.65) 0%, transparent 70%);
-            bottom: -10%; right: -10%; animation-delay: -5s;
-        }
-
-        @keyframes floatOrb {
-            0% { transform: translate(0px, 0px) scale(1); }
-            50% { transform: translate(90px, 70px) scale(1.1); }
-            100% { transform: translate(-40px, 110px) scale(0.95); }
-        }
-
-        .glass-card {
-            background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(226, 232, 240, 0.8); box-shadow: 0 10px 30px rgba(22, 60, 138, 0.05); transition: all 0.3s ease;
-        }
-
-        .dark .glass-card {
-            background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-        }
-
-        .glass-nav {
-            background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(16px); border-bottom: 1px solid rgba(226, 232, 240, 0.8);
-        }
-
-        .dark .glass-nav {
-            background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(16px); border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .btn-duotone {
-            background: linear-gradient(135deg, #163C8A 0%, #F97316 100%);
-            color: #ffffff; border: none; transition: all 0.3s ease;
-        }
-
-        .btn-duotone:hover {
-            box-shadow: 0 10px 25px -5px rgba(249, 115, 22, 0.4); transform: translateY(-2px);
-        }
-    </style>
 </head>
-<body class="bg-slate-100 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen relative flex flex-col antialiased">
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen relative flex flex-col antialiased selection:bg-tigpad selection:text-white overflow-x-hidden">
 
-    <!-- Ambient Glowing Orbs -->
+    <!-- Ambient Glowing Orbs Background -->
     <div class="orb-container">
         <div class="orb orb-blue"></div>
         <div class="orb orb-orange"></div>
+        <div class="orb orb-purple"></div>
     </div>
 
     <!-- Navigation Header -->
     <header class="sticky top-0 z-40 glass-nav transition-all">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3">
             
-            <!-- Brand & Mobile Toggle -->
+            <!-- Brand Logo -->
             <div class="flex items-center gap-3">
-                <button onclick="toggleLandingMobileMenu()" class="md:hidden text-slate-600 dark:text-slate-300 p-2 rounded-xl hover:bg-slate-200/60 dark:hover:bg-slate-800/60" aria-label="Buka Menu Mobile">
+                <button onclick="toggleLandingMobileMenu()" class="md:hidden text-slate-600 dark:text-slate-300 p-2 rounded-xl hover:bg-slate-200/60 dark:hover:bg-slate-800/60 focus:outline-none" aria-label="Buka Menu Mobile">
                     <i class="fa-solid fa-bars text-lg"></i>
                 </button>
                 
-                <a href="landing.html" class="flex items-center gap-2.5">
-                    <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-syarat to-tigpad flex items-center justify-center text-white text-base font-bold shadow-md">
+                <a href="landing.html" class="flex items-center gap-2.5 group">
+                    <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-syarat to-tigpad flex items-center justify-center text-white text-base sm:text-lg font-bold shadow-md shadow-syarat/20 group-hover:scale-105 transition-transform">
                         <i class="fa-solid fa-hands-asl-interpreting"></i>
                     </div>
                     <div class="flex flex-col">
-                        <span class="font-black text-base sm:text-lg tracking-tight bg-gradient-to-r from-syarat to-tigpad bg-clip-text text-transparent leading-none">KOLAB UNPAD</span>
+                        <span class="font-black text-base sm:text-lg tracking-tight bg-gradient-to-r from-syarat via-blue-600 to-tigpad bg-clip-text text-transparent leading-none">KOLAB UNPAD</span>
                         <span class="text-[9px] font-extrabold tracking-widest text-slate-400 uppercase mt-0.5">SYARAT X TIGPAD</span>
                     </div>
                 </a>
             </div>
 
-            <!-- Desktop Menu Navigation -->
-            <nav class="hidden md:flex items-center gap-6 text-xs font-semibold text-slate-600 dark:text-slate-300">
+            <!-- Desktop & Tablet Menu Navigation -->
+            <nav class="hidden md:flex items-center gap-4 lg:gap-7 text-xs font-semibold text-slate-600 dark:text-slate-300">
                 <a href="#fitur" class="hover:text-syarat dark:hover:text-tigpad transition-colors">Fitur Unggulan</a>
-                <a href="#modul" class="hover:text-syarat dark:hover:text-tigpad transition-colors">Modul Belajar</a>
+                <a href="#modul" class="hover:text-syarat dark:hover:text-tigpad transition-colors">Kurikulum Modul</a>
                 <a href="#peran" class="hover:text-syarat dark:hover:text-tigpad transition-colors">Akses Peran</a>
                 <a href="#faq" class="hover:text-syarat dark:hover:text-tigpad transition-colors">FAQ</a>
             </nav>
 
             <!-- Right Controls: Dark Mode & Login Button -->
             <div class="flex items-center gap-2 sm:gap-3">
-                <button onclick="toggleDarkMode()" aria-label="Ubah Tema Display" class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-200 hover:text-amber-500 transition-colors shadow-sm">
+                <button onclick="toggleDarkMode()" aria-label="Ubah Tema Display" class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl glass-card flex items-center justify-center text-slate-700 dark:text-slate-200 hover:text-amber-500 dark:hover:text-amber-400 transition-colors shadow-sm">
                     <i id="themeIcon" class="fa-solid fa-moon text-sm sm:text-base"></i>
                 </button>
 
-                <a href="login.html" class="btn-duotone px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 shadow-md">
+                <a href="login.html" class="btn-duotone px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs font-bold flex items-center gap-1.5 sm:gap-2 shadow-md">
                     <i class="fa-solid fa-right-to-bracket"></i>
-                    <span>Masuk SSO UNPAD</span>
+                    <span class="hidden xs:inline sm:inline">Masuk SSO</span>
+                    <span class="inline xs:hidden sm:hidden">Masuk</span>
                 </a>
             </div>
 
@@ -160,166 +100,426 @@
     </header>
 
     <!-- Hero Section -->
-    <section class="relative z-10 py-12 sm:py-16 lg:py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto flex flex-col items-center text-center space-y-8">
+    <section class="relative z-10 py-10 sm:py-16 lg:py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto flex flex-col items-center text-center space-y-6 sm:space-y-8">
         
-        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 text-xs font-bold shadow-sm">
-            <span class="w-2 h-2 rounded-full bg-tigpad animate-ping"></span>
-            <span class="bg-gradient-to-r from-syarat to-tigpad bg-clip-text text-transparent font-extrabold">Platform Pembelajaran BISINDO Inklusif UNPAD</span>
+        <!-- Header Floating Pill -->
+        <div class="inline-flex items-center gap-2 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full bg-white/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 text-[11px] sm:text-xs font-bold shadow-sm backdrop-blur-md max-w-full">
+            <span class="w-2.5 h-2.5 rounded-full bg-tigpad animate-ping flex-shrink-0"></span>
+            <span class="bg-gradient-to-r from-syarat via-blue-600 to-tigpad bg-clip-text text-transparent font-extrabold truncate">Platform Pembelajaran BISINDO Inklusif Universitas Padjadjaran</span>
         </div>
 
-        <h1 class="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight max-w-4xl leading-tight sm:leading-none">
+        <!-- Main Headline -->
+        <h1 class="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-black tracking-tight max-w-4xl leading-tight sm:leading-tight">
             Belajar Bahasa Isyarat Indonesia dengan <span class="bg-gradient-to-r from-syarat via-blue-600 to-tigpad bg-clip-text text-transparent">Mudah, Terstruktur, & Inklusif</span>
         </h1>
 
-        <p class="text-xs sm:text-base text-slate-600 dark:text-slate-300 max-w-2xl leading-relaxed">
-            Hasil kolaborasi <strong>SYARAT (Bahasa Isyarat UNPAD)</strong> dan <strong>TIGPAD (Teknologi Inklusi Guna Padjadjaran)</strong>. Menyediakan modul video & PDF ringkas, presensi Zoom, kuis evaluasi 30 menit, dan sertifikat resmi terverifikasi Mentor.
+        <!-- Subheadline -->
+        <p class="text-xs sm:text-sm md:text-base text-slate-600 dark:text-slate-300 max-w-2xl leading-relaxed">
+            Inisiatif kolaboratif <strong>SYARAT UNPAD</strong> & <strong>TIGPAD</strong> untuk mewujudkan ekosistem kampus yang ramah disabilitas. Dilengkapi video pembelajaran interaktif, dokumen PDF ringkas, presensi kelas Zoom daring, kuis evaluasi 30 menit, dan sertifikat kelulusan resmi.
         </p>
 
         <!-- CTA Buttons -->
-        <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full sm:w-auto justify-center">
-            <a href="login.html" class="btn-duotone px-8 py-3.5 rounded-2xl font-extrabold text-sm shadow-xl flex items-center justify-center gap-2">
-                <i class="fa-solid fa-graduation-cap"></i>
+        <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full sm:w-auto justify-center pt-2">
+            <a href="login.html" class="btn-duotone px-6 sm:px-8 py-3 sm:py-3.5 rounded-2xl font-extrabold text-xs sm:text-sm shadow-xl flex items-center justify-center gap-2.5 hover:scale-105 transition-transform">
+                <i class="fa-solid fa-graduation-cap text-sm sm:text-base"></i>
                 <span>Mulai Belajar Sekarang</span>
             </a>
-            <a href="#modul" class="px-6 py-3.5 rounded-2xl glass-card text-slate-700 dark:text-slate-200 font-bold text-sm hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-colors flex items-center justify-center gap-2">
-                <i class="fa-solid fa-book-open text-syarat"></i>
-                <span>Lihat Modul Materi</span>
+            <a href="#modul" class="px-5 sm:px-6 py-3 sm:py-3.5 rounded-2xl glass-card text-slate-700 dark:text-slate-200 font-bold text-xs sm:text-sm hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-colors flex items-center justify-center gap-2">
+                <i class="fa-solid fa-book-open text-syarat dark:text-syarat-light"></i>
+                <span>Jelajahi Kurikulum Modul</span>
             </a>
         </div>
 
+        <!-- Hero Feature Showcase Grid (Responsive Mobile, Tablet, PC) -->
+        <div class="w-full max-w-5xl pt-6 sm:pt-10">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 text-left">
+                
+                <!-- Card 1: 6 Pertemuan Video & PDF -->
+                <div class="glass-card p-5 rounded-3xl space-y-3 hover:border-syarat transition-all group">
+                    <div class="w-10 h-10 rounded-2xl bg-syarat/10 text-syarat dark:text-syarat-light flex items-center justify-center text-lg font-bold group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-book-open"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-extrabold text-sm text-slate-800 dark:text-white">6 Pertemuan Terstruktur</h3>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1 leading-normal">Kurikulum lengkap dari budaya Tuli hingga simulasi percakapan & evaluasi.</p>
+                    </div>
+                </div>
+
+                <!-- Card 2: Kuis Evaluasi -->
+                <div class="glass-card p-5 rounded-3xl space-y-3 hover:border-tigpad transition-all group">
+                    <div class="w-10 h-10 rounded-2xl bg-tigpad/10 text-tigpad flex items-center justify-center text-lg font-bold group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-stopwatch-20"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-extrabold text-sm text-slate-800 dark:text-white">Kuis Proctoring 30 Menit</h3>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1 leading-normal">Ujian evaluasi terwaktu dengan sistem anti-curang otomatis.</p>
+                    </div>
+                </div>
+
+                <!-- Card 3: Game Edukasi Arcade Hub -->
+                <div class="glass-card p-5 rounded-3xl space-y-3 hover:border-purple-500 transition-all group">
+                    <div class="w-10 h-10 rounded-2xl bg-purple-500/10 text-purple-500 flex items-center justify-center text-lg font-bold group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-gamepad"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-extrabold text-sm text-slate-800 dark:text-white">3 Game Arcade BISINDO</h3>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1 leading-normal">Fingerspelling Ejaan, Sign Rush 4 Pilihan Refleks, & Memory Match Kartu 3D.</p>
+                    </div>
+                </div>
+
+                <!-- Card 4: Sertifikat Digital -->
+                <div class="glass-card p-5 rounded-3xl space-y-3 hover:border-amber-500 transition-all group">
+                    <div class="w-10 h-10 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center text-lg font-bold group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-award"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-extrabold text-sm text-slate-800 dark:text-white">Sertifikat Resmi UNPAD</h3>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1 leading-normal">Sertifikat kelulusan digital ber-QR Code terverifikasi.</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
         <!-- Quick Stats Grid -->
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 w-full max-w-4xl pt-6">
-            <div class="glass-card p-4 sm:p-6 rounded-3xl space-y-1">
-                <div class="text-2xl sm:text-3xl font-black text-syarat dark:text-syarat-light">100%</div>
-                <div class="text-[11px] text-slate-500 font-bold uppercase">Materi Inklusif</div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-6 w-full max-w-4xl pt-2 sm:pt-4">
+            <div class="glass-card p-4 sm:p-5 rounded-3xl space-y-1 hover:border-syarat transition-all">
+                <div class="text-xl sm:text-3xl font-black text-syarat dark:text-syarat-light">100%</div>
+                <div class="text-[10px] sm:text-[11px] text-slate-500 font-bold uppercase">Materi Inklusif</div>
             </div>
 
-            <div class="glass-card p-4 sm:p-6 rounded-3xl space-y-1">
-                <div class="text-2xl sm:text-3xl font-black text-tigpad">1 Video</div>
-                <div class="text-[11px] text-slate-500 font-bold uppercase">Plus 1 PDF / Modul</div>
+            <div class="glass-card p-4 sm:p-5 rounded-3xl space-y-1 hover:border-tigpad transition-all">
+                <div class="text-xl sm:text-3xl font-black text-tigpad">6 Sesi</div>
+                <div class="text-[10px] sm:text-[11px] text-slate-500 font-bold uppercase">Pertemuan Terstruktur</div>
             </div>
 
-            <div class="glass-card p-4 sm:p-6 rounded-3xl space-y-1">
-                <div class="text-2xl sm:text-3xl font-black text-syarat dark:text-syarat-light">30 Menit</div>
-                <div class="text-[11px] text-slate-500 font-bold uppercase">Timer Kuis Anti-Curang</div>
+            <div class="glass-card p-4 sm:p-5 rounded-3xl space-y-1 hover:border-syarat transition-all">
+                <div class="text-xl sm:text-3xl font-black text-syarat dark:text-syarat-light">30 Menit</div>
+                <div class="text-[10px] sm:text-[11px] text-slate-500 font-bold uppercase">Timer Kuis Ujian</div>
             </div>
 
-            <div class="glass-card p-4 sm:p-6 rounded-3xl space-y-1">
-                <div class="text-2xl sm:text-3xl font-black text-amber-500">Official</div>
-                <div class="text-[11px] text-slate-500 font-bold uppercase">Sertifikat Mentor</div>
+            <div class="glass-card p-4 sm:p-5 rounded-3xl space-y-1 hover:border-amber-500 transition-all">
+                <div class="text-xl sm:text-3xl font-black text-amber-500">Official</div>
+                <div class="text-[10px] sm:text-[11px] text-slate-500 font-bold uppercase">Sertifikat UNPAD</div>
             </div>
         </div>
 
     </section>
 
     <!-- Features Section -->
-    <section id="fitur" class="relative z-10 py-12 sm:py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-10">
+    <section id="fitur" class="relative z-10 py-12 sm:py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-8 sm:space-y-10">
         
         <div class="text-center space-y-2 max-w-2xl mx-auto">
             <span class="px-3 py-1 rounded-full bg-syarat/10 text-syarat dark:text-syarat-light text-xs font-bold">Fitur Utama Platform</span>
-            <h2 class="text-2xl sm:text-4xl font-black tracking-tight">Ekosistem Belajar Modern & Terintegrasi</h2>
-            <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400">Setiap komponen LMS didesain intuitif untuk kenyamanan sivitas akademika UNPAD.</p>
+            <h2 class="text-xl sm:text-3xl md:text-4xl font-black tracking-tight">Ekosistem Belajar Modern & Terintegrasi</h2>
+            <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400">Setiap komponen LMS didesain intuitif untuk kenyamanan seluruh sivitas akademika UNPAD.</p>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             <!-- Feature 1 -->
-            <div class="glass-card p-6 sm:p-8 rounded-3xl space-y-4 hover:border-syarat transition-all">
-                <div class="w-12 h-12 rounded-2xl bg-syarat/10 text-syarat dark:text-syarat-light flex items-center justify-center text-xl font-bold">
-                    <i class="fa-solid fa-film"></i>
+            <div class="glass-card p-5 sm:p-7 rounded-3xl space-y-3 hover:border-syarat transition-all">
+                <div class="w-11 h-11 rounded-2xl bg-syarat/10 text-syarat dark:text-syarat-light flex items-center justify-center text-lg font-bold">
+                    <i class="fa-solid fa-book-open"></i>
                 </div>
-                <h3 class="font-extrabold text-lg">Modul Dual Player (YT & MP4)</h3>
+                <h3 class="font-extrabold text-base">Materi & Modul Inklusif (Video + PDF)</h3>
                 <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                    Setiap modul pembelajaran dilengkapi pilihan pemutar video YouTube Embed dan HTML5 Video Player untuk kemudahan akses materi.
+                    6 Pertemuan kurikulum terstruktur dilengkapi pemutar video tutorial (YouTube Embed & MP4) serta dokumen ringkasan PDF 1-klik.
                 </p>
             </div>
 
             <!-- Feature 2 -->
-            <div class="glass-card p-6 sm:p-8 rounded-3xl space-y-4 hover:border-tigpad transition-all">
-                <div class="w-12 h-12 rounded-2xl bg-tigpad/10 text-tigpad flex items-center justify-center text-xl font-bold">
-                    <i class="fa-solid fa-file-pdf"></i>
+            <div class="glass-card p-5 sm:p-7 rounded-3xl space-y-3 hover:border-emerald-500 transition-all">
+                <div class="w-11 h-11 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center text-lg font-bold">
+                    <i class="fa-solid fa-video"></i>
                 </div>
-                <h3 class="font-extrabold text-lg">Mode Baca PDF Ringkasan</h3>
+                <h3 class="font-extrabold text-base">Kelas Zoom Live & Presensi Daring</h3>
                 <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                    Baca dan unduh dokumen PDF 1 modul 1 file secara instan untuk belajar mandiri tanpa kerumitan.
+                    Jadwal sinkron tatap muka maya via Zoom dengan penghitung mundur otomatis, salin ID 1-klik, dan form presensi check-in.
                 </p>
             </div>
 
             <!-- Feature 3 -->
-            <div class="glass-card p-6 sm:p-8 rounded-3xl space-y-4 hover:border-amber-500 transition-all">
-                <div class="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center text-xl font-bold">
+            <div class="glass-card p-5 sm:p-7 rounded-3xl space-y-3 hover:border-purple-500 transition-all">
+                <div class="w-11 h-11 rounded-2xl bg-purple-500/10 text-purple-500 flex items-center justify-center text-lg font-bold">
+                    <i class="fa-solid fa-gamepad"></i>
+                </div>
+                <h3 class="font-extrabold text-base">BISINDO Arcade Hub (3 Mode Game)</h3>
+                <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                    Latih ketangkasan melalui 3 game: Fingerspelling Ejaan Kata, Sign Rush 4 Pilihan Refleks, dan Memory Match Kartu 3D.
+                </p>
+            </div>
+
+            <!-- Feature 4 -->
+            <div class="glass-card p-5 sm:p-7 rounded-3xl space-y-3 hover:border-tigpad transition-all">
+                <div class="w-11 h-11 rounded-2xl bg-tigpad/10 text-tigpad flex items-center justify-center text-lg font-bold">
                     <i class="fa-solid fa-stopwatch-20"></i>
                 </div>
-                <h3 class="font-extrabold text-lg">Kuis Anti-Curang (30 Min Timer)</h3>
+                <h3 class="font-extrabold text-base">Kuis Evaluasi & Anti-Curang 30 Menit</h3>
                 <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                    Ujian kuis dengan 3 tipe soal (Pilihan Ganda, Benar/Salah, Esai) dilengkapi kunci waktu otomatis anti-refresh.
+                    Ujian evaluasi berbobot dengan timer persisten, deteksi proctoring anti-curang, ulasan nilai instan, dan pop-up kelulusan.
+                </p>
+            </div>
+
+            <!-- Feature 5 -->
+            <div class="glass-card p-5 sm:p-7 rounded-3xl space-y-3 hover:border-amber-500 transition-all">
+                <div class="w-11 h-11 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center text-lg font-bold">
+                    <i class="fa-solid fa-award"></i>
+                </div>
+                <h3 class="font-extrabold text-base">E-Sertifikat Resmi Ber-QR Code UNPAD</h3>
+                <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                    Penerbitan sertifikat resmi kelulusan berstempel digital Universitas Padjadjaran dengan kode verifikasi QR Code terdaftar.
+                </p>
+            </div>
+
+            <!-- Feature 6 -->
+            <div class="glass-card p-5 sm:p-7 rounded-3xl space-y-3 hover:border-indigo-500 transition-all">
+                <div class="w-11 h-11 rounded-2xl bg-indigo-500/10 text-indigo-500 flex items-center justify-center text-lg font-bold">
+                    <i class="fa-solid fa-gauge-high"></i>
+                </div>
+                <h3 class="font-extrabold text-base">Dashboard Analitik & Multi-Peran</h3>
+                <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                    Hak akses fleksibel untuk Mahasiswa (Peserta), Mentor (Kelola Soal & Bank Kata), serta Administrator (Laporan & Pengguna).
                 </p>
             </div>
         </div>
 
     </section>
 
-    <!-- Modules Section (Headerless clean cards: 1 Video + 1 PDF) -->
-    <section id="modul" class="relative z-10 py-12 sm:py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-10">
+    <!-- Modules Section: 6 Pertemuan Kurikulum Lengkap -->
+    <section id="modul" class="relative z-10 py-12 sm:py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-8 sm:space-y-10">
         
         <div class="text-center space-y-2 max-w-2xl mx-auto">
-            <span class="px-3 py-1 rounded-full bg-tigpad/10 text-tigpad text-xs font-bold">Kurikulum Materi</span>
-            <h2 class="text-2xl sm:text-4xl font-black tracking-tight">Daftar Modul Pembelajaran BISINDO</h2>
-            <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400">Setiap modul terdiri dari 1 video tutorial dan 1 dokumen ringkasan PDF.</p>
+            <span class="px-3 py-1 rounded-full bg-tigpad/10 text-tigpad text-xs font-bold">Silabus & Kurikulum Terstruktur</span>
+            <h2 class="text-xl sm:text-3xl md:text-4xl font-black tracking-tight">Kurikulum 6 Pertemuan Pembelajaran BISINDO</h2>
+            <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400">Dirancang bertahap dari pemahaman budaya Tuli, gestur dasar, percakapan kampus, hingga simulasi dan evaluasi kelulusan.</p>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             
-            <!-- Module 1 -->
-            <div class="glass-card p-6 rounded-3xl space-y-4 flex flex-col justify-between hover:border-syarat transition-all">
+            <!-- Pertemuan 1 -->
+            <div class="glass-card p-6 rounded-3xl space-y-4 flex flex-col justify-between hover:border-syarat transition-all border border-slate-200 dark:border-slate-800">
                 <div class="space-y-3">
-                    <div class="flex items-center gap-2 text-xs text-slate-500 font-semibold">
-                        <span><i class="fa-solid fa-circle-play text-syarat"></i> 1 Video</span> • 
-                        <span><i class="fa-solid fa-file-pdf text-red-500"></i> 1 PDF</span>
+                    <div class="flex items-center justify-between">
+                        <span class="px-3 py-1 rounded-full bg-syarat/10 text-syarat dark:text-syarat-light font-bold text-xs">
+                            <i class="fa-solid fa-book-open mr-1"></i> Pertemuan 1
+                        </span>
+                        <span class="text-[11px] text-slate-500 font-semibold"><i class="fa-solid fa-clock text-tigpad mr-1"></i> 90 Menit</span>
                     </div>
-                    <h3 class="font-extrabold text-base text-slate-800 dark:text-white">Modul 1: Pengenalan Abjad & Angka Isyarat</h3>
-                    <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                        Menguasai bentuk gerak jemari tangan untuk abjad A-Z dan angka 1-100 sesuai standar BISINDO Indonesia.
-                    </p>
+
+                    <h3 class="font-black text-lg text-slate-800 dark:text-white">Komunikasi, Inklusi & Budaya Tuli</h3>
+
+                    <div class="space-y-3 text-xs text-slate-600 dark:text-slate-300">
+                        <!-- Subtopic 1 -->
+                        <div class="p-3 rounded-2xl bg-slate-100/80 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800 space-y-1.5">
+                            <div class="font-bold text-syarat dark:text-syarat-light flex items-center gap-1.5">
+                                <i class="fa-solid fa-people-arrows"></i>
+                                <span>Komunikasi & Inklusi:</span>
+                            </div>
+                            <ul class="space-y-1 text-[11px] pl-4 list-disc text-slate-600 dark:text-slate-400">
+                                <li>Hak komunikasi</li>
+                                <li>Hambatan komunikasi</li>
+                                <li>Aksesibilitas</li>
+                                <li>Pengalaman nyata Tuli</li>
+                            </ul>
+                        </div>
+
+                        <!-- Subtopic 2 -->
+                        <div class="p-3 rounded-2xl bg-slate-100/80 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800 space-y-1.5">
+                            <div class="font-bold text-tigpad flex items-center gap-1.5">
+                                <i class="fa-solid fa-hand-holding-heart"></i>
+                                <span>Ketulian & Budaya Tuli:</span>
+                            </div>
+                            <ul class="space-y-1 text-[11px] pl-4 list-disc text-slate-600 dark:text-slate-400">
+                                <li>Apa itu ketulian</li>
+                                <li>Perspektif Tuli & Budaya Tuli</li>
+                                <li>Identitas Tuli</li>
+                                <li>Etika komunikasi</li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
-                <div class="pt-4 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center text-xs">
-                    <span class="font-bold text-slate-500"><i class="fa-solid fa-user text-tigpad"></i> Mentor Budi Santoso</span>
-                    <a href="login.html" class="btn-duotone px-3.5 py-1.5 rounded-xl font-bold text-xs">Pelajari</a>
+
+                <div class="pt-3.5 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs">
+                    <span class="font-bold text-slate-500 dark:text-slate-400 text-[11px] flex items-center gap-1.5">
+                        <i class="fa-solid fa-chalkboard-user text-tigpad"></i> Instruktur: Tutor BISINDO 1
+                    </span>
+                    <span class="px-2.5 py-0.5 rounded-md bg-syarat/10 text-syarat dark:text-syarat-light text-[10px] font-bold">
+                        Modul 1
+                    </span>
                 </div>
             </div>
 
-            <!-- Module 2 -->
-            <div class="glass-card p-6 rounded-3xl space-y-4 flex flex-col justify-between hover:border-syarat transition-all">
+            <!-- Pertemuan 2 -->
+            <div class="glass-card p-6 rounded-3xl space-y-4 flex flex-col justify-between hover:border-syarat transition-all border border-slate-200 dark:border-slate-800">
                 <div class="space-y-3">
-                    <div class="flex items-center gap-2 text-xs text-slate-500 font-semibold">
-                        <span><i class="fa-solid fa-circle-play text-syarat"></i> 1 Video</span> • 
-                        <span><i class="fa-solid fa-file-pdf text-red-500"></i> 1 PDF</span>
+                    <div class="flex items-center justify-between">
+                        <span class="px-3 py-1 rounded-full bg-syarat/10 text-syarat dark:text-syarat-light font-bold text-xs">
+                            <i class="fa-solid fa-hands-asl-interpreting mr-1"></i> Pertemuan 2
+                        </span>
+                        <span class="text-[11px] text-slate-500 font-semibold"><i class="fa-solid fa-clock text-tigpad mr-1"></i> 90 Menit</span>
                     </div>
-                    <h3 class="font-extrabold text-base text-slate-800 dark:text-white">Modul 2: Kosakata & Interaksi Lingkungan Kampus</h3>
-                    <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                        Kosakata penting di perpustakaan, ruang kuliah, laboratorium, dan sapaan antar sivitas akademika UNPAD.
-                    </p>
+
+                    <h3 class="font-black text-lg text-slate-800 dark:text-white">Bahasa Isyarat Dasar (1)</h3>
+
+                    <div class="p-3.5 rounded-2xl bg-slate-100/80 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800 space-y-2 text-xs">
+                        <div class="font-bold text-syarat dark:text-syarat-light flex items-center gap-1.5">
+                            <i class="fa-solid fa-list-check"></i>
+                            <span>Materi & Praktik Pembelajaran:</span>
+                        </div>
+                        <ul class="space-y-1.5 text-[11px] pl-4 list-disc text-slate-600 dark:text-slate-400">
+                            <li><strong>Alfabet Jari:</strong> Bentuk gestur abjad jemari tangan (Fingerspelling A–Z)</li>
+                            <li><strong>Salam:</strong> Sapaan selamat pagi, siang, sore, malam & terima kasih</li>
+                            <li><strong>Perkenalan Diri:</strong> Menyampaikan nama isyarat, prodi, dan NPM</li>
+                            <li><strong>Nama Kota:</strong> Isyarat kota-kota besar di Indonesia (Bandung, Sumedang, Jakarta, dll.)</li>
+                        </ul>
+                    </div>
                 </div>
-                <div class="pt-4 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center text-xs">
-                    <span class="font-bold text-slate-500"><i class="fa-solid fa-user text-tigpad"></i> Mentor Maya Indriani</span>
-                    <a href="login.html" class="btn-duotone px-3.5 py-1.5 rounded-xl font-bold text-xs">Pelajari</a>
+
+                <div class="pt-3.5 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs">
+                    <span class="font-bold text-slate-500 dark:text-slate-400 text-[11px] flex items-center gap-1.5">
+                        <i class="fa-solid fa-chalkboard-user text-tigpad"></i> Instruktur: Tutor BISINDO 2
+                    </span>
+                    <span class="px-2.5 py-0.5 rounded-md bg-syarat/10 text-syarat dark:text-syarat-light text-[10px] font-bold">
+                        Modul 2
+                    </span>
                 </div>
             </div>
 
-            <!-- Module 3 -->
-            <div class="glass-card p-6 rounded-3xl space-y-4 flex flex-col justify-between hover:border-syarat transition-all">
+            <!-- Pertemuan 3 -->
+            <div class="glass-card p-6 rounded-3xl space-y-4 flex flex-col justify-between hover:border-syarat transition-all border border-slate-200 dark:border-slate-800">
                 <div class="space-y-3">
-                    <div class="flex items-center gap-2 text-xs text-slate-500 font-semibold">
-                        <span><i class="fa-solid fa-circle-play text-syarat"></i> 1 Video</span> • 
-                        <span><i class="fa-solid fa-file-pdf text-red-500"></i> 1 PDF</span>
+                    <div class="flex items-center justify-between">
+                        <span class="px-3 py-1 rounded-full bg-syarat/10 text-syarat dark:text-syarat-light font-bold text-xs">
+                            <i class="fa-solid fa-house-user mr-1"></i> Pertemuan 3
+                        </span>
+                        <span class="text-[11px] text-slate-500 font-semibold"><i class="fa-solid fa-clock text-tigpad mr-1"></i> 90 Menit</span>
                     </div>
-                    <h3 class="font-extrabold text-base text-slate-800 dark:text-white">Modul 3: Ekspresi Wajah & Tata Bahasa BISINDO</h3>
-                    <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                        Memahami pentingnya mimik wajah (non-manual markers) untuk penekanan makna dan nada bicaranya.
-                    </p>
+
+                    <h3 class="font-black text-lg text-slate-800 dark:text-white">Bahasa Isyarat Dasar (2)</h3>
+
+                    <div class="p-3.5 rounded-2xl bg-slate-100/80 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800 space-y-2 text-xs">
+                        <div class="font-bold text-syarat dark:text-syarat-light flex items-center gap-1.5">
+                            <i class="fa-solid fa-list-check"></i>
+                            <span>Materi & Praktik Pembelajaran:</span>
+                        </div>
+                        <ul class="space-y-1.5 text-[11px] pl-4 list-disc text-slate-600 dark:text-slate-400">
+                            <li><strong>Keluarga:</strong> Isyarat Ayah, Ibu, Kakak, Adik, Kakek, Nenek, & Saudara</li>
+                            <li><strong>Aktivitas Sehari-hari:</strong> Makan, minum, tidur, belajar, mandi, & bekerja</li>
+                            <li><strong>Kata Kerja Rutinitas:</strong> Menggabungkan isyarat waktu dan aksi harian</li>
+                        </ul>
+                    </div>
                 </div>
-                <div class="pt-4 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center text-xs">
-                    <span class="font-bold text-slate-500"><i class="fa-solid fa-user text-tigpad"></i> Mentor Budi Santoso</span>
-                    <a href="login.html" class="btn-duotone px-3.5 py-1.5 rounded-xl font-bold text-xs">Pelajari</a>
+
+                <div class="pt-3.5 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs">
+                    <span class="font-bold text-slate-500 dark:text-slate-400 text-[11px] flex items-center gap-1.5">
+                        <i class="fa-solid fa-chalkboard-user text-tigpad"></i> Instruktur: Tutor BISINDO 1
+                    </span>
+                    <span class="px-2.5 py-0.5 rounded-md bg-syarat/10 text-syarat dark:text-syarat-light text-[10px] font-bold">
+                        Modul 3
+                    </span>
+                </div>
+            </div>
+
+            <!-- Pertemuan 4 -->
+            <div class="glass-card p-6 rounded-3xl space-y-4 flex flex-col justify-between hover:border-syarat transition-all border border-slate-200 dark:border-slate-800">
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="px-3 py-1 rounded-full bg-syarat/10 text-syarat dark:text-syarat-light font-bold text-xs">
+                            <i class="fa-solid fa-building-columns mr-1"></i> Pertemuan 4
+                        </span>
+                        <span class="text-[11px] text-slate-500 font-semibold"><i class="fa-solid fa-clock text-tigpad mr-1"></i> 90 Menit</span>
+                    </div>
+
+                    <h3 class="font-black text-lg text-slate-800 dark:text-white">Bahasa Isyarat Dasar (3)</h3>
+
+                    <div class="p-3.5 rounded-2xl bg-slate-100/80 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800 space-y-2 text-xs">
+                        <div class="font-bold text-syarat dark:text-syarat-light flex items-center gap-1.5">
+                            <i class="fa-solid fa-list-check"></i>
+                            <span>Materi & Praktik Pembelajaran:</span>
+                        </div>
+                        <ul class="space-y-1.5 text-[11px] pl-4 list-disc text-slate-600 dark:text-slate-400">
+                            <li><strong>Angka, Uang, Belanja:</strong> Bilangan satuan hingga ratusan ribu, harga & transaksi belanja</li>
+                            <li><strong>Kehidupan Kampus:</strong> Istilah gedung kuliah, perpustakaan, kantin, rektorat, lab, & ujian di UNPAD</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="pt-3.5 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs">
+                    <span class="font-bold text-slate-500 dark:text-slate-400 text-[11px] flex items-center gap-1.5">
+                        <i class="fa-solid fa-chalkboard-user text-tigpad"></i> Instruktur: Tutor BISINDO 2
+                    </span>
+                    <span class="px-2.5 py-0.5 rounded-md bg-syarat/10 text-syarat dark:text-syarat-light text-[10px] font-bold">
+                        Modul 4
+                    </span>
+                </div>
+            </div>
+
+            <!-- Pertemuan 5 -->
+            <div class="glass-card p-6 rounded-3xl space-y-4 flex flex-col justify-between hover:border-syarat transition-all border border-slate-200 dark:border-slate-800">
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="px-3 py-1 rounded-full bg-syarat/10 text-syarat dark:text-syarat-light font-bold text-xs">
+                            <i class="fa-solid fa-comments mr-1"></i> Pertemuan 5
+                        </span>
+                        <span class="text-[11px] text-slate-500 font-semibold"><i class="fa-solid fa-clock text-tigpad mr-1"></i> 90 Menit</span>
+                    </div>
+
+                    <h3 class="font-black text-lg text-slate-800 dark:text-white">Percakapan Dasar BISINDO</h3>
+
+                    <div class="p-3.5 rounded-2xl bg-slate-100/80 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800 space-y-2 text-xs">
+                        <div class="font-bold text-syarat dark:text-syarat-light flex items-center gap-1.5">
+                            <i class="fa-solid fa-list-check"></i>
+                            <span>Materi & Praktik Pembelajaran:</span>
+                        </div>
+                        <ul class="space-y-1.5 text-[11px] pl-4 list-disc text-slate-600 dark:text-slate-400">
+                            <li><strong>Tanya Jawab Sederhana:</strong> Struktur kalimat tanya (Apa, Siapa, Di mana, Kapan, Mengapa, Bagaimana)</li>
+                            <li><strong>Latihan Komunikasi:</strong> Simulasi percakapan interaktif dua arah dengan ekspresi wajah (non-manual markers)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="pt-3.5 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs">
+                    <span class="font-bold text-slate-500 dark:text-slate-400 text-[11px] flex items-center gap-1.5">
+                        <i class="fa-solid fa-chalkboard-user text-tigpad"></i> Instruktur: Tutor BISINDO 1
+                    </span>
+                    <span class="px-2.5 py-0.5 rounded-md bg-syarat/10 text-syarat dark:text-syarat-light text-[10px] font-bold">
+                        Modul 5
+                    </span>
+                </div>
+            </div>
+
+            <!-- Pertemuan 6 -->
+            <div class="glass-card p-6 rounded-3xl space-y-4 flex flex-col justify-between hover:border-syarat transition-all border border-slate-200 dark:border-slate-800">
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="px-3 py-1 rounded-full bg-green-500/15 text-green-600 dark:text-green-400 font-bold text-xs border border-green-500/30">
+                            <i class="fa-solid fa-award mr-1"></i> Pertemuan 6 • Evaluasi
+                        </span>
+                        <span class="text-[11px] text-slate-500 font-semibold"><i class="fa-solid fa-clock text-tigpad mr-1"></i> 90 Menit</span>
+                    </div>
+
+                    <h3 class="font-black text-lg text-slate-800 dark:text-white">Simulasi & Evaluasi Kelulusan</h3>
+
+                    <div class="p-3.5 rounded-2xl bg-slate-100/80 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800 space-y-2 text-xs">
+                        <div class="font-bold text-green-600 dark:text-green-400 flex items-center gap-1.5">
+                            <i class="fa-solid fa-list-check"></i>
+                            <span>Materi & Praktik Pembelajaran:</span>
+                        </div>
+                        <ul class="space-y-1.5 text-[11px] pl-4 list-disc text-slate-600 dark:text-slate-400">
+                            <li><strong>Storytelling:</strong> Menyampaikan cerita singkat bertema inklusi dengan bahasa isyarat</li>
+                            <li><strong>Praktik Percakapan:</strong> Roleplay situasi nyata di lingkungan kampus UNPAD</li>
+                            <li><strong>Evaluasi Ringan:</strong> Uji kompetensi akhir untuk penerbitan e-sertifikat resmi UNPAD</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="pt-3.5 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs">
+                    <span class="font-bold text-slate-500 dark:text-slate-400 text-[11px] flex items-center gap-1.5">
+                        <i class="fa-solid fa-users text-tigpad"></i> Tim Instruktur SYARAT x TIGPAD
+                    </span>
+                    <span class="px-2.5 py-0.5 rounded-md bg-green-500/10 text-green-600 dark:text-green-400 text-[10px] font-bold">
+                        Evaluasi Akhir
+                    </span>
                 </div>
             </div>
 
@@ -328,45 +528,45 @@
     </section>
 
     <!-- Roles Section -->
-    <section id="peran" class="relative z-10 py-12 sm:py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-10">
+    <section id="peran" class="relative z-10 py-12 sm:py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-8 sm:space-y-10">
         <div class="text-center space-y-2 max-w-2xl mx-auto">
             <span class="px-3 py-1 rounded-full bg-syarat/10 text-syarat dark:text-syarat-light text-xs font-bold">Multi Hak Akses</span>
-            <h2 class="text-2xl sm:text-4xl font-black tracking-tight">Peran Pengguna Pada Platform LMS</h2>
+            <h2 class="text-xl sm:text-3xl md:text-4xl font-black tracking-tight">Peran Pengguna Pada Platform LMS</h2>
             <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400">Dirancang khusus untuk kebutuhan Peserta Mahasiswa, Mentor BISINDO, dan Administrator.</p>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="glass-card p-6 rounded-3xl space-y-3">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+            <div class="glass-card p-5 sm:p-6 rounded-3xl space-y-3 hover:border-syarat transition-all">
                 <div class="w-10 h-10 rounded-xl bg-syarat text-white flex items-center justify-center font-bold text-base shadow">
                     <i class="fa-solid fa-user-graduate"></i>
                 </div>
                 <h3 class="font-extrabold text-base">Peserta (Mahasiswa UNPAD)</h3>
-                <p class="text-xs text-slate-500 leading-relaxed">Akses modul materi, ikuti presensi kelas Zoom, ikuti kuis evaluasi 30 menit, dan klaim sertifikat kelulusan resmi.</p>
+                <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">Akses modul materi, ikuti presensi kelas Zoom, mainkan game latihan, selesaikan kuis evaluasi 30 menit, dan klaim sertifikat kelulusan resmi.</p>
             </div>
 
-            <div class="glass-card p-6 rounded-3xl space-y-3">
+            <div class="glass-card p-5 sm:p-6 rounded-3xl space-y-3 hover:border-tigpad transition-all">
                 <div class="w-10 h-10 rounded-xl bg-tigpad text-white flex items-center justify-center font-bold text-base shadow">
                     <i class="fa-solid fa-chalkboard-user"></i>
                 </div>
                 <h3 class="font-extrabold text-base">Mentor BISINDO</h3>
-                <p class="text-xs text-slate-500 leading-relaxed">Kelola modul materi video/PDF, atur kode presensi aktif Zoom, buat soal kuis, dan verifikasi/terbitkan sertifikat peserta.</p>
+                <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">Kelola modul materi video/PDF, buka kode presensi aktif Zoom, atur bank soal kuis, dan verifikasi/terbitkan sertifikat peserta yang lulus.</p>
             </div>
 
-            <div class="glass-card p-6 rounded-3xl space-y-3">
+            <div class="glass-card p-5 sm:p-6 rounded-3xl space-y-3 hover:border-slate-800 dark:hover:border-slate-600 transition-all">
                 <div class="w-10 h-10 rounded-xl bg-slate-800 text-white flex items-center justify-center font-bold text-base shadow">
                     <i class="fa-solid fa-user-shield"></i>
                 </div>
                 <h3 class="font-extrabold text-base">Administrator LMS</h3>
-                <p class="text-xs text-slate-500 leading-relaxed">Manajemen pengguna civitas akademika UNPAD, pemantauan sistem, dan akses analitik laporan perkembangan komprehensif.</p>
+                <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">Manajemen pengguna civitas akademika UNPAD, pemantauan status sistem, serta analitik laporan perkembangan pembelajaran komprehensif.</p>
             </div>
         </div>
     </section>
 
     <!-- FAQ Accordion Section -->
-    <section id="faq" class="relative z-10 py-12 sm:py-16 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto space-y-8">
+    <section id="faq" class="relative z-10 py-12 sm:py-16 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto space-y-6 sm:space-y-8">
         <div class="text-center space-y-2">
             <span class="px-3 py-1 rounded-full bg-tigpad/10 text-tigpad text-xs font-bold">Pertanyaan Umum</span>
-            <h2 class="text-2xl sm:text-3xl font-black tracking-tight">Pertanyaan yang Sering Diajukan</h2>
+            <h2 class="text-xl sm:text-3xl font-black tracking-tight">Pertanyaan yang Sering Diajukan</h2>
         </div>
 
         <div class="space-y-3">
@@ -376,17 +576,27 @@
                     Apakah pelatihan BISINDO ini mendapatkan sertifikat resmi UNPAD?
                 </div>
                 <div class="collapse-content text-xs text-slate-600 dark:text-slate-400">
-                    <p>Ya, peserta mahasiswa yang menyelesaikan seluruh modul dan mencapai nilai kuis minimal 70 akan mendapatkan sertifikat resmi terverifikasi Mentor.</p>
+                    <p>Ya, peserta mahasiswa yang menyelesaikan seluruh modul dan mencapai nilai kuis minimal 75 akan mendapatkan sertifikat resmi berstempel digital yang diverifikasi langsung oleh Mentor BISINDO.</p>
                 </div>
             </div>
 
             <div class="collapse collapse-plus glass-card rounded-2xl border border-slate-200 dark:border-slate-800">
                 <input type="radio" name="faq-accordion" /> 
                 <div class="collapse-title text-sm font-extrabold text-slate-800 dark:text-slate-100">
-                    Bagaimana jika kuis mengalami terputus koneksi saat mengerjakan?
+                    Bagaimana jika waktu pengerjaan kuis terputus koneksi?
                 </div>
                 <div class="collapse-content text-xs text-slate-600 dark:text-slate-400">
-                    <p>Sistem kuis dilengkapi timer persisten. Jika terjadi refresh atau terputus koneksi, waktu ujian akan melanjut dari detik tersisa saat Anda masuk kembali.</p>
+                    <p>Sistem kuis dilengkapi timer persisten di penyimpanan peramban. Jika terjadi refresh atau terputus koneksi, waktu ujian akan melanjut dari detik tersisa saat Anda masuk kembali.</p>
+                </div>
+            </div>
+
+            <div class="collapse collapse-plus glass-card rounded-2xl border border-slate-200 dark:border-slate-800">
+                <input type="radio" name="faq-accordion" /> 
+                <div class="collapse-title text-sm font-extrabold text-slate-800 dark:text-slate-100">
+                    Bagaimana cara kerja mini game latihan fingerspelling?
+                </div>
+                <div class="collapse-content text-xs text-slate-600 dark:text-slate-400">
+                    <p>Game ini akan menampilkan rangkaian peraga huruf BISINDO per huruf dengan animasi delta-time canvas. Tugas Anda adalah mengetik kata yang dieja sebelum timer habis!</p>
                 </div>
             </div>
         </div>
@@ -404,23 +614,26 @@
             <div class="flex items-center gap-4 text-[11px]">
                 <a href="#fitur" class="hover:underline">Fitur</a>
                 <a href="#modul" class="hover:underline">Modul</a>
-                <a href="login.html" class="hover:underline">Login SSO</a>
+                <a href="#peran" class="hover:underline">Peran</a>
+                <a href="login.html" class="hover:underline font-bold text-tigpad">Login SSO</a>
             </div>
         </div>
     </footer>
 
-    <!-- Responsive Mobile Drawer Navigation Script for Landing Page -->
+    <!-- Interactive Scripts -->
     <script>
         function initTheme() {
             const savedTheme = localStorage.getItem('kolab_theme') || 'light';
             if (savedTheme === 'dark') {
                 document.documentElement.classList.add('dark');
                 document.documentElement.setAttribute('data-theme', 'dark');
-                document.getElementById('themeIcon').className = 'fa-solid fa-sun text-amber-400 text-base';
+                const icon = document.getElementById('themeIcon');
+                if (icon) icon.className = 'fa-solid fa-sun text-amber-400 text-base';
             } else {
                 document.documentElement.classList.remove('dark');
                 document.documentElement.setAttribute('data-theme', 'light');
-                document.getElementById('themeIcon').className = 'fa-solid fa-moon text-slate-700 text-base';
+                const icon = document.getElementById('themeIcon');
+                if (icon) icon.className = 'fa-solid fa-moon text-slate-700 text-base';
             }
         }
 
@@ -429,7 +642,7 @@
             document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
             localStorage.setItem('kolab_theme', isDark ? 'dark' : 'light');
             const icon = document.getElementById('themeIcon');
-            icon.className = isDark ? 'fa-solid fa-sun text-amber-400 text-base' : 'fa-solid fa-moon text-slate-700 text-base';
+            if (icon) icon.className = isDark ? 'fa-solid fa-sun text-amber-400 text-base' : 'fa-solid fa-moon text-slate-700 text-base';
         }
 
         function toggleLandingMobileMenu() {
@@ -444,16 +657,16 @@
                         <div class="space-y-6">
                             <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
                                 <div class="flex items-center gap-2 font-black text-syarat dark:text-syarat-light text-base">
-                                    <i class="fa-solid fa-hands-asl-interpreting"></i> KOLAB UNPAD
+                                    <i class="fa-solid fa-hands-asl-interpreting text-tigpad"></i> KOLAB UNPAD
                                 </div>
-                                <button onclick="toggleLandingMobileMenu()" class="p-2 text-slate-500 hover:text-red-500">
+                                <button onclick="toggleLandingMobileMenu()" class="p-2 text-slate-500 hover:text-red-500 focus:outline-none">
                                     <i class="fa-solid fa-xmark text-lg"></i>
                                 </button>
                             </div>
                             
                             <nav class="flex flex-col space-y-3 text-xs font-bold text-slate-700 dark:text-slate-200">
                                 <a href="#fitur" onclick="toggleLandingMobileMenu()" class="p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800">Fitur Unggulan</a>
-                                <a href="#modul" onclick="toggleLandingMobileMenu()" class="p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800">Modul Belajar</a>
+                                <a href="#modul" onclick="toggleLandingMobileMenu()" class="p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800">Kurikulum Modul</a>
                                 <a href="#peran" onclick="toggleLandingMobileMenu()" class="p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800">Akses Peran</a>
                                 <a href="#faq" onclick="toggleLandingMobileMenu()" class="p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800">FAQ</a>
                                 <a href="login.html" class="btn-duotone p-3 rounded-xl text-center text-xs font-bold mt-2">Masuk SSO UNPAD</a>
@@ -467,7 +680,10 @@
             }
         }
 
-        document.addEventListener('DOMContentLoaded', initTheme);
+        document.addEventListener('DOMContentLoaded', () => {
+            initTheme();
+        });
     </script>
 </body>
 </html>
+

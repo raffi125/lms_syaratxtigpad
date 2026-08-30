@@ -17,6 +17,9 @@
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.7.2/dist/full.min.css" rel="stylesheet" type="text/css" />
     <script src="https://cdn.tailwindcss.com"></script>
     
+    <!-- Custom Stylesheet -->
+    <link rel="stylesheet" href="css/style.css" />
+    
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -38,6 +41,7 @@
         .orb { position: absolute; border-radius: 50%; filter: blur(120px); opacity: 0.35; animation: floatOrb 20s infinite alternate ease-in-out; }
         .orb-blue { width: 600px; height: 600px; background: radial-gradient(circle, rgba(22, 60, 138, 0.7) 0%, transparent 70%); top: -10%; left: -10%; }
         .orb-orange { width: 500px; height: 500px; background: radial-gradient(circle, rgba(249, 115, 22, 0.65) 0%, transparent 70%); bottom: -10%; right: -10%; animation-delay: -5s; }
+        .orb-purple { width: 400px; height: 400px; background: radial-gradient(circle, rgba(147, 51, 234, 0.5) 0%, transparent 70%); top: 30%; right: 10%; animation-delay: -10s; }
         @keyframes floatOrb { 0% { transform: translate(0px, 0px) scale(1); } 50% { transform: translate(90px, 70px) scale(1.1); } 100% { transform: translate(-40px, 110px) scale(0.95); } }
         .glass-card { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(226, 232, 240, 0.8); box-shadow: 0 10px 30px rgba(22, 60, 138, 0.05); transition: all 0.3s ease; }
         .dark .glass-card { background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); }
@@ -49,30 +53,34 @@
         .dark .sidebar-active { background: linear-gradient(90deg, rgba(22, 60, 138, 0.3) 0%, rgba(249, 115, 22, 0.25) 100%); border-left: 4px solid #F97316; color: #fb923c !important; }
     </style>
 </head>
-<body class="bg-slate-100 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen relative flex flex-col">
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen relative flex flex-col antialiased selection:bg-tigpad selection:text-white">
 
     <div class="orb-container">
         <div class="orb orb-blue"></div>
         <div class="orb orb-orange"></div>
+        <div class="orb orb-purple"></div>
     </div>
 
     <!-- Top Navigation Bar -->
     <header class="sticky top-0 z-40 glass-nav transition-all">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
             <div class="flex items-center gap-3">
-                <button onclick="toggleMobileSidebar()" class="md:hidden text-slate-600 dark:text-slate-300 p-2 rounded-xl hover:bg-slate-200/60 dark:hover:bg-slate-800/60">
+                <button onclick="toggleMobileSidebar()" class="md:hidden text-slate-600 dark:text-slate-300 p-2 rounded-xl hover:bg-slate-200/60 dark:hover:bg-slate-800/60" aria-label="Buka Menu">
                     <i class="fa-solid fa-bars text-lg"></i>
                 </button>
-                <a href="landing.html" class="flex items-center gap-2">
-                    <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-tr from-syarat to-tigpad flex items-center justify-center text-white text-sm sm:text-base font-bold shadow-md">
+                <a href="index.html" class="flex items-center gap-2.5 group">
+                    <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-syarat to-tigpad flex items-center justify-center text-white text-base font-bold shadow-md group-hover:scale-105 transition-transform">
                         <i class="fa-solid fa-hands-asl-interpreting"></i>
                     </div>
-                    <span class="font-black text-base sm:text-lg tracking-tight bg-gradient-to-r from-syarat to-tigpad bg-clip-text text-transparent">KOLAB UNPAD</span>
+                    <div class="flex flex-col">
+                        <span class="font-black text-base sm:text-lg tracking-tight bg-gradient-to-r from-syarat via-blue-600 to-tigpad bg-clip-text text-transparent leading-none">KOLAB UNPAD</span>
+                        <span class="text-[9px] font-extrabold tracking-widest text-slate-400 uppercase mt-0.5">SYARAT X TIGPAD</span>
+                    </div>
                 </a>
             </div>
 
             <div class="flex items-center gap-2.5">
-                <button onclick="toggleDarkMode()" aria-label="Ubah Tema Display" class="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-200 hover:text-amber-500 transition-colors shadow-sm">
+                <button onclick="toggleDarkMode()" aria-label="Ubah Tema Display" class="w-10 h-10 rounded-xl glass-card flex items-center justify-center text-slate-700 dark:text-slate-200 hover:text-amber-500 transition-colors shadow-sm">
                     <i id="themeIcon" class="fa-solid fa-moon text-base"></i>
                 </button>
 
@@ -128,7 +136,7 @@
                 </div>
                 <div>
                     <h3 id="sidebarRoleTitle" class="font-extrabold text-sm">Mode Mentor</h3>
-                    <p class="text-[11px] text-slate-500 dark:text-slate-400">Status Active • BISINDO 2026</p>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400">Status Aktif • BISINDO 2026</p>
                 </div>
             </div>
 
@@ -160,7 +168,7 @@
                         <i class="fa-solid fa-stopwatch-20 text-sm"></i>
                         <span>Kelola Kuis & Soal</span>
                     </div>
-                    <span class="px-2 py-0.5 rounded-full bg-tigpad text-white text-[9px] font-bold">3 Soal</span>
+                    <span class="px-2 py-0.5 rounded-full bg-tigpad text-white text-[9px] font-bold">10 Soal</span>
                 </a>
 
                 <a href="game.html" class="flex items-center gap-3 px-3.5 py-3 rounded-2xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all text-slate-600 dark:text-slate-300 justify-between">
@@ -168,7 +176,7 @@
                         <i class="fa-solid fa-gamepad text-sm text-purple-500"></i>
                         <span>Game BISINDO</span>
                     </div>
-                    <span class="px-2 py-0.5 rounded-full bg-purple-500 text-white text-[9px] font-bold">Baru</span>
+                    <span class="px-2 py-0.5 rounded-full bg-purple-500 text-white text-[9px] font-bold">Main</span>
                 </a>
 
                 <a href="sertifikat.html" class="flex items-center gap-3 px-3.5 py-3 rounded-2xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all text-slate-600 dark:text-slate-300">
@@ -176,10 +184,20 @@
                     <span>Verifikasi Sertifikat</span>
                 </a>
 
+                <div id="adminNavSection" class="pt-4 space-y-1 hidden">
+                    <div class="text-[10px] font-bold text-tigpad uppercase tracking-wider px-3 py-1 flex items-center gap-1">
+                        <i class="fa-solid fa-shield-halved"></i> Khusus Admin
+                    </div>
+                    <a href="users.html" class="flex items-center gap-3 px-3.5 py-3 rounded-2xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all text-slate-600 dark:text-slate-300">
+                        <i class="fa-solid fa-users-gear text-sm"></i>
+                        <span>Kelola User UNPAD</span>
+                    </a>
+                </div>
+
                 <div class="pt-2 space-y-1">
                     <a href="reports.html" class="flex items-center gap-3 px-3.5 py-3 rounded-2xl sidebar-active">
-                        <i class="fa-solid fa-file-invoice-dollar text-sm"></i>
-                        <span>Laporan Peserta</span>
+                        <i class="fa-solid fa-file-invoice text-sm"></i>
+                        <span>Laporan & Analitik</span>
                     </a>
                 </div>
             </nav>
@@ -187,33 +205,161 @@
 
         <!-- Main Content Area: Laporan -->
         <main class="md:col-span-9 space-y-6">
-            <div>
-                <h1 class="text-2xl font-black">Laporan & Analitik Perkembangan</h1>
-                <p class="text-xs text-slate-500">Ringkasan aktivitas dan kelulusan civitas akademika UNPAD.</p>
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h1 class="text-2xl font-black bg-gradient-to-r from-syarat to-tigpad bg-clip-text text-transparent">Laporan & Analitik Pembelajaran</h1>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Statistik kemajuan belajar, distribusi nilai kuis, dan kelulusan mahasiswa sivitas akademika UNPAD.</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="window.print()" class="btn-duotone px-4 py-2.5 rounded-2xl text-xs font-bold flex items-center gap-2 shadow-md">
+                        <i class="fa-solid fa-print"></i>
+                        <span>Cetak Laporan PDF</span>
+                    </button>
+                </div>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <div class="glass-card p-6 rounded-3xl space-y-3">
-                    <div class="text-xs text-slate-500 font-bold uppercase">Tingkat Kelulusan Kuis</div>
-                    <div class="text-3xl font-black text-green-500">88.5%</div>
-                    <p class="text-[11px] text-slate-400">Rata-rata nilai kuis peserta: 82.4 Poin</p>
+            <!-- 4 Top KPI Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+                <div class="glass-card p-5 sm:p-6 rounded-3xl space-y-2">
+                    <div class="flex justify-between items-center text-xs text-slate-500 font-bold">
+                        <span>Total Peserta Aktif</span>
+                        <i class="fa-solid fa-users text-syarat text-base"></i>
+                    </div>
+                    <div class="text-2xl font-black text-slate-800 dark:text-white">124 Mahasiswa</div>
+                    <p class="text-[11px] text-green-500 font-semibold"><i class="fa-solid fa-arrow-trend-up"></i> +12% dari semester lalu</p>
                 </div>
 
-                <div class="glass-card p-6 rounded-3xl space-y-3">
-                    <div class="text-xs text-slate-500 font-bold uppercase">Sertifikat Diterbitkan</div>
-                    <div class="text-3xl font-black text-syarat dark:text-syarat-light">128 Berkas</div>
-                    <p class="text-[11px] text-slate-400">Diverifikasi oleh Budi Santoso & Maya Indriani</p>
+                <div class="glass-card p-5 sm:p-6 rounded-3xl space-y-2">
+                    <div class="flex justify-between items-center text-xs text-slate-500 font-bold">
+                        <span>Rata-Rata Nilai Kuis</span>
+                        <i class="fa-solid fa-chart-simple text-tigpad text-base"></i>
+                    </div>
+                    <div class="text-2xl font-black text-tigpad">86.4 / 100</div>
+                    <p class="text-[11px] text-green-500 font-semibold"><i class="fa-solid fa-circle-check"></i> 89.2% Di Atas KKM (70)</p>
+                </div>
+
+                <div class="glass-card p-5 sm:p-6 rounded-3xl space-y-2">
+                    <div class="flex justify-between items-center text-xs text-slate-500 font-bold">
+                        <span>Tingkat Kehadiran Zoom</span>
+                        <i class="fa-solid fa-headset text-purple-500 text-base"></i>
+                    </div>
+                    <div class="text-2xl font-black text-purple-600 dark:text-purple-400">94.8%</div>
+                    <p class="text-[11px] text-slate-500">4 Sesi Praktik Tatap Muka</p>
+                </div>
+
+                <div class="glass-card p-5 sm:p-6 rounded-3xl space-y-2">
+                    <div class="flex justify-between items-center text-xs text-slate-500 font-bold">
+                        <span>Sertifikat Terbit</span>
+                        <i class="fa-solid fa-award text-amber-500 text-base"></i>
+                    </div>
+                    <div class="text-2xl font-black text-amber-500">118 Berkas</div>
+                    <p class="text-[11px] text-slate-500">6 Menunggu Verifikasi</p>
+                </div>
+            </div>
+
+            <!-- Student Performance Table -->
+            <div class="glass-card p-5 sm:p-7 rounded-3xl space-y-4">
+                <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-3">
+                    <h3 class="font-extrabold text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-table-list text-syarat dark:text-syarat-light"></i>
+                        <span>Rekapitulasi Nilai & Kelulusan Mahasiswa</span>
+                    </h3>
+                    <div class="relative w-full sm:w-64">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                            <i class="fa-solid fa-magnifying-glass text-xs"></i>
+                        </span>
+                        <input type="text" id="studentSearchInput" oninput="filterStudentTable()" placeholder="Cari nama / NPM..." class="w-full pl-9 pr-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-semibold focus:ring-2 focus:ring-tigpad outline-none">
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs border-collapse" id="reportStudentTable">
+                        <thead>
+                            <tr class="border-b border-slate-200 dark:border-slate-800 text-slate-400 font-bold uppercase text-[10px]">
+                                <th class="py-3 px-3">Mahasiswa</th>
+                                <th class="py-3 px-3">NPM / Fakultas</th>
+                                <th class="py-3 px-3">Modul Selesai</th>
+                                <th class="py-3 px-3">Nilai Kuis</th>
+                                <th class="py-3 px-3">Presensi</th>
+                                <th class="py-3 px-3">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 font-medium">
+                            <tr class="hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors">
+                                <td class="py-3 px-3 font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                                    <div class="w-7 h-7 rounded-lg bg-syarat text-white flex items-center justify-center font-extrabold text-[10px]">RR</div>
+                                    <span>Rina Rahmawati</span>
+                                </td>
+                                <td class="py-3 px-3 text-slate-500 font-mono">140810230001 • FMIPA</td>
+                                <td class="py-3 px-3 font-bold text-syarat dark:text-syarat-light">5 / 5 Modul</td>
+                                <td class="py-3 px-3 font-extrabold text-green-600">85 (Lulus)</td>
+                                <td class="py-3 px-3 font-semibold text-slate-600 dark:text-slate-300">4 / 4 Sesi (100%)</td>
+                                <td class="py-3 px-3"><span class="px-2.5 py-1 rounded-full bg-green-500/15 text-green-600 font-bold text-[10px]">Sertifikat Terbit</span></td>
+                            </tr>
+                            <tr class="hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors">
+                                <td class="py-3 px-3 font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                                    <div class="w-7 h-7 rounded-lg bg-tigpad text-white flex items-center justify-center font-extrabold text-[10px]">DA</div>
+                                    <span>Dimas Anggara</span>
+                                </td>
+                                <td class="py-3 px-3 text-slate-500 font-mono">170110230045 • FISIP</td>
+                                <td class="py-3 px-3 font-bold text-syarat dark:text-syarat-light">5 / 5 Modul</td>
+                                <td class="py-3 px-3 font-extrabold text-green-600">92 (Lulus)</td>
+                                <td class="py-3 px-3 font-semibold text-slate-600 dark:text-slate-300">4 / 4 Sesi (100%)</td>
+                                <td class="py-3 px-3"><span class="px-2.5 py-1 rounded-full bg-green-500/15 text-green-600 font-bold text-[10px]">Sertifikat Terbit</span></td>
+                            </tr>
+                            <tr class="hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors">
+                                <td class="py-3 px-3 font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                                    <div class="w-7 h-7 rounded-lg bg-purple-600 text-white flex items-center justify-center font-extrabold text-[10px]">SP</div>
+                                    <span>Siti Permatasari</span>
+                                </td>
+                                <td class="py-3 px-3 text-slate-500 font-mono">180210230018 • FIB</td>
+                                <td class="py-3 px-3 font-bold text-syarat dark:text-syarat-light">4 / 5 Modul</td>
+                                <td class="py-3 px-3 font-extrabold text-amber-500">78 (Lulus)</td>
+                                <td class="py-3 px-3 font-semibold text-slate-600 dark:text-slate-300">3 / 4 Sesi (75%)</td>
+                                <td class="py-3 px-3"><span class="px-2.5 py-1 rounded-full bg-amber-500/15 text-amber-500 font-bold text-[10px]">Proses Modul 5</span></td>
+                            </tr>
+                            <tr class="hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors">
+                                <td class="py-3 px-3 font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                                    <div class="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-extrabold text-[10px]">FA</div>
+                                    <span>Fajar Alamsyah</span>
+                                </td>
+                                <td class="py-3 px-3 text-slate-500 font-mono">130110230022 • FK</td>
+                                <td class="py-3 px-3 font-bold text-syarat dark:text-syarat-light">5 / 5 Modul</td>
+                                <td class="py-3 px-3 font-extrabold text-green-600">88 (Lulus)</td>
+                                <td class="py-3 px-3 font-semibold text-slate-600 dark:text-slate-300">4 / 4 Sesi (100%)</td>
+                                <td class="py-3 px-3"><span class="px-2.5 py-1 rounded-full bg-green-500/15 text-green-600 font-bold text-[10px]">Sertifikat Terbit</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </main>
     </div>
 
     <script>
-        let currentRole = localStorage.getItem('kolab_role') || 'peserta';
+        let currentRole = localStorage.getItem('kolab_role') || 'mentor';
 
         function initApp() {
             initTheme();
+            const params = new URLSearchParams(window.location.search);
+            if (params.has('role')) {
+                currentRole = params.get('role');
+                localStorage.setItem('kolab_role', currentRole);
+            }
             applyRoleUI(currentRole);
+        }
+
+        function filterStudentTable() {
+            const filter = document.getElementById('studentSearchInput').value.toUpperCase();
+            const tr = document.getElementById('reportStudentTable').getElementsByTagName('tr');
+            for (let i = 1; i < tr.length; i++) {
+                const tdText = tr[i].textContent || tr[i].innerText;
+                if (tdText.toUpperCase().indexOf(filter) > -1) {
+                    tr[i].style.display = "";
+                } else {
+                    tr[i].style.display = "none";
+                }
+            }
         }
 
         function applyRoleUI(role) {
@@ -224,14 +370,12 @@
             const sidebarRoleTitle = document.getElementById('sidebarRoleTitle');
             const sidebarRoleIcon = document.getElementById('sidebarRoleIcon');
             const adminNavSection = document.getElementById('adminNavSection');
-            const reportNavSection = document.getElementById('reportNavSection');
-
             const navItemProfile = document.getElementById('navItem_profile');
             const dropdownProfileItem = document.getElementById('dropdownProfileItem');
 
             if (role === 'peserta') {
                 if (userNameHeader) userNameHeader.innerText = "Rina Rahmawati";
-                if(dropdownHeaderName) dropdownHeaderName.innerText = "Rina Rahmawati";
+                if (dropdownHeaderName) dropdownHeaderName.innerText = "Rina Rahmawati";
                 if (userRoleBadge) userRoleBadge.innerText = "Mahasiswa (Peserta)";
                 if (userEmailDropdown) userEmailDropdown.innerText = "rina.rahmawati@unpad.ac.id";
                 if (sidebarRoleTitle) sidebarRoleTitle.innerText = "Mode Peserta";
@@ -239,13 +383,11 @@
 
                 if (navItemProfile) navItemProfile.classList.remove('hidden');
                 if (dropdownProfileItem) dropdownProfileItem.classList.remove('hidden');
-
                 if (adminNavSection) adminNavSection.classList.add('hidden');
-                if (reportNavSection) reportNavSection.classList.add('hidden');
             } else if (role === 'mentor' || role === 'admin') {
                 const isMentor = role === 'mentor';
                 if (userNameHeader) userNameHeader.innerText = isMentor ? "Budi Santoso" : "Engkus Kuswandi";
-                if(dropdownHeaderName) dropdownHeaderName.innerText = isMentor ? "Budi Santoso" : "Engkus Kuswandi";
+                if (dropdownHeaderName) dropdownHeaderName.innerText = isMentor ? "Budi Santoso" : "Engkus Kuswandi";
                 if (userRoleBadge) userRoleBadge.innerText = isMentor ? "Mentor BISINDO" : "Administrator";
                 if (userEmailDropdown) userEmailDropdown.innerText = isMentor ? "mentor@unpad.ac.id" : "admin@unpad.ac.id";
                 if (sidebarRoleTitle) sidebarRoleTitle.innerText = isMentor ? "Mode Mentor" : "Mode Admin";
@@ -259,7 +401,6 @@
                     if (dropdownProfileItem) dropdownProfileItem.classList.add('hidden');
                 }
 
-                if (reportNavSection) reportNavSection.classList.remove('hidden');
                 if (role === 'admin' && adminNavSection) adminNavSection.classList.remove('hidden');
             }
         }
@@ -269,11 +410,13 @@
             if (savedTheme === 'dark') {
                 document.documentElement.classList.add('dark');
                 document.documentElement.setAttribute('data-theme', 'dark');
-                document.getElementById('themeIcon').className = 'fa-solid fa-sun text-amber-400 text-base';
+                const icon = document.getElementById('themeIcon');
+                if (icon) icon.className = 'fa-solid fa-sun text-amber-400 text-base';
             } else {
                 document.documentElement.classList.remove('dark');
                 document.documentElement.setAttribute('data-theme', 'light');
-                document.getElementById('themeIcon').className = 'fa-solid fa-moon text-slate-700 text-base';
+                const icon = document.getElementById('themeIcon');
+                if (icon) icon.className = 'fa-solid fa-moon text-slate-700 text-base';
             }
         }
 
@@ -282,7 +425,7 @@
             document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
             localStorage.setItem('kolab_theme', isDark ? 'dark' : 'light');
             const icon = document.getElementById('themeIcon');
-            icon.className = isDark ? 'fa-solid fa-sun text-amber-400 text-base' : 'fa-solid fa-moon text-slate-700 text-base';
+            if (icon) icon.className = isDark ? 'fa-solid fa-sun text-amber-400 text-base' : 'fa-solid fa-moon text-slate-700 text-base';
         }
 
         function toggleMobileSidebar() {
@@ -297,7 +440,7 @@
                         <div class="space-y-6">
                             <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
                                 <div class="flex items-center gap-2 font-black text-syarat dark:text-syarat-light text-base">
-                                    <i class="fa-solid fa-hands-asl-interpreting"></i> KOLAB UNPAD
+                                    <i class="fa-solid fa-hands-asl-interpreting text-tigpad"></i> KOLAB UNPAD
                                 </div>
                                 <button onclick="toggleMobileSidebar()" class="p-2 text-slate-500 hover:text-red-500">
                                     <i class="fa-solid fa-xmark text-lg"></i>
