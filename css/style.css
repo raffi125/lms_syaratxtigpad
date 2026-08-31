@@ -1,5 +1,5 @@
 /* =========================================================
-   style.css - KOLAB SYARAT X TIGPAD LMS UNPAD Design System
+   style.css - KOLAB SYARAT X TIGPAD LMS Design System
    ========================================================= */
 
 :root {
@@ -597,32 +597,60 @@ body {
   }
   
   .glass-card {
-    padding: 1rem !important;
+    padding: 1.1rem !important;
   }
   
   .orb {
     filter: blur(80px);
-    opacity: 0.28;
+    opacity: 0.25;
   }
   
   .orb-blue {
-    width: 320px;
-    height: 320px;
+    width: 300px;
+    height: 300px;
   }
   
   .orb-orange {
-    width: 280px;
-    height: 280px;
+    width: 260px;
+    height: 260px;
   }
   
   .orb-purple {
-    width: 240px;
-    height: 240px;
+    width: 220px;
+    height: 220px;
   }
 
   .vkey {
-    padding: 8px 0;
-    font-size: 0.85rem;
+    padding: 10px 0 !important;
+    font-size: 0.85rem !important;
+    min-height: 44px;
+    touch-action: manipulation;
+  }
+
+  /* Prevent auto-zoom on iOS when tapping inputs */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="search"],
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+
+  /* Optimize DaisyUI Modals for Mobile Viewport */
+  .modal-box {
+    width: 93% !important;
+    max-width: 95vw !important;
+    max-height: 90vh !important;
+    padding: 1.25rem !important;
+    border-radius: 1.25rem !important;
+    margin: 0.5rem auto !important;
+  }
+
+  /* Compact button styling on mobile */
+  .btn-mobile-full {
+    width: 100% !important;
   }
 }
 
@@ -643,11 +671,36 @@ body {
   }
 }
 
+/* Mobile Sidebar Drawer Animation */
+@keyframes drawerSlideIn {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.mobile-drawer-content {
+  animation: drawerSlideIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
 /* Responsive Table Scroll Container */
 .table-responsive-container {
   width: 100%;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+}
+
+.table-responsive-container::-webkit-scrollbar {
+  height: 5px;
+}
+
+/* Touch-Friendly Action Controls */
+button, a, input, select, textarea {
+  touch-action: manipulation;
 }
 
 /* Print Optimization */
@@ -672,4 +725,54 @@ body {
     display: none !important;
   }
 }
+
+/* Quiz Anti-Copy & Anti-Cheat Protection */
+.quiz-no-copy {
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  user-select: none !important;
+}
+
+.quiz-no-copy textarea,
+.quiz-no-copy input[type="text"],
+.quiz-no-copy input[type="number"] {
+  -webkit-user-select: text !important;
+  -moz-user-select: text !important;
+  -ms-user-select: text !important;
+  user-select: text !important;
+}
+
+/* Toast & Floating Notification Popup Animation */
+@keyframes toastSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes toastSlideOut {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+}
+
+.toast-popup-animate {
+  animation: toastSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.toast-popup-animate.hide {
+  animation: toastSlideOut 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+
 

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game Edukasi BISINDO - KOLAB SYARAT X TIGPAD UNPAD</title>
+    <title>Game Edukasi BISINDO - KOLAB SYARAT X TIGPAD</title>
     
     <!-- Google Fonts Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -57,8 +57,8 @@
                         <i class="fa-solid fa-hands-asl-interpreting"></i>
                     </div>
                     <div class="flex flex-col">
-                        <span class="font-black text-base sm:text-lg tracking-tight bg-gradient-to-r from-syarat via-blue-600 to-tigpad bg-clip-text text-transparent leading-none">KOLAB UNPAD</span>
-                        <span class="text-[9px] font-extrabold tracking-widest text-slate-400 uppercase mt-0.5">SYARAT X TIGPAD</span>
+                        <span class="font-black text-base sm:text-lg tracking-tight bg-gradient-to-r from-syarat via-blue-600 to-tigpad bg-clip-text text-transparent leading-none">SYARAT X TIGPAD</span>
+                        <span class="text-[9px] font-extrabold tracking-widest text-slate-400 uppercase mt-0.5">KOLAB BISINDO</span>
                     </div>
                 </a>
             </div>
@@ -66,7 +66,7 @@
             <div class="flex items-center gap-2 sm:gap-2.5">
                 <!-- Notifications Bell -->
                 <div class="dropdown dropdown-end">
-                    <button tabindex="0" role="button" aria-label="Notifikasi UNPAD" class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl glass-card flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-syarat dark:hover:text-tigpad transition-colors shadow-sm relative">
+                    <button tabindex="0" role="button" aria-label="Notifikasi LMS" class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl glass-card flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-syarat dark:hover:text-tigpad transition-colors shadow-sm relative">
                         <i class="fa-solid fa-bell text-sm sm:text-base"></i>
                         <span class="absolute top-2 right-2 w-2 h-2 rounded-full bg-tigpad animate-ping"></span>
                         <span class="absolute top-2 right-2 w-2 h-2 rounded-full bg-tigpad"></span>
@@ -76,9 +76,8 @@
                         <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-2.5">
                             <div class="flex items-center gap-2 font-bold text-xs">
                                 <i class="fa-solid fa-bell text-tigpad"></i>
-                                <span>Notifikasi UNPAD</span>
+                                <span>Notifikasi LMS</span>
                             </div>
-                            <span class="text-[10px] bg-tigpad/15 text-tigpad font-bold px-2 py-0.5 rounded-full border border-tigpad/30">Baru</span>
                         </div>
 
                         <div class="space-y-2 text-xs">
@@ -87,7 +86,7 @@
                                     <i class="fa-solid fa-gamepad"></i>
                                 </div>
                                 <div class="space-y-0.5">
-                                    <p class="font-bold text-slate-800 dark:text-white">Game Fingerspelling Aktif!</p>
+                                    <p class="font-bold text-slate-800 dark:text-white">Game BisindoSpelling Aktif!</p>
                                     <p class="text-[10px] text-slate-500 leading-tight">Latih kecepatan membedakan huruf isyarat BISINDO secara visual.</p>
                                 </div>
                             </div>
@@ -108,14 +107,14 @@
                         </div>
                         <div class="hidden lg:block text-left">
                             <div id="userNameHeader" class="font-extrabold text-xs">Rina Rahmawati</div>
-                            <div id="userRoleBadge" class="text-[10px] text-tigpad font-bold">Mahasiswa (Peserta)</div>
+                            <div id="userRoleBadge" class="text-[10px] text-tigpad font-bold">Peserta Umum</div>
                         </div>
                     </div>
                     
                     <ul tabindex="0" class="dropdown-content z-[50] p-2 shadow-2xl glass-card rounded-2xl w-56 sm:w-60 mt-3 text-xs space-y-1">
                         <li class="px-3 py-2 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 rounded-xl">
                             <div class="font-bold text-slate-700 dark:text-slate-200" id="dropdownHeaderName">Rina Rahmawati</div>
-                            <div id="userEmailDropdown" class="text-[10px] text-slate-500 font-mono truncate">rina.rahmawati@unpad.ac.id</div>
+                            <div id="userEmailDropdown" class="text-[10px] text-slate-500 font-mono truncate">rina.rahmawati@email.com</div>
                         </li>
                         <li>
                             <a href="dashboard.html" class="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 font-semibold">
@@ -187,20 +186,14 @@
                     <span id="navText_zoom">Zoom & Presensi</span>
                 </a>
 
-                <a href="kuis.html" class="flex items-center gap-3 px-3.5 py-3 rounded-2xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all text-slate-600 dark:text-slate-300 justify-between">
-                    <div class="flex items-center gap-3">
-                        <i class="fa-solid fa-stopwatch-20 text-sm"></i>
-                        <span id="navText_kuis">Kuis Evaluasi</span>
-                    </div>
-                    <span class="px-2 py-0.5 rounded-full bg-tigpad text-white text-[9px] font-bold">3 Soal</span>
+                <a href="kuis.html" class="flex items-center gap-3 px-3.5 py-3 rounded-2xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all text-slate-600 dark:text-slate-300">
+                    <i class="fa-solid fa-stopwatch-20 text-sm"></i>
+                    <span id="navText_kuis">Kuis Evaluasi</span>
                 </a>
 
-                <a href="game.html" class="flex items-center gap-3 px-3.5 py-3 rounded-2xl sidebar-active justify-between">
-                    <div class="flex items-center gap-3">
-                        <i class="fa-solid fa-gamepad text-sm text-purple-500"></i>
-                        <span id="navText_game">Game BISINDO</span>
-                    </div>
-                    <span class="px-2 py-0.5 rounded-full bg-purple-500 text-white text-[9px] font-bold">Main</span>
+                <a href="game.html" class="flex items-center gap-3 px-3.5 py-3 rounded-2xl sidebar-active">
+                    <i class="fa-solid fa-gamepad text-sm text-purple-500"></i>
+                    <span id="navText_game">Game BISINDO</span>
                 </a>
 
                 <a href="sertifikat.html" class="flex items-center gap-3 px-3.5 py-3 rounded-2xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all text-slate-600 dark:text-slate-300">
@@ -214,21 +207,21 @@
                     </div>
                     <a href="users.html" class="flex items-center gap-3 px-3.5 py-3 rounded-2xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all text-slate-600 dark:text-slate-300">
                         <i class="fa-solid fa-users-gear text-sm"></i>
-                        <span>Kelola User UNPAD</span>
+                        <span>Kelola User</span>
                     </a>
                 </div>
 
                 <div id="reportNavSection" class="pt-2 space-y-1 hidden">
                     <a href="reports.html" class="flex items-center gap-3 px-3.5 py-3 rounded-2xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all text-slate-600 dark:text-slate-300">
-                        <i class="fa-solid fa-file-invoice-dollar text-sm"></i>
-                        <span>Laporan Peserta</span>
+                        <i class="fa-solid fa-file-invoice text-sm"></i>
+                        <span>Laporan & Analitik</span>
                     </a>
                 </div>
             </nav>
 
             <div class="p-4 rounded-2xl bg-white/70 dark:bg-slate-900/80 text-[11px] space-y-2 border border-slate-200 dark:border-slate-800 shadow-sm">
                 <div class="flex items-center gap-2 text-purple-600 dark:text-purple-400 font-bold">
-                    <i class="fa-solid fa-lightbulb"></i> Tips Fingerspelling
+                    <i class="fa-solid fa-lightbulb"></i> Tips BisindoSpelling
                 </div>
                 <p class="text-slate-500 leading-tight">Perhatikan gerakan tangan dari gambar peraga lalu tebak hurufnya secepat mungkin!</p>
             </div>
@@ -243,7 +236,7 @@
                     <div>
                         <div class="flex items-center gap-2">
                             <span class="px-3 py-1 rounded-full bg-purple-500/15 text-purple-600 dark:text-purple-400 text-xs font-bold border border-purple-500/30 inline-flex items-center gap-1.5 shadow-sm">
-                                <i class="fa-solid fa-gamepad"></i> BISINDO Arcade Hub UNPAD
+                                <i class="fa-solid fa-gamepad"></i> BISINDO Arcade Hub
                             </span>
                         </div>
                         <h1 class="text-xl sm:text-2xl font-black tracking-tight mt-1">Pusat Game Edukasi BISINDO</h1>
@@ -263,7 +256,7 @@
                 <div class="flex flex-wrap gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
                     <button id="tabMode_fingerspelling" onclick="switchGameHubMode('fingerspelling')" class="px-4 py-2.5 rounded-2xl font-extrabold text-xs flex items-center gap-2 transition-all bg-gradient-to-r from-syarat to-tigpad text-white shadow-md">
                         <i class="fa-solid fa-hands-asl-interpreting"></i>
-                        <span>1. Fingerspelling Ejaan</span>
+                        <span>1. BisindoSpelling Ejaan</span>
                     </button>
                     <button id="tabMode_rush" onclick="switchGameHubMode('rush')" class="px-4 py-2.5 rounded-2xl font-bold text-xs flex items-center gap-2 transition-all bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700">
                         <i class="fa-solid fa-bolt text-amber-500"></i>
@@ -281,14 +274,14 @@
             </div>
 
             <!-- ================================================================= -->
-            <!-- MODE 1: FINGERSPELLING SEQUENCE CHALLENGE (Original Native Game)  -->
+            <!-- MODE 1: BISINDOSPELLING SEQUENCE CHALLENGE (Original Native Game)  -->
             <!-- ================================================================= -->
             <section id="gameHubContainer_fingerspelling" class="glass-card p-5 sm:p-8 rounded-3xl space-y-6">
                 <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-3">
                     <div>
                         <h2 class="text-lg font-black text-slate-800 dark:text-white flex items-center gap-2">
                             <i class="fa-solid fa-hands-asl-interpreting text-syarat dark:text-syarat-light"></i>
-                            <span>Fingerspelling Word Challenge</span>
+                            <span>BisindoSpelling Word Challenge</span>
                         </h2>
                         <p class="text-xs text-slate-500">Perhatikan animasi abjad BISINDO di kanvas, lalu ketik kata yang kamu lihat sebelum waktu habis.</p>
                     </div>
@@ -636,7 +629,7 @@
                             </div>
                             <div>
                                 <label class="block font-bold mb-1 text-slate-600 dark:text-slate-300">Kata Kosakata BISINDO</label>
-                                <input id="newWordInput" type="text" placeholder="Contoh: KAMPUS, MAHASISWA..." required class="input input-bordered input-sm w-full font-mono font-bold text-xs uppercase" />
+                                <input id="newWordInput" type="text" placeholder="Contoh: ISYARAT, BELAJAR..." required class="input input-bordered input-sm w-full font-mono font-bold text-xs uppercase" />
                             </div>
                             <button type="submit" class="btn-duotone w-full py-2.5 rounded-xl font-bold text-xs shadow-md flex items-center justify-center gap-2">
                                 <i class="fa-solid fa-plus"></i> Tambah Kata ke Database Game
@@ -1226,23 +1219,27 @@
                 mobileDrawer.id = 'mobileSidebarDrawer';
                 mobileDrawer.className = 'fixed inset-0 z-50 flex md:hidden';
                 mobileDrawer.innerHTML = `
-                    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="toggleMobileSidebar()"></div>
-                    <div class="relative w-72 max-w-[80vw] bg-white dark:bg-slate-900 h-full p-5 space-y-6 shadow-2xl flex flex-col justify-between overflow-y-auto z-10">
+                    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onclick="toggleMobileSidebar()"></div>
+                    <div class="mobile-drawer-content relative w-72 max-w-[85vw] bg-white dark:bg-slate-900 h-full p-5 space-y-6 shadow-2xl flex flex-col justify-between overflow-y-auto z-10">
                         <div class="space-y-6">
                             <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
                                 <div class="flex items-center gap-2 font-black text-syarat dark:text-syarat-light text-base">
-                                    <i class="fa-solid fa-hands-asl-interpreting"></i> KOLAB UNPAD
+                                    <i class="fa-solid fa-hands-asl-interpreting text-tigpad"></i> SYARAT X TIGPAD
                                 </div>
-                                <button onclick="toggleMobileSidebar()" class="p-2 text-slate-500 hover:text-red-500">
+                                <button onclick="toggleMobileSidebar()" class="p-2 text-slate-500 hover:text-red-500 rounded-xl" aria-label="Tutup Menu">
                                     <i class="fa-solid fa-xmark text-lg"></i>
                                 </button>
                             </div>
-                            ${document.getElementById('sidebarNav').innerHTML}
+                            <div id="mobileDrawerNavContainer">
+                                ${document.getElementById('sidebarNav').innerHTML}
+                            </div>
                         </div>
                     </div>
                 `;
                 document.body.appendChild(mobileDrawer);
             } else {
+                const navContainer = document.getElementById('mobileDrawerNavContainer');
+                if (navContainer) navContainer.innerHTML = document.getElementById('sidebarNav').innerHTML;
                 mobileDrawer.classList.toggle('hidden');
             }
         }
@@ -1261,40 +1258,59 @@
             const dropdownProfileItem = document.getElementById('dropdownProfileItem');
             const tabMentorManage = document.getElementById('tabMode_mentorManage');
 
+            const navTextModul = document.getElementById('navText_modul');
+            const navTextZoom = document.getElementById('navText_zoom');
+            const navTextKuis = document.getElementById('navText_kuis');
+            const navTextGame = document.getElementById('navText_game');
+            const navTextSertifikat = document.getElementById('navText_sertifikat');
+
             if (role === 'peserta') {
-                if(userNameHeader) userNameHeader.innerText = "Rina Rahmawati";
-                if(dropdownHeaderName) dropdownHeaderName.innerText = "Rina Rahmawati";
-                if(userRoleBadge) userRoleBadge.innerText = "Mahasiswa (Peserta)";
-                if(userEmailDropdown) userEmailDropdown.innerText = "rina.rahmawati@unpad.ac.id";
-                if(sidebarRoleTitle) sidebarRoleTitle.innerText = "Mode Peserta";
-                if(sidebarRoleIcon) sidebarRoleIcon.className = "fa-solid fa-user-graduate";
+                if (userNameHeader) userNameHeader.innerText = "Rina Rahmawati";
+                if (dropdownHeaderName) dropdownHeaderName.innerText = "Rina Rahmawati";
+                if (userRoleBadge) userRoleBadge.innerText = "Peserta Umum";
+                if (userEmailDropdown) userEmailDropdown.innerText = "rina.rahmawati@email.com";
+                if (sidebarRoleTitle) sidebarRoleTitle.innerText = "Mode Peserta";
+                if (sidebarRoleIcon) sidebarRoleIcon.className = "fa-solid fa-user-graduate";
 
-                if(navItemProfile) navItemProfile.classList.remove('hidden');
-                if(dropdownProfileItem) dropdownProfileItem.classList.remove('hidden');
+                if (navItemProfile) navItemProfile.classList.remove('hidden');
+                if (dropdownProfileItem) dropdownProfileItem.classList.remove('hidden');
 
-                if(adminNavSection) adminNavSection.classList.add('hidden');
-                if(reportNavSection) reportNavSection.classList.add('hidden');
-                if(tabMentorManage) tabMentorManage.classList.add('hidden');
+                if (navTextModul) navTextModul.innerText = "Modul Video & PDF";
+                if (navTextZoom) navTextZoom.innerText = "Zoom & Presensi";
+                if (navTextKuis) navTextKuis.innerText = "Kuis Evaluasi";
+                if (navTextGame) navTextGame.innerText = "Game BISINDO";
+                if (navTextSertifikat) navTextSertifikat.innerText = "Verifikasi Sertifikat";
+
+                if (adminNavSection) adminNavSection.classList.add('hidden');
+                if (reportNavSection) reportNavSection.classList.add('hidden');
+                if (tabMentorManage) tabMentorManage.classList.add('hidden');
             } else if (role === 'mentor' || role === 'admin') {
                 const isMentor = role === 'mentor';
-                if(userNameHeader) userNameHeader.innerText = isMentor ? "Budi Santoso" : "Engkus Kuswandi";
-                if(dropdownHeaderName) dropdownHeaderName.innerText = isMentor ? "Budi Santoso" : "Engkus Kuswandi";
-                if(userRoleBadge) userRoleBadge.innerText = isMentor ? "Mentor BISINDO" : "Administrator";
-                if(userEmailDropdown) userEmailDropdown.innerText = isMentor ? "mentor@unpad.ac.id" : "admin@unpad.ac.id";
-                if(sidebarRoleTitle) sidebarRoleTitle.innerText = isMentor ? "Mode Mentor" : "Mode Admin";
-                if(sidebarRoleIcon) sidebarRoleIcon.className = isMentor ? "fa-solid fa-chalkboard-user" : "fa-solid fa-user-shield";
+                if (userNameHeader) userNameHeader.innerText = isMentor ? "Budi Santoso" : "Engkus Kuswandi";
+                if (dropdownHeaderName) dropdownHeaderName.innerText = isMentor ? "Budi Santoso" : "Engkus Kuswandi";
+                if (userRoleBadge) userRoleBadge.innerText = isMentor ? "Mentor BISINDO" : "Administrator";
+                if (userEmailDropdown) userEmailDropdown.innerText = isMentor ? "mentor@kolab.id" : "admin@kolab.id";
+                if (sidebarRoleTitle) sidebarRoleTitle.innerText = isMentor ? "Mode Mentor" : "Mode Admin";
+                if (sidebarRoleIcon) sidebarRoleIcon.className = isMentor ? "fa-solid fa-chalkboard-user" : "fa-solid fa-user-shield";
 
                 if (isMentor) {
-                    if(navItemProfile) navItemProfile.classList.remove('hidden');
-                    if(dropdownProfileItem) dropdownProfileItem.classList.remove('hidden');
+                    if (navItemProfile) navItemProfile.classList.remove('hidden');
+                    if (dropdownProfileItem) dropdownProfileItem.classList.remove('hidden');
+                    if (adminNavSection) adminNavSection.classList.add('hidden');
                 } else {
-                    if(navItemProfile) navItemProfile.classList.add('hidden');
-                    if(dropdownProfileItem) dropdownProfileItem.classList.add('hidden');
+                    if (navItemProfile) navItemProfile.classList.add('hidden');
+                    if (dropdownProfileItem) dropdownProfileItem.classList.add('hidden');
+                    if (adminNavSection) adminNavSection.classList.remove('hidden');
                 }
 
-                if(reportNavSection) reportNavSection.classList.remove('hidden');
-                if (role === 'admin' && adminNavSection) adminNavSection.classList.remove('hidden');
-                if(tabMentorManage) tabMentorManage.classList.remove('hidden');
+                if (navTextModul) navTextModul.innerText = "Kelola Modul";
+                if (navTextZoom) navTextZoom.innerText = "Kelola Zoom & Presensi";
+                if (navTextKuis) navTextKuis.innerText = "Kelola Kuis & Soal";
+                if (navTextGame) navTextGame.innerText = "Game BISINDO";
+                if (navTextSertifikat) navTextSertifikat.innerText = "Kelola Sertifikat";
+
+                if (reportNavSection) reportNavSection.classList.remove('hidden');
+                if (tabMentorManage) tabMentorManage.classList.remove('hidden');
             }
         }
 
@@ -1355,36 +1371,78 @@
                 bank[level].push(word);
                 saveWordBankToStorage(bank);
                 wordInput.value = '';
-                alert(`Kata "${word}" berhasil ditambahkan ke kategori ${level.toUpperCase()}!`);
+                showToast(`✨ Kata "${escapeHTML(word)}" berhasil ditambahkan ke kategori ${level.toUpperCase()}!`, 'success');
             } else {
-                alert(`Kata "${word}" sudah ada di database.`);
+                showToast(`Kata "${escapeHTML(word)}" sudah ada di database.`, 'warning');
             }
         }
 
         function editWordInBank(level, oldWord) {
-            const newWord = prompt('Edit kata BISINDO:', oldWord);
-            if (!newWord) return;
-            const formatted = newWord.trim().toUpperCase();
-            if (!formatted || formatted === oldWord) return;
-
-            let bank = getStoredWordBank();
-            if (bank[level]) {
-                const idx = bank[level].indexOf(oldWord);
-                if (idx !== -1) {
-                    bank[level][idx] = formatted;
-                    saveWordBankToStorage(bank);
-                    alert(`Kata "${oldWord}" berhasil diubah menjadi "${formatted}".`);
-                }
+            let modal = document.getElementById('editWordModal');
+            if (!modal) {
+                modal = document.createElement('dialog');
+                modal.id = 'editWordModal';
+                modal.className = 'modal modal-bottom sm:modal-middle';
+                document.body.appendChild(modal);
             }
+
+            modal.innerHTML = `
+                <div class="modal-box glass-card p-6 rounded-3xl max-w-sm w-full space-y-4">
+                    <div class="flex items-center gap-3 border-b border-slate-200 dark:border-slate-800 pb-3">
+                        <div class="w-10 h-10 rounded-2xl bg-syarat/15 text-syarat dark:text-syarat-light flex items-center justify-center text-lg flex-shrink-0">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-extrabold text-sm text-slate-800 dark:text-slate-100">Edit Kata BISINDO</h3>
+                            <span class="text-[10px] text-slate-400 font-semibold uppercase">Tingkat ${level.toUpperCase()}</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-xs mb-1 text-slate-600 dark:text-slate-300">Kata / Frasa</label>
+                        <input type="text" id="editWordInputVal" value="${escapeHTML(oldWord)}" class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border text-xs font-bold uppercase">
+                    </div>
+                    <div class="modal-action pt-1 flex justify-end gap-2">
+                        <button type="button" onclick="document.getElementById('editWordModal').close()" class="px-4 py-2 rounded-xl text-xs font-bold border border-slate-300 dark:border-slate-700">Batal</button>
+                        <button type="button" id="saveEditWordBtn" class="btn-duotone px-5 py-2 rounded-xl text-xs font-bold shadow">Simpan</button>
+                    </div>
+                </div>
+            `;
+
+            modal.querySelector('#saveEditWordBtn').onclick = () => {
+                const formatted = document.getElementById('editWordInputVal').value.trim().toUpperCase();
+                if (formatted && formatted !== oldWord) {
+                    let bank = getStoredWordBank();
+                    if (bank[level]) {
+                        const idx = bank[level].indexOf(oldWord);
+                        if (idx !== -1) {
+                            bank[level][idx] = formatted;
+                            saveWordBankToStorage(bank);
+                            showToast(`✨ Kata "${escapeHTML(oldWord)}" berhasil diubah menjadi "${escapeHTML(formatted)}".`, 'success');
+                        }
+                    }
+                }
+                modal.close();
+            };
+
+            modal.showModal();
         }
 
         function deleteWordFromBank(level, word) {
-            if (!confirm(`Hapus kata "${word}" dari database?`)) return;
-            let bank = getStoredWordBank();
-            if (bank[level]) {
-                bank[level] = bank[level].filter(w => w !== word);
-                saveWordBankToStorage(bank);
-            }
+            showConfirmModal({
+                title: 'Hapus Kata dari Game',
+                message: `Apakah Anda yakin ingin menghapus kata <strong>"${escapeHTML(word)}"</strong> dari daftar kata kategori ${level.toUpperCase()}?`,
+                type: 'danger',
+                confirmText: 'Ya, Hapus Kata',
+                cancelText: 'Batal',
+                onConfirm: () => {
+                    let bank = getStoredWordBank();
+                    if (bank[level]) {
+                        bank[level] = bank[level].filter(w => w !== word);
+                        saveWordBankToStorage(bank);
+                        showToast(`Kata "${escapeHTML(word)}" berhasil dihapus.`, 'info');
+                    }
+                }
+            });
         }
 
         function getStoredWordBank() {
@@ -1416,6 +1474,8 @@
 
         document.addEventListener('DOMContentLoaded', initApp);
     </script>
+    <!-- Universal Popup & Toast System -->
+    <script src="js/popup.js"></script>
 </body>
 </html>
 

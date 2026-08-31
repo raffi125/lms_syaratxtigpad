@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kelola Pengguna - KOLAB SYARAT X TIGPAD UNPAD</title>
+    <title>Kelola Pengguna - KOLAB SYARAT X TIGPAD</title>
     
     <!-- Google Fonts Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -56,8 +56,8 @@
                         <i class="fa-solid fa-hands-asl-interpreting"></i>
                     </div>
                     <div class="flex flex-col">
-                        <span class="font-black text-base sm:text-lg tracking-tight bg-gradient-to-r from-syarat via-blue-600 to-tigpad bg-clip-text text-transparent leading-none">KOLAB UNPAD</span>
-                        <span class="text-[9px] font-extrabold tracking-widest text-slate-400 uppercase mt-0.5">SYARAT X TIGPAD</span>
+                        <span class="font-black text-base sm:text-lg tracking-tight bg-gradient-to-r from-syarat via-blue-600 to-tigpad bg-clip-text text-transparent leading-none">SYARAT X TIGPAD</span>
+                        <span class="text-[9px] font-extrabold tracking-widest text-slate-400 uppercase mt-0.5">KOLAB BISINDO</span>
                     </div>
                 </a>
             </div>
@@ -81,7 +81,7 @@
                     <ul tabindex="0" class="dropdown-content z-[50] p-2 shadow-2xl glass-card rounded-2xl w-60 mt-3 text-xs space-y-1">
                         <li class="px-3 py-2.5 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 rounded-xl">
                             <div class="font-bold text-slate-700 dark:text-slate-200" id="dropdownHeaderName">Engkus Kuswandi</div>
-                            <div id="userEmailDropdown" class="text-[10px] text-slate-500 font-mono truncate">admin@unpad.ac.id</div>
+                            <div id="userEmailDropdown" class="text-[10px] text-slate-500 font-mono truncate">admin@kolab.id</div>
                         </li>
                         <li>
                             <a href="dashboard.html" class="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 font-semibold">
@@ -126,48 +126,47 @@
                     <span>Overview</span>
                 </a>
 
+                <a id="navItem_profile" href="profile.html" class="flex items-center gap-3 px-3.5 py-3 rounded-2xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all text-slate-600 dark:text-slate-300 hidden">
+                    <i class="fa-solid fa-user-gear text-sm"></i>
+                    <span>Profil Saya & Foto</span>
+                </a>
+
                 <a href="modul.html" class="flex items-center gap-3 px-3.5 py-3 rounded-2xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all text-slate-600 dark:text-slate-300">
                     <i class="fa-solid fa-book-open text-sm"></i>
-                    <span>Kelola Modul</span>
+                    <span id="navText_modul">Kelola Modul</span>
                 </a>
 
                 <a href="zoom.html" class="flex items-center gap-3 px-3.5 py-3 rounded-2xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all text-slate-600 dark:text-slate-300">
                     <i class="fa-solid fa-headset text-sm"></i>
-                    <span>Kelola Zoom & Presensi</span>
+                    <span id="navText_zoom">Kelola Zoom & Presensi</span>
                 </a>
 
-                <a href="kuis.html" class="flex items-center gap-3 px-3.5 py-3 rounded-2xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all text-slate-600 dark:text-slate-300 justify-between">
-                    <div class="flex items-center gap-3">
-                        <i class="fa-solid fa-stopwatch-20 text-sm"></i>
-                        <span>Kelola Kuis & Soal</span>
-                    </div>
-                    <span class="px-2 py-0.5 rounded-full bg-tigpad text-white text-[9px] font-bold">10 Soal</span>
+                <a href="kuis.html" class="flex items-center gap-3 px-3.5 py-3 rounded-2xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all text-slate-600 dark:text-slate-300">
+                    <i class="fa-solid fa-stopwatch-20 text-sm"></i>
+                    <span id="navText_kuis">Kelola Kuis & Soal</span>
                 </a>
 
-                <a href="game.html" class="flex items-center gap-3 px-3.5 py-3 rounded-2xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all text-slate-600 dark:text-slate-300 justify-between">
-                    <div class="flex items-center gap-3">
-                        <i class="fa-solid fa-gamepad text-sm text-purple-500"></i>
-                        <span>Game BISINDO</span>
-                    </div>
-                    <span class="px-2 py-0.5 rounded-full bg-purple-500 text-white text-[9px] font-bold">Main</span>
+                <a href="game.html" class="flex items-center gap-3 px-3.5 py-3 rounded-2xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all text-slate-600 dark:text-slate-300">
+                    <i class="fa-solid fa-gamepad text-sm text-purple-500"></i>
+                    <span id="navText_game">Game BISINDO</span>
                 </a>
 
                 <a href="sertifikat.html" class="flex items-center gap-3 px-3.5 py-3 rounded-2xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all text-slate-600 dark:text-slate-300">
                     <i class="fa-solid fa-award text-sm"></i>
-                    <span>Verifikasi Sertifikat</span>
+                    <span id="navText_sertifikat">Kelola Sertifikat</span>
                 </a>
 
-                <div class="pt-4 space-y-1">
+                <div id="adminNavSection" class="pt-4 space-y-1">
                     <div class="text-[10px] font-bold text-tigpad uppercase tracking-wider px-3 py-1 flex items-center gap-1">
                         <i class="fa-solid fa-shield-halved"></i> Khusus Admin
                     </div>
                     <a href="users.html" class="flex items-center gap-3 px-3.5 py-3 rounded-2xl sidebar-active">
                         <i class="fa-solid fa-users-gear text-sm"></i>
-                        <span>Kelola User UNPAD</span>
+                        <span>Kelola User</span>
                     </a>
                 </div>
 
-                <div class="pt-2 space-y-1">
+                <div id="reportNavSection" class="pt-2 space-y-1">
                     <a href="reports.html" class="flex items-center gap-3 px-3.5 py-3 rounded-2xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all text-slate-600 dark:text-slate-300">
                         <i class="fa-solid fa-file-invoice text-sm"></i>
                         <span>Laporan & Analitik</span>
@@ -180,8 +179,8 @@
         <main class="md:col-span-9 space-y-6">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 class="text-2xl font-black bg-gradient-to-r from-syarat to-tigpad bg-clip-text text-transparent">Kelola Pengguna UNPAD</h1>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">Manajemen akun Peserta (Mahasiswa), Mentor Pengajar, dan Administrator Sistem.</p>
+                    <h1 class="text-2xl font-black bg-gradient-to-r from-syarat to-tigpad bg-clip-text text-transparent">Kelola Pengguna LMS</h1>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Manajemen akun Peserta Umum, Mentor Pengajar, dan Administrator Sistem.</p>
                 </div>
                 <button onclick="openAddUserModal()" class="btn-duotone px-4 py-2.5 rounded-2xl text-xs font-bold flex items-center gap-2 shadow-lg hover:scale-105 transition-all">
                     <i class="fa-solid fa-user-plus"></i>
@@ -213,7 +212,7 @@
                         <thead>
                             <tr class="border-b border-slate-200 dark:border-slate-800 text-slate-400 font-bold uppercase text-[10px]">
                                 <th class="py-3 px-3">Nama Pengguna</th>
-                                <th class="py-3 px-3">Email Akun UNPAD</th>
+                                <th class="py-3 px-3">Email Akun</th>
                                 <th class="py-3 px-3">Peran (Role)</th>
                                 <th class="py-3 px-3">Status</th>
                                 <th class="py-3 px-3 text-right">Aksi Admin</th>
@@ -232,7 +231,7 @@
     <dialog id="userModal" class="modal modal-bottom sm:modal-middle">
         <div class="modal-box glass-card border border-slate-200 dark:border-slate-700 rounded-3xl p-6 text-slate-800 dark:text-slate-100 max-w-md">
             <h3 class="font-extrabold text-base mb-1" id="modalUserTitle">Tambah Pengguna Baru</h3>
-            <p class="text-xs text-slate-500 mb-4">Lengkapi data pengguna terdaftar di lingkungan Universitas Padjadjaran.</p>
+            <p class="text-xs text-slate-500 mb-4">Lengkapi data pengguna terdaftar pada portal pelatihan BISINDO.</p>
 
             <form onsubmit="handleSaveUser(event)" class="space-y-3.5 text-xs font-semibold">
                 <input type="hidden" id="editUserId" value="">
@@ -243,14 +242,14 @@
                 </div>
 
                 <div>
-                    <label class="block mb-1 text-slate-600 dark:text-slate-300">Email UNPAD / SSO</label>
-                    <input type="email" id="formUserEmail" required placeholder="Contoh: rina@unpad.ac.id" class="w-full p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 outline-none focus:ring-2 focus:ring-tigpad">
+                    <label class="block mb-1 text-slate-600 dark:text-slate-300">Alamat Email Pengguna</label>
+                    <input type="email" id="formUserEmail" required placeholder="Contoh: rina@email.com" class="w-full p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 outline-none focus:ring-2 focus:ring-tigpad">
                 </div>
 
                 <div>
                     <label class="block mb-1 text-slate-600 dark:text-slate-300">Peran Akun (Role)</label>
                     <select id="formUserRole" class="w-full p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 outline-none focus:ring-2 focus:ring-tigpad font-semibold">
-                        <option value="peserta">Peserta (Mahasiswa)</option>
+                        <option value="peserta">Peserta Umum</option>
                         <option value="mentor">Mentor Pengajar</option>
                         <option value="admin">Administrator Sistem</option>
                     </select>
@@ -273,12 +272,22 @@
     </dialog>
 
     <script>
+        function escapeHTML(str) {
+            if (str === null || str === undefined) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
         let usersData = [
-            { id: '1', name: 'Rina Rahmawati', email: 'rina.rahmawati@unpad.ac.id', role: 'peserta', status: 'Aktif' },
-            { id: '2', name: 'Budi Santoso', email: 'mentor@unpad.ac.id', role: 'mentor', status: 'Aktif' },
-            { id: '3', name: 'Engkus Kuswandi', email: 'admin@unpad.ac.id', role: 'admin', status: 'Aktif' },
-            { id: '4', name: 'Dimas Anggara', email: 'dimas.anggara@unpad.ac.id', role: 'peserta', status: 'Aktif' },
-            { id: '5', name: 'Siti Permatasari', email: 'siti.permatasari@unpad.ac.id', role: 'peserta', status: 'Aktif' }
+            { id: '1', name: 'Rina Rahmawati', email: 'rina.rahmawati@email.com', role: 'peserta', status: 'Aktif' },
+            { id: '2', name: 'Budi Santoso', email: 'mentor@kolab.id', role: 'mentor', status: 'Aktif' },
+            { id: '3', name: 'Engkus Kuswandi', email: 'admin@kolab.id', role: 'admin', status: 'Aktif' },
+            { id: '4', name: 'Dimas Anggara', email: 'dimas.anggara@email.com', role: 'peserta', status: 'Aktif' },
+            { id: '5', name: 'Siti Permatasari', email: 'siti.permatasari@email.com', role: 'peserta', status: 'Aktif' }
         ];
 
         let activeRoleFilter = 'all';
@@ -306,7 +315,11 @@
             }
 
             filtered.forEach(u => {
-                const initials = u.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+                const safeName = escapeHTML(u.name);
+                const safeEmail = escapeHTML(u.email);
+                const safeId = escapeHTML(u.id);
+                const initials = safeName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'UN';
+                
                 let roleBadge = '';
                 if (u.role === 'peserta') roleBadge = `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/15 text-syarat dark:text-blue-400 border border-blue-500/30">Peserta</span>`;
                 else if (u.role === 'mentor') roleBadge = `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-tigpad/15 text-tigpad border border-tigpad/30">Mentor</span>`;
@@ -321,16 +334,16 @@
                 tr.innerHTML = `
                     <td class="py-3 px-3 font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2.5">
                         <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-syarat to-tigpad text-white font-extrabold flex items-center justify-center text-[10px] shadow-sm">${initials}</div>
-                        <span>${u.name}</span>
+                        <span>${safeName}</span>
                     </td>
-                    <td class="py-3 px-3 font-mono text-slate-500 dark:text-slate-400">${u.email}</td>
+                    <td class="py-3 px-3 font-mono text-slate-500 dark:text-slate-400">${safeEmail}</td>
                     <td class="py-3 px-3">${roleBadge}</td>
                     <td class="py-3 px-3">${statusBadge}</td>
                     <td class="py-3 px-3 text-right space-x-1.5">
-                        <button onclick="editUser('${u.id}')" class="px-2.5 py-1 rounded-lg bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition-all">
+                        <button onclick="editUser('${safeId}')" class="px-2.5 py-1 rounded-lg bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition-all">
                             <i class="fa-solid fa-pen-to-square"></i> Edit
                         </button>
-                        <button onclick="deleteUser('${u.id}')" class="px-2.5 py-1 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-500 text-xs font-bold transition-all">
+                        <button onclick="deleteUser('${safeId}')" class="px-2.5 py-1 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-500 text-xs font-bold transition-all">
                             <i class="fa-solid fa-trash-can"></i>
                         </button>
                     </td>
@@ -384,17 +397,27 @@
         }
 
         function deleteUser(id) {
-            if (confirm("Apakah Anda yakin ingin menghapus pengguna ini?")) {
-                usersData = usersData.filter(u => u.id !== id);
-                renderUsersTable();
-            }
+            const user = usersData.find(u => u.id === id);
+            const userName = user ? user.name : 'pengguna ini';
+            showConfirmModal({
+                title: 'Hapus Akses Pengguna',
+                message: `Apakah Anda yakin ingin menghapus <strong>"${escapeHTML(userName)}"</strong> dari database LMS?`,
+                type: 'danger',
+                confirmText: 'Ya, Hapus',
+                cancelText: 'Batal',
+                onConfirm: () => {
+                    usersData = usersData.filter(u => u.id !== id);
+                    renderUsersTable();
+                    showToast(`Pengguna "${escapeHTML(userName)}" berhasil dihapus.`, 'info');
+                }
+            });
         }
 
         function handleSaveUser(e) {
             e.preventDefault();
             const id = document.getElementById('editUserId').value;
-            const name = document.getElementById('formUserName').value;
-            const email = document.getElementById('formUserEmail').value;
+            const name = document.getElementById('formUserName').value.trim();
+            const email = document.getElementById('formUserEmail').value.trim();
             const role = document.getElementById('formUserRole').value;
             const status = document.getElementById('formUserStatus').value;
 
@@ -402,10 +425,12 @@
                 const idx = usersData.findIndex(u => u.id === id);
                 if (idx !== -1) {
                     usersData[idx] = { id, name, email, role, status };
+                    showToast(`✨ Data "${escapeHTML(name)}" berhasil diperbarui!`, 'success');
                 }
             } else {
                 const newId = (Date.now()).toString();
                 usersData.push({ id: newId, name, email, role, status });
+                showToast(`✨ Pengguna baru "${escapeHTML(name)}" berhasil didaftarkan!`, 'success');
             }
 
             userModal.close();
@@ -442,29 +467,108 @@
                 mobileDrawer.id = 'mobileSidebarDrawer';
                 mobileDrawer.className = 'fixed inset-0 z-50 flex md:hidden';
                 mobileDrawer.innerHTML = `
-                    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="toggleMobileSidebar()"></div>
-                    <div class="relative w-72 max-w-[80vw] bg-white dark:bg-slate-900 h-full p-5 space-y-6 shadow-2xl flex flex-col justify-between overflow-y-auto z-10">
+                    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onclick="toggleMobileSidebar()"></div>
+                    <div class="mobile-drawer-content relative w-72 max-w-[85vw] bg-white dark:bg-slate-900 h-full p-5 space-y-6 shadow-2xl flex flex-col justify-between overflow-y-auto z-10">
                         <div class="space-y-6">
                             <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
                                 <div class="flex items-center gap-2 font-black text-syarat dark:text-syarat-light text-base">
-                                    <i class="fa-solid fa-hands-asl-interpreting text-tigpad"></i> KOLAB UNPAD
+                                    <i class="fa-solid fa-hands-asl-interpreting text-tigpad"></i> SYARAT X TIGPAD
                                 </div>
-                                <button onclick="toggleMobileSidebar()" class="p-2 text-slate-500 hover:text-red-500">
+                                <button onclick="toggleMobileSidebar()" class="p-2 text-slate-500 hover:text-red-500 rounded-xl" aria-label="Tutup Menu">
                                     <i class="fa-solid fa-xmark text-lg"></i>
                                 </button>
                             </div>
-                            ${document.getElementById('sidebarNav').innerHTML}
+                            <div id="mobileDrawerNavContainer">
+                                ${document.getElementById('sidebarNav').innerHTML}
+                            </div>
                         </div>
                     </div>
                 `;
                 document.body.appendChild(mobileDrawer);
             } else {
+                const navContainer = document.getElementById('mobileDrawerNavContainer');
+                if (navContainer) navContainer.innerHTML = document.getElementById('sidebarNav').innerHTML;
                 mobileDrawer.classList.toggle('hidden');
             }
         }
 
+        function applyRoleUI(role) {
+            const userNameHeader = document.getElementById('userNameHeader');
+            const dropdownHeaderName = document.getElementById('dropdownHeaderName');
+            const userRoleBadge = document.getElementById('userRoleBadge');
+            const userEmailDropdown = document.getElementById('userEmailDropdown');
+            const sidebarRoleTitle = document.getElementById('sidebarRoleTitle');
+            const sidebarRoleIcon = document.getElementById('sidebarRoleIcon');
+            const adminNavSection = document.getElementById('adminNavSection');
+            const reportNavSection = document.getElementById('reportNavSection');
+            const navItemProfile = document.getElementById('navItem_profile');
+            const dropdownProfileItem = document.getElementById('dropdownProfileItem');
+
+            const navTextModul = document.getElementById('navText_modul');
+            const navTextZoom = document.getElementById('navText_zoom');
+            const navTextKuis = document.getElementById('navText_kuis');
+            const navTextGame = document.getElementById('navText_game');
+            const navTextSertifikat = document.getElementById('navText_sertifikat');
+
+            if (role === 'peserta') {
+                if (userNameHeader) userNameHeader.innerText = "Rina Rahmawati";
+                if (dropdownHeaderName) dropdownHeaderName.innerText = "Rina Rahmawati";
+                if (userRoleBadge) userRoleBadge.innerText = "Peserta Umum";
+                if (userEmailDropdown) userEmailDropdown.innerText = "rina.rahmawati@email.com";
+                if (sidebarRoleTitle) sidebarRoleTitle.innerText = "Mode Peserta";
+                if (sidebarRoleIcon) sidebarRoleIcon.className = "fa-solid fa-user-graduate";
+
+                if (navItemProfile) navItemProfile.classList.remove('hidden');
+                if (dropdownProfileItem) dropdownProfileItem.classList.remove('hidden');
+
+                if (navTextModul) navTextModul.innerText = "Modul Video & PDF";
+                if (navTextZoom) navTextZoom.innerText = "Zoom & Presensi";
+                if (navTextKuis) navTextKuis.innerText = "Kuis Evaluasi";
+                if (navTextGame) navTextGame.innerText = "Game BISINDO";
+                if (navTextSertifikat) navTextSertifikat.innerText = "Verifikasi Sertifikat";
+
+                if (adminNavSection) adminNavSection.classList.add('hidden');
+                if (reportNavSection) reportNavSection.classList.add('hidden');
+            } else if (role === 'mentor' || role === 'admin') {
+                const isMentor = role === 'mentor';
+                if (userNameHeader) userNameHeader.innerText = isMentor ? "Budi Santoso" : "Engkus Kuswandi";
+                if (dropdownHeaderName) dropdownHeaderName.innerText = isMentor ? "Budi Santoso" : "Engkus Kuswandi";
+                if (userRoleBadge) userRoleBadge.innerText = isMentor ? "Mentor BISINDO" : "Administrator";
+                if (userEmailDropdown) userEmailDropdown.innerText = isMentor ? "mentor@kolab.id" : "admin@kolab.id";
+                if (sidebarRoleTitle) sidebarRoleTitle.innerText = isMentor ? "Mode Mentor" : "Mode Admin";
+                if (sidebarRoleIcon) sidebarRoleIcon.className = isMentor ? "fa-solid fa-chalkboard-user" : "fa-solid fa-user-shield";
+
+                if (isMentor) {
+                    if (navItemProfile) navItemProfile.classList.remove('hidden');
+                    if (dropdownProfileItem) dropdownProfileItem.classList.remove('hidden');
+                    if (adminNavSection) adminNavSection.classList.add('hidden');
+                } else {
+                    if (navItemProfile) navItemProfile.classList.add('hidden');
+                    if (dropdownProfileItem) dropdownProfileItem.classList.add('hidden');
+                    if (adminNavSection) adminNavSection.classList.remove('hidden');
+                }
+
+                if (navTextModul) navTextModul.innerText = "Kelola Modul";
+                if (navTextZoom) navTextZoom.innerText = "Kelola Zoom & Presensi";
+                if (navTextKuis) navTextKuis.innerText = "Kelola Kuis & Soal";
+                if (navTextGame) navTextGame.innerText = "Game BISINDO";
+                if (navTextSertifikat) navTextSertifikat.innerText = "Kelola Sertifikat";
+
+                if (reportNavSection) reportNavSection.classList.remove('hidden');
+            }
+        }
+
+        function initApp() {
+            initTheme();
+            const currentRole = localStorage.getItem('kolab_role') || 'admin';
+            applyRoleUI(currentRole);
+            renderUsersTable();
+        }
+
         document.addEventListener('DOMContentLoaded', initApp);
     </script>
+    <!-- Universal Popup & Toast System -->
+    <script src="js/popup.js"></script>
 </body>
 </html>
 

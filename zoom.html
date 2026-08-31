@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zoom & Presensi - KOLAB SYARAT X TIGPAD UNPAD</title>
+    <title>Zoom & Presensi - KOLAB SYARAT X TIGPAD</title>
     
     <!-- Google Fonts Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -56,8 +56,8 @@
                         <i class="fa-solid fa-hands-asl-interpreting"></i>
                     </div>
                     <div class="flex flex-col">
-                        <span class="font-black text-base sm:text-lg tracking-tight bg-gradient-to-r from-syarat via-blue-600 to-tigpad bg-clip-text text-transparent leading-none">KOLAB UNPAD</span>
-                        <span class="text-[9px] font-extrabold tracking-widest text-slate-400 uppercase mt-0.5">SYARAT X TIGPAD</span>
+                        <span class="font-black text-base sm:text-lg tracking-tight bg-gradient-to-r from-syarat via-blue-600 to-tigpad bg-clip-text text-transparent leading-none">SYARAT X TIGPAD</span>
+                        <span class="text-[9px] font-extrabold tracking-widest text-slate-400 uppercase mt-0.5">KOLAB BISINDO</span>
                     </div>
                 </a>
             </div>
@@ -74,14 +74,14 @@
                         </div>
                         <div class="hidden sm:block text-left">
                             <div id="userNameHeader" class="font-extrabold text-xs">Rina Rahmawati</div>
-                            <div id="userRoleBadge" class="text-[10px] text-tigpad font-bold">Mahasiswa (Peserta)</div>
+                            <div id="userRoleBadge" class="text-[10px] text-tigpad font-bold">Peserta Umum</div>
                         </div>
                     </div>
                     
                     <ul tabindex="0" class="dropdown-content z-[50] p-2 shadow-2xl glass-card rounded-2xl w-60 mt-3 text-xs space-y-1">
                         <li class="px-3 py-2.5 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 rounded-xl">
                             <div class="font-bold text-slate-700 dark:text-slate-200" id="dropdownHeaderName">Rina Rahmawati</div>
-                            <div id="userEmailDropdown" class="text-[10px] text-slate-500 font-mono truncate">rina.rahmawati@unpad.ac.id</div>
+                            <div id="userEmailDropdown" class="text-[10px] text-slate-500 font-mono truncate">rina.rahmawati@email.com</div>
                         </li>
                         <li>
                             <a href="dashboard.html" class="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 font-semibold">
@@ -112,6 +112,7 @@
     <!-- Main Layout Grid -->
     <div class="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 grid grid-cols-1 md:grid-cols-12 gap-6 relative z-10">
         
+        <!-- Desktop Sidebar Navigation -->
         <aside id="sidebarNav" class="md:col-span-3 glass-card p-4 rounded-3xl h-fit space-y-6 hidden md:block">
             <div class="p-3.5 rounded-2xl bg-gradient-to-br from-syarat/10 to-tigpad/10 border border-syarat/20 flex items-center gap-3">
                 <div class="w-10 h-10 rounded-xl bg-syarat text-white flex items-center justify-center font-bold text-lg shadow overflow-hidden" id="sidebarAvatarBox">
@@ -146,20 +147,14 @@
                     <span id="navText_zoom">Zoom & Presensi</span>
                 </a>
 
-                <a href="kuis.html" class="flex items-center gap-3 px-3.5 py-3 rounded-2xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all text-slate-600 dark:text-slate-300 justify-between">
-                    <div class="flex items-center gap-3">
-                        <i class="fa-solid fa-stopwatch-20 text-sm"></i>
-                        <span id="navText_kuis">Kuis Evaluasi</span>
-                    </div>
-                    <span class="px-2 py-0.5 rounded-full bg-tigpad text-white text-[9px] font-bold">3 Soal</span>
+                <a href="kuis.html" class="flex items-center gap-3 px-3.5 py-3 rounded-2xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all text-slate-600 dark:text-slate-300">
+                    <i class="fa-solid fa-stopwatch-20 text-sm"></i>
+                    <span id="navText_kuis">Kuis Evaluasi</span>
                 </a>
 
-                <a href="game.html" class="flex items-center gap-3 px-3.5 py-3 rounded-2xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all text-slate-600 dark:text-slate-300 justify-between">
-                    <div class="flex items-center gap-3">
-                        <i class="fa-solid fa-gamepad text-sm text-purple-500"></i>
-                        <span id="navText_game">Game BISINDO</span>
-                    </div>
-                    <span class="px-2 py-0.5 rounded-full bg-purple-500 text-white text-[9px] font-bold">Baru</span>
+                <a href="game.html" class="flex items-center gap-3 px-3.5 py-3 rounded-2xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all text-slate-600 dark:text-slate-300">
+                    <i class="fa-solid fa-gamepad text-sm text-purple-500"></i>
+                    <span id="navText_game">Game BISINDO</span>
                 </a>
 
                 <a href="sertifikat.html" class="flex items-center gap-3 px-3.5 py-3 rounded-2xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all text-slate-600 dark:text-slate-300">
@@ -173,14 +168,14 @@
                     </div>
                     <a href="users.html" class="flex items-center gap-3 px-3.5 py-3 rounded-2xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all text-slate-600 dark:text-slate-300">
                         <i class="fa-solid fa-users-gear text-sm"></i>
-                        <span>Kelola User UNPAD</span>
+                        <span>Kelola User</span>
                     </a>
                 </div>
 
                 <div id="reportNavSection" class="pt-2 space-y-1 hidden">
                     <a href="reports.html" class="flex items-center gap-3 px-3.5 py-3 rounded-2xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all text-slate-600 dark:text-slate-300">
-                        <i class="fa-solid fa-file-invoice-dollar text-sm"></i>
-                        <span>Laporan Peserta</span>
+                        <i class="fa-solid fa-file-invoice text-sm"></i>
+                        <span>Laporan & Analitik</span>
                     </a>
                 </div>
             </nav>
@@ -224,35 +219,45 @@
                             </span>
                         </div>
 
-                        <div class="space-y-1">
-                            <h3 id="currentZoomTitle" class="font-black text-xl text-slate-800 dark:text-white leading-tight">
+                        <div>
+                            <h2 id="liveZoomTitle" class="text-xl sm:text-2xl font-black text-slate-800 dark:text-white">
                                 Praktik Tatap Muka Isyarat Level 1
-                            </h3>
-                            <p id="currentZoomTime" class="text-xs font-semibold text-slate-500 flex items-center gap-1.5">
-                                <i class="fa-solid fa-clock text-syarat"></i> Hari ini • 14:00 - 15:30 WIB
-                            </p>
+                            </h2>
+                            <p class="text-xs text-slate-500 mt-1">Interaksi langsung dua arah: Alfabet Jari, Perkenalan Diri, & Sapaan Sopan BISINDO.</p>
                         </div>
                     </div>
 
-                    <!-- Direct Zoom URL Actions Box -->
-                    <div class="space-y-3.5">
-                        <div>
-                            <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Tautan Link Resmi Zoom Meeting</label>
-                            <div class="flex gap-2">
-                                <div class="relative flex-1">
-                                    <i class="fa-solid fa-link absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                                    <input type="text" id="zoomUrlDisplayInput" readonly value="https://unpad.zoom.us/j/884920192?pwd=bisindounpad2026" class="w-full pl-9 pr-4 py-3 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-mono text-syarat dark:text-syarat-light font-bold truncate">
+                    <!-- Clean Meeting Credentials Details -->
+                    <div class="space-y-3">
+                        <div class="p-4 rounded-2xl bg-slate-100/90 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 space-y-3 text-xs">
+                            <div class="flex justify-between items-center">
+                                <span class="font-bold text-slate-500">Meeting ID:</span>
+                                <div class="flex items-center gap-2">
+                                    <span id="liveMeetingId" class="font-mono font-extrabold text-sm text-syarat dark:text-syarat-light">884 920 192</span>
+                                    <button onclick="copyMeetingId()" class="text-slate-400 hover:text-syarat text-xs" title="Salin ID"><i class="fa-regular fa-copy"></i></button>
                                 </div>
-                                <button onclick="copyZoomLink()" class="px-4 py-3 rounded-2xl bg-slate-200 dark:bg-slate-800 font-bold text-xs hover:bg-slate-300 dark:hover:bg-slate-700 transition-all flex items-center gap-1.5 whitespace-nowrap shadow-sm">
-                                    <i class="fa-solid fa-copy text-syarat"></i> Salin Link
-                                </button>
+                            </div>
+
+                            <div class="flex justify-between items-center border-t border-slate-200 dark:border-slate-800/80 pt-2.5">
+                                <span class="font-bold text-slate-500">Passcode:</span>
+                                <div class="flex items-center gap-2">
+                                    <span id="livePasscode" class="font-mono font-extrabold text-sm text-tigpad">BISINDO2026</span>
+                                    <button onclick="copyPasscode()" class="text-slate-400 hover:text-tigpad text-xs" title="Salin Passcode"><i class="fa-regular fa-copy"></i></button>
+                                </div>
                             </div>
                         </div>
 
-                        <a id="zoomJoinLinkBtn" href="https://unpad.zoom.us/j/884920192?pwd=bisindounpad2026" target="_blank" class="btn-duotone w-full py-3.5 rounded-2xl font-extrabold text-xs flex items-center justify-center gap-2.5 shadow-lg text-center transition-all">
-                            <i class="fa-solid fa-video text-sm"></i>
-                            <span>Buka Ruang Zoom Meeting Sekarang</span>
-                        </a>
+                        <!-- Live Action Buttons -->
+                        <div class="flex flex-col sm:flex-row gap-3 pt-2">
+                            <a id="btnJoinLiveZoom" href="https://zoom.us" target="_blank" class="btn-duotone flex-1 py-3.5 rounded-2xl font-bold text-xs shadow-xl flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform">
+                                <i class="fa-solid fa-video"></i>
+                                <span>Gabung Ke Ruang Zoom Live</span>
+                            </a>
+                            <button onclick="copyZoomLink()" class="px-4 py-3.5 rounded-2xl glass-card text-xs font-bold flex items-center justify-center gap-2 hover:border-tigpad transition-all shadow-sm">
+                                <i class="fa-regular fa-clone text-tigpad"></i>
+                                <span>Salin Tautan</span>
+                            </button>
+                        </div>
                     </div>
 
                     <!-- Peserta Attendance Control Box (Konfirmasi & Batalkan Hadir) -->
@@ -294,7 +299,7 @@
                             <i class="fa-solid fa-circle-info text-syarat"></i> Petunjuk Presensi Zoom
                         </div>
                         <p class="text-[11px] leading-relaxed">
-                            Pastikan Anda mengklik tombol presensi kehadiran saat berada di dalam ruangan Zoom Meeting. Presensi otomatis akan dicatat dan terverifikasi di portal UNPAD.
+                            Pastikan Anda mengklik tombol presensi kehadiran saat berada di dalam ruangan Zoom Meeting. Presensi otomatis akan dicatat dan terverifikasi di portal LMS.
                         </p>
                     </div>
                 </div>
@@ -305,7 +310,7 @@
                 <!-- Stats Header Summary -->
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
                     <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-1">
-                        <div class="text-slate-400 font-bold text-[10px] uppercase">Total Mahasiswa</div>
+                        <div class="text-slate-400 font-bold text-[10px] uppercase">Total Peserta</div>
                         <div class="text-2xl font-black text-slate-800 dark:text-white" id="statTotalStudents">3</div>
                     </div>
                     <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-1">
@@ -328,17 +333,17 @@
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-200 dark:border-slate-800 pb-4">
                     <div>
                         <h3 id="zoomTableTitle" class="font-extrabold text-base text-slate-800 dark:text-white flex items-center gap-2">
-                            <i class="fa-solid fa-table-list text-syarat"></i> Log Presensi Kehadiran Mahasiswa
+                            <i class="fa-solid fa-table-list text-syarat"></i> Log Presensi Kehadiran Peserta
                         </h3>
-                        <p class="text-xs text-slate-500">Daftar presensi mahasiswa pada kelas Zoom tatap muka terverifikasi.</p>
+                        <p class="text-xs text-slate-500">Daftar presensi peserta pada kelas Zoom tatap muka terverifikasi.</p>
                     </div>
 
                     <div class="flex items-center gap-2.5 w-full sm:w-auto">
                         <div class="relative flex-1 sm:w-64">
                             <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                            <input id="searchAttendanceInput" type="text" oninput="renderAttendanceTable()" placeholder="Cari Nama / NPM..." class="w-full pl-9 pr-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-semibold">
+                            <input id="searchAttendanceInput" type="text" oninput="renderAttendanceTable()" placeholder="Cari Nama / ID..." class="w-full pl-9 pr-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-semibold">
                         </div>
-                        <button onclick="alert('Exporting Log Excel...')" class="px-4 py-2 rounded-xl bg-slate-200 dark:bg-slate-800 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-300 flex items-center gap-1.5 shadow-sm whitespace-nowrap">
+                        <button onclick="showToast('📊 Menyiapkan rekapitulasi data presensi Zoom ke format Excel...', 'info')" class="px-4 py-2 rounded-xl bg-slate-200 dark:bg-slate-800 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-300 flex items-center gap-1.5 shadow-sm whitespace-nowrap">
                             <i class="fa-solid fa-file-excel text-green-600 text-sm"></i> Export Log Excel
                         </button>
                     </div>
@@ -348,8 +353,8 @@
                     <table class="table table-sm w-full text-xs">
                         <thead>
                             <tr class="text-slate-400 border-slate-200 dark:border-slate-800">
-                                <th>Mahasiswa</th>
-                                <th>NPM / ID Mahasiswa</th>
+                                <th>Peserta</th>
+                                <th>ID Peserta</th>
                                 <th>Waktu Presensi</th>
                                 <th>Status Kehadiran</th>
                                 <th>Aksi Mentor</th>
@@ -385,7 +390,7 @@
 
                 <div>
                     <label class="block font-bold mb-1">Tautan Link Zoom URL (Salin dari Zoom App)</label>
-                    <input type="url" id="newZoomUrl" required placeholder="https://unpad.zoom.us/j/884920192?pwd=..." class="input input-bordered input-sm w-full font-mono text-syarat font-bold">
+                    <input type="url" id="newZoomUrl" required placeholder="https://zoom.us/j/884920192?pwd=..." class="input input-bordered input-sm w-full font-mono text-syarat font-bold">
                     <p class="text-[10px] text-slate-400 mt-1">Masukkan tautan lengkap link Zoom Meeting (termasuk passcode jika ada).</p>
                 </div>
 
@@ -422,21 +427,21 @@
                 id: 1,
                 title: "Praktik Tatap Muka Isyarat Level 1",
                 time: "Hari ini • 14:00 - 15:30 WIB",
-                url: "https://unpad.zoom.us/j/884920192?pwd=bisindounpad2026",
+                url: "https://zoom.us/j/884920192?pwd=bisindo2026",
                 status: "LIVE / BERLANGSUNG"
             },
             {
                 id: 2,
                 title: "Sesi Tanya Jawab Mentor & Diskusi Kuis",
                 time: "Besok • 10:00 - 11:30 WIB",
-                url: "https://unpad.zoom.us/j/912834710?pwd=bisindounpad2026",
+                url: "https://zoom.us/j/912834710?pwd=bisindo2026",
                 status: "MENDATANG"
             },
             {
                 id: 3,
                 title: "Evaluasi Ujian Akhir Isyarat Level 2",
                 time: "08 Aug 2026 • 13:00 - 14:30 WIB",
-                url: "https://unpad.zoom.us/j/772819203?pwd=bisindounpad2026",
+                url: "https://zoom.us/j/772819203?pwd=bisindo2026",
                 status: "MENDATANG"
             }
         ];
@@ -454,7 +459,9 @@
                     const parsed = JSON.parse(saved);
                     if (Array.isArray(parsed) && parsed.length > 0) return parsed;
                 }
-            } catch(e) {}
+            } catch(e) {
+                console.error("Error reading zoom sessions data", e);
+            }
             return defaultZoomSessions;
         }
 
@@ -466,14 +473,16 @@
 
         function getAttendanceData() {
             try {
-                const saved = localStorage.getItem('kolab_zoom_attendance_data');
+                const saved = localStorage.getItem('kolab_attendance_logs_data');
                 if (saved) return JSON.parse(saved);
-            } catch(e) {}
+            } catch(e) {
+                console.error("Error reading attendance data", e);
+            }
             return attendanceLogs;
         }
 
         function saveAttendanceData(data) {
-            localStorage.setItem('kolab_zoom_attendance_data', JSON.stringify(data));
+            localStorage.setItem('kolab_attendance_logs_data', JSON.stringify(data));
             renderAttendanceTable();
             checkPesertaAttendanceState();
         }
@@ -517,23 +526,27 @@
                 mobileDrawer.id = 'mobileSidebarDrawer';
                 mobileDrawer.className = 'fixed inset-0 z-50 flex md:hidden';
                 mobileDrawer.innerHTML = `
-                    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="toggleMobileSidebar()"></div>
-                    <div class="relative w-72 max-w-[80vw] bg-white dark:bg-slate-900 h-full p-5 space-y-6 shadow-2xl flex flex-col justify-between overflow-y-auto z-10">
+                    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onclick="toggleMobileSidebar()"></div>
+                    <div class="mobile-drawer-content relative w-72 max-w-[85vw] bg-white dark:bg-slate-900 h-full p-5 space-y-6 shadow-2xl flex flex-col justify-between overflow-y-auto z-10">
                         <div class="space-y-6">
                             <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
                                 <div class="flex items-center gap-2 font-black text-syarat dark:text-syarat-light text-base">
-                                    <i class="fa-solid fa-hands-asl-interpreting"></i> KOLAB UNPAD
+                                    <i class="fa-solid fa-hands-asl-interpreting text-tigpad"></i> SYARAT X TIGPAD
                                 </div>
-                                <button onclick="toggleMobileSidebar()" class="p-2 text-slate-500 hover:text-red-500">
+                                <button onclick="toggleMobileSidebar()" class="p-2 text-slate-500 hover:text-red-500 rounded-xl" aria-label="Tutup Menu">
                                     <i class="fa-solid fa-xmark text-lg"></i>
                                 </button>
                             </div>
-                            ${document.getElementById('sidebarNav').innerHTML}
+                            <div id="mobileDrawerNavContainer">
+                                ${document.getElementById('sidebarNav').innerHTML}
+                            </div>
                         </div>
                     </div>
                 `;
                 document.body.appendChild(mobileDrawer);
             } else {
+                const navContainer = document.getElementById('mobileDrawerNavContainer');
+                if (navContainer) navContainer.innerHTML = document.getElementById('sidebarNav').innerHTML;
                 mobileDrawer.classList.toggle('hidden');
             }
         }
@@ -558,57 +571,61 @@
             const navTextZoom = document.getElementById('navText_zoom');
             const navTextKuis = document.getElementById('navText_kuis');
             const navTextGame = document.getElementById('navText_game');
+            const navTextSertifikat = document.getElementById('navText_sertifikat');
 
             if (role === 'peserta') {
-                userNameHeader.innerText = "Rina Rahmawati";
-                if(dropdownHeaderName) dropdownHeaderName.innerText = "Rina Rahmawati";
-                userRoleBadge.innerText = "Mahasiswa (Peserta)";
-                userEmailDropdown.innerText = "rina.rahmawati@unpad.ac.id";
-                sidebarRoleTitle.innerText = "Mode Peserta";
-                sidebarRoleIcon.className = "fa-solid fa-user-graduate";
+                if (userNameHeader) userNameHeader.innerText = "Rina Rahmawati";
+                if (dropdownHeaderName) dropdownHeaderName.innerText = "Rina Rahmawati";
+                if (userRoleBadge) userRoleBadge.innerText = "Peserta Umum";
+                if (userEmailDropdown) userEmailDropdown.innerText = "rina.rahmawati@email.com";
+                if (sidebarRoleTitle) sidebarRoleTitle.innerText = "Mode Peserta";
+                if (sidebarRoleIcon) sidebarRoleIcon.className = "fa-solid fa-user-graduate";
                 
                 if (navItemProfile) navItemProfile.classList.remove('hidden');
                 if (dropdownProfileItem) dropdownProfileItem.classList.remove('hidden');
 
-                navTextModul.innerText = "Modul Video & PDF";
-                navTextZoom.innerText = "Zoom & Presensi";
-                navTextKuis.innerText = "Kuis Evaluasi";
+                if (navTextModul) navTextModul.innerText = "Modul Video & PDF";
+                if (navTextZoom) navTextZoom.innerText = "Zoom & Presensi";
+                if (navTextKuis) navTextKuis.innerText = "Kuis Evaluasi";
                 if (navTextGame) navTextGame.innerText = "Game BISINDO";
+                if (navTextSertifikat) navTextSertifikat.innerText = "Verifikasi Sertifikat";
 
-                mentorZoomBtn.classList.add('hidden');
-                mentorPresensiControlBox.classList.add('hidden');
-                adminNavSection.classList.add('hidden');
-                reportNavSection.classList.add('hidden');
+                if (mentorZoomBtn) mentorZoomBtn.classList.add('hidden');
+                if (mentorPresensiControlBox) mentorPresensiControlBox.classList.add('hidden');
+                if (adminNavSection) adminNavSection.classList.add('hidden');
+                if (reportNavSection) reportNavSection.classList.add('hidden');
 
                 // Hide attendance log table for Peserta
                 if (presensiLogSection) presensiLogSection.classList.add('hidden');
                 renderPesertaPresensiBox();
             } else if (role === 'mentor' || role === 'admin') {
                 const isMentor = role === 'mentor';
-                userNameHeader.innerText = isMentor ? "Budi Santoso" : "Engkus Kuswandi";
-                if(dropdownHeaderName) dropdownHeaderName.innerText = isMentor ? "Budi Santoso" : "Engkus Kuswandi";
-                userRoleBadge.innerText = isMentor ? "Mentor BISINDO" : "Administrator";
-                userEmailDropdown.innerText = isMentor ? "mentor@unpad.ac.id" : "admin@unpad.ac.id";
-                sidebarRoleTitle.innerText = isMentor ? "Mode Mentor" : "Mode Admin";
-                sidebarRoleIcon.className = isMentor ? "fa-solid fa-chalkboard-user" : "fa-solid fa-user-shield";
+                if (userNameHeader) userNameHeader.innerText = isMentor ? "Budi Santoso" : "Engkus Kuswandi";
+                if (dropdownHeaderName) dropdownHeaderName.innerText = isMentor ? "Budi Santoso" : "Engkus Kuswandi";
+                if (userRoleBadge) userRoleBadge.innerText = isMentor ? "Mentor BISINDO" : "Administrator";
+                if (userEmailDropdown) userEmailDropdown.innerText = isMentor ? "mentor@kolab.id" : "admin@kolab.id";
+                if (sidebarRoleTitle) sidebarRoleTitle.innerText = isMentor ? "Mode Mentor" : "Mode Admin";
+                if (sidebarRoleIcon) sidebarRoleIcon.className = isMentor ? "fa-solid fa-chalkboard-user" : "fa-solid fa-user-shield";
 
                 if (isMentor) {
                     if (navItemProfile) navItemProfile.classList.remove('hidden');
                     if (dropdownProfileItem) dropdownProfileItem.classList.remove('hidden');
+                    if (adminNavSection) adminNavSection.classList.add('hidden');
                 } else {
                     if (navItemProfile) navItemProfile.classList.add('hidden');
                     if (dropdownProfileItem) dropdownProfileItem.classList.add('hidden');
+                    if (adminNavSection) adminNavSection.classList.remove('hidden');
                 }
 
-                navTextModul.innerText = "Kelola Modul";
-                navTextZoom.innerText = "Kelola Zoom & Presensi";
-                navTextKuis.innerText = "Kelola Kuis & Soal";
-                if (navTextGame) navTextGame.innerText = "Kelola Game";
+                if (navTextModul) navTextModul.innerText = "Kelola Modul";
+                if (navTextZoom) navTextZoom.innerText = "Kelola Zoom & Presensi";
+                if (navTextKuis) navTextKuis.innerText = "Kelola Kuis & Soal";
+                if (navTextGame) navTextGame.innerText = "Game BISINDO";
+                if (navTextSertifikat) navTextSertifikat.innerText = "Kelola Sertifikat";
 
-                mentorZoomBtn.classList.remove('hidden');
-                mentorPresensiControlBox.classList.remove('hidden');
-                reportNavSection.classList.remove('hidden');
-                if (role === 'admin') adminNavSection.classList.remove('hidden');
+                if (mentorZoomBtn) mentorZoomBtn.classList.remove('hidden');
+                if (mentorPresensiControlBox) mentorPresensiControlBox.classList.remove('hidden');
+                if (reportNavSection) reportNavSection.classList.remove('hidden');
 
                 // Show attendance log table for Mentor and Admin
                 if (presensiLogSection) presensiLogSection.classList.remove('hidden');
@@ -642,7 +659,7 @@
                         </div>
 
                         <div class="text-xs text-slate-600 dark:text-slate-300 space-y-0.5">
-                            <div class="font-bold text-slate-800 dark:text-white">${studentEntry.name} (NPM: ${studentEntry.npm})</div>
+                            <div class="font-bold text-slate-800 dark:text-white">${studentEntry.name} (ID: ${studentEntry.npm})</div>
                             <div class="text-[11px] text-slate-500"><i class="fa-solid fa-clock text-syarat"></i> Waktu Terdaftar: ${studentEntry.time}</div>
                         </div>
 
@@ -663,7 +680,7 @@
                         </div>
 
                         <div class="text-xs text-slate-600 dark:text-slate-300 space-y-0.5">
-                            <div class="font-bold text-slate-800 dark:text-white">Rina Rahmawati (NPM: 140810230045)</div>
+                            <div class="font-bold text-slate-800 dark:text-white">Rina Rahmawati (ID: 140810230045)</div>
                             <div class="text-[11px] text-slate-500">Klik tombol di bawah untuk konfirmasi kehadiran Anda.</div>
                         </div>
 
@@ -699,9 +716,9 @@
             renderPesertaPresensiBox();
 
             if (confirmState) {
-                alert("✨ Presensi kehadiran Anda (Rina Rahmawati) berhasil dikonfirmasi!");
+                showToast("✨ Presensi kehadiran Anda (Rina Rahmawati) berhasil dikonfirmasi!", "success");
             } else {
-                alert("⚠️ Presensi kehadiran Anda telah dibatalkan.");
+                showToast("⚠️ Presensi kehadiran Anda telah dibatalkan.", "warning");
             }
         }
 
@@ -727,6 +744,16 @@
             }
         }
 
+        function escapeHTML(str) {
+            if (str === null || str === undefined) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
         function renderSessionsList() {
             const sessions = getZoomData();
             const container = document.getElementById('zoomSessionsListContainer');
@@ -734,18 +761,24 @@
 
             const isMentor = currentRole === 'mentor' || currentRole === 'admin';
 
-            container.innerHTML = sessions.map((s, idx) => `
+            container.innerHTML = sessions.map((s, idx) => {
+                const safeTitle = escapeHTML(s.title);
+                const safeTime = escapeHTML(s.time);
+                const safeStatus = escapeHTML(s.status);
+                const safeUrl = encodeURI(s.url || '#');
+
+                return `
                 <div class="p-3.5 rounded-2xl ${idx === 0 ? 'bg-syarat/10 border-2 border-syarat/30' : 'bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800'} space-y-2 transition-all hover:border-syarat">
                     <div class="flex justify-between items-start gap-2">
                         <div class="space-y-1">
                             <span class="px-2 py-0.5 rounded-full ${s.status === 'LIVE / BERLANGSUNG' ? 'bg-red-500/15 text-red-500' : 'bg-amber-500/15 text-amber-600'} text-[9px] font-bold">
-                                ${s.status} ${idx === 0 ? '• AKTIF' : ''}
+                                ${safeStatus} ${idx === 0 ? '• AKTIF' : ''}
                             </span>
-                            <h4 class="font-extrabold text-xs text-slate-800 dark:text-white">${s.title}</h4>
-                            <div class="text-[10px] text-slate-500 font-medium">${s.time}</div>
+                            <h4 class="font-extrabold text-xs text-slate-800 dark:text-white">${safeTitle}</h4>
+                            <div class="text-[10px] text-slate-500 font-medium">${safeTime}</div>
                         </div>
                         <div class="flex items-center gap-1">
-                            <a href="${s.url}" target="_blank" title="Buka Link Zoom" class="p-2 rounded-xl bg-syarat text-white text-xs hover:bg-syarat-light transition-all">
+                            <a href="${safeUrl}" target="_blank" rel="noopener noreferrer" title="Buka Link Zoom" class="p-2 rounded-xl bg-syarat text-white text-xs hover:bg-syarat-light transition-all">
                                 <i class="fa-solid fa-video"></i>
                             </a>
                             ${isMentor ? `
@@ -761,13 +794,13 @@
                         </div>
                     </div>
                 </div>
-            `).join('');
+            `;}).join('');
         }
 
         function copyZoomLink() {
             const url = document.getElementById('zoomUrlDisplayInput').value;
             navigator.clipboard.writeText(url);
-            alert(`✨ Link Zoom Meeting berhasil disalin!`);
+            showToast(`✨ Link Zoom Meeting berhasil disalin ke clipboard!`, 'success');
         }
 
         function submitPresensiDirect() {
@@ -780,7 +813,7 @@
                 logs.push({ id: Date.now(), name: "Rina Rahmawati", npm: "140810230045", time: `Hari ini • ${new Date().toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'})} WIB`, verified: true });
             }
             saveAttendanceData(logs);
-            alert(`✨ Presensi Kehadiran Rina Rahmawati Berhasil Dicatat!`);
+            showToast(`✨ Presensi Kehadiran Rina Rahmawati Berhasil Dicatat!`, 'success');
         }
 
         function checkPesertaAttendanceState() {
@@ -833,21 +866,26 @@
                 tbody.innerHTML = filteredLogs.map((l, idx) => {
                     if (l.verified) attendedCount++;
 
+                    const safeName = escapeHTML(l.name);
+                    const safeNpm = escapeHTML(l.npm);
+                    const safeTime = escapeHTML(l.time);
+                    const initial = safeName.charAt(0) || 'U';
+
                     return `
                         <tr class="border-slate-200 dark:border-slate-800">
                             <td class="font-bold">
                                 <div class="flex items-center gap-2.5">
                                     <div class="w-8 h-8 rounded-xl bg-syarat/10 text-syarat flex items-center justify-center font-bold text-xs">
-                                        ${l.name.charAt(0)}
+                                        ${initial}
                                     </div>
                                     <div>
-                                        <div class="font-black text-xs text-slate-800 dark:text-white">${l.name}</div>
+                                        <div class="font-black text-xs text-slate-800 dark:text-white">${safeName}</div>
                                         <div class="text-[10px] font-mono text-slate-400">Peserta BISINDO</div>
                                     </div>
                                 </div>
                             </td>
-                            <td class="font-mono font-bold text-amber-600">${l.npm}</td>
-                            <td class="font-semibold text-[11px] text-slate-600 dark:text-slate-400">${l.time}</td>
+                            <td class="font-mono font-bold text-amber-600">${safeNpm}</td>
+                            <td class="font-semibold text-[11px] text-slate-600 dark:text-slate-400">${safeTime}</td>
                             <td>
                                 ${l.verified ? 
                                     `<span class="px-3 py-1 rounded-full bg-green-500/15 text-green-600 dark:text-green-400 font-extrabold text-[10px] border border-green-500/30 flex items-center gap-1 w-fit"><i class="fa-solid fa-check"></i> Hadir (Verified)</span>` : 
@@ -899,11 +937,19 @@
 
         function deleteZoomSession(idx) {
             let sessions = getZoomData();
-            if (confirm(`Apakah Anda yakin ingin menghapus sesi Zoom "${sessions[idx].title}"?`)) {
-                sessions.splice(idx, 1);
-                saveZoomData(sessions);
-                alert('Sesi Zoom berhasil dihapus.');
-            }
+            const sessionTitle = sessions[idx].title;
+            showConfirmModal({
+                title: 'Hapus Sesi Zoom Meeting',
+                message: `Apakah Anda yakin ingin menghapus tautan <strong>"${escapeHTML(sessionTitle)}"</strong>?`,
+                type: 'danger',
+                confirmText: 'Ya, Hapus Sesi',
+                cancelText: 'Batal',
+                onConfirm: () => {
+                    sessions.splice(idx, 1);
+                    saveZoomData(sessions);
+                    showToast(`Sesi Zoom "${escapeHTML(sessionTitle)}" berhasil dihapus.`, 'info');
+                }
+            });
         }
 
         function handleCreateZoomSubmit(e) {
@@ -917,13 +963,14 @@
             let sessions = getZoomData();
             if (editIdx >= 0) {
                 sessions[editIdx] = { id: sessions[editIdx].id || Date.now(), title, url, time, status };
+                showToast(`✨ Link Zoom "${escapeHTML(title)}" berhasil diperbarui!`, 'success');
             } else {
                 sessions.unshift({ id: Date.now(), title, url, time, status });
+                showToast(`✨ Sesi Zoom baru "${escapeHTML(title)}" berhasil diterbitkan!`, 'success');
             }
 
             saveZoomData(sessions);
             document.getElementById('createZoomModal').close();
-            alert(`✨ Tautan Link Zoom Meeting "${title}" berhasil disimpan & diterbitkan!`);
         }
 
         function loadSavedProfilePhoto() {
@@ -936,5 +983,7 @@
 
         document.addEventListener('DOMContentLoaded', initApp);
     </script>
+    <!-- Universal Popup & Toast System -->
+    <script src="js/popup.js"></script>
 </body>
 </html>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Masuk Portal - KOLAB SYARAT X TIGPAD LMS UNPAD</title>
+    <title>Masuk Portal - KOLAB SYARAT X TIGPAD LMS</title>
     
     <!-- Google Fonts Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -76,8 +76,8 @@
                 <i class="fa-solid fa-hands-asl-interpreting"></i>
             </a>
             <div>
-                <h1 class="text-2xl font-black tracking-tight bg-gradient-to-r from-syarat via-blue-600 to-tigpad bg-clip-text text-transparent">KOLAB LMS UNPAD</h1>
-                <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Pembelajaran Bahasa Isyarat (BISINDO) Inklusif</p>
+                <h1 class="text-2xl font-black tracking-tight bg-gradient-to-r from-syarat via-blue-600 to-tigpad bg-clip-text text-transparent">SYARAT X TIGPAD</h1>
+                <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Platform Edukasi & Kolaborasi BISINDO</p>
             </div>
         </div>
 
@@ -109,8 +109,8 @@
                     <i class="fa-solid fa-graduation-cap"></i>
                 </div>
                 <div>
-                    <div id="roleBadgeTitle" class="font-bold text-syarat dark:text-syarat-light">Akses Login Mahasiswa (Peserta)</div>
-                    <div id="roleBadgeDesc" class="text-[10px] text-slate-500 dark:text-slate-400">Gunakan akun SSO UNPAD (@unpad.ac.id) Anda.</div>
+                    <div id="roleBadgeTitle" class="font-bold text-syarat dark:text-syarat-light">Akses Login Peserta Umum</div>
+                    <div id="roleBadgeDesc" class="text-[10px] text-slate-500 dark:text-slate-400">Gunakan akun email Anda untuk masuk.</div>
                 </div>
             </div>
 
@@ -119,12 +119,12 @@
                 
                 <!-- Email SSO Input -->
                 <div class="space-y-1.5">
-                    <label class="block font-bold text-slate-700 dark:text-slate-300">Email Akademik UNPAD</label>
+                    <label class="block font-bold text-slate-700 dark:text-slate-300">Email Akun Terdaftar</label>
                     <div class="relative">
                         <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                             <i class="fa-solid fa-envelope"></i>
                         </span>
-                        <input type="email" id="loginEmail" required placeholder="nama.mahasiswa@unpad.ac.id" value="rina.rahmawati@unpad.ac.id" class="w-full pl-10 pr-4 py-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 font-medium focus:ring-2 focus:ring-tigpad outline-none transition-all">
+                        <input type="email" id="loginEmail" required placeholder="nama.peserta@email.com" value="rina.rahmawati@email.com" class="w-full pl-10 pr-4 py-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 font-medium focus:ring-2 focus:ring-tigpad outline-none transition-all">
                     </div>
                 </div>
 
@@ -132,13 +132,13 @@
                 <div class="space-y-1.5">
                     <div class="flex justify-between items-center">
                         <label class="block font-bold text-slate-700 dark:text-slate-300">Kata Sandi Akun</label>
-                        <a href="javascript:void(0)" onclick="alert('Silakan hubungi Unit Layanan Terpadu / Helpdesk SSO UNPAD untuk pemulihan sandi.')" class="text-[11px] text-tigpad font-semibold hover:underline">Lupa Sandi?</a>
+                        <a href="javascript:void(0)" onclick="showInfoModal({ title: 'Pemulihan Kata Sandi', message: 'Silakan hubungi Administrator Sistem / Helpdesk Layanan untuk permohonan reset sandi akun Anda.', type: 'info' })" class="text-[11px] text-tigpad font-semibold hover:underline">Lupa Sandi?</a>
                     </div>
                     <div class="relative">
                         <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                             <i class="fa-solid fa-lock"></i>
                         </span>
-                        <input type="password" id="loginPassword" required placeholder="••••••••" value="unpad2026" class="w-full pl-10 pr-10 py-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 font-medium focus:ring-2 focus:ring-tigpad outline-none transition-all">
+                        <input type="password" id="loginPassword" required placeholder="••••••••" value="kolab2026" class="w-full pl-10 pr-10 py-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 font-medium focus:ring-2 focus:ring-tigpad outline-none transition-all">
                         <button type="button" onclick="togglePasswordVisibility()" aria-label="Lihat Password" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
                             <i id="eyeIcon" class="fa-solid fa-eye"></i>
                         </button>
@@ -164,10 +164,13 @@
 
         <!-- Footer Help -->
         <p class="text-center text-xs text-slate-500">
-            Kendala Login SSO? Hubungi <a href="javascript:void(0)" onclick="alert('Helpdesk SSO UNPAD: helpdesk@unpad.ac.id / WhatsApp: +62 811-2233-4455')" class="text-syarat dark:text-syarat-light font-bold hover:underline">Helpdesk UNPAD</a>
+            Kendala Login? Hubungi <a href="javascript:void(0)" onclick="showInfoModal({ title: 'Kontak Helpdesk Layanan', message: 'Email Resmi: <strong class=\'text-syarat\'>helpdesk@kolab.id</strong><br>WhatsApp Layanan: <strong class=\'text-syarat\'>+62 812-3456-7890</strong><br>Jam Operasional: Setiap Hari (08.00 - 17.00 WIB)', type: 'info' })" class="text-syarat dark:text-syarat-light font-bold hover:underline">Helpdesk Layanan</a>
         </p>
 
     </main>
+
+    <!-- Popup JS -->
+    <script src="js/popup.js"></script>
 
     <!-- Vanilla JS Logic -->
     <script>
@@ -213,19 +216,19 @@
             const badgeIcon = document.getElementById('roleBadgeIcon');
 
             if (role === 'peserta') {
-                emailInput.value = 'rina.rahmawati@unpad.ac.id';
-                badgeTitle.innerText = "Akses Login Mahasiswa (Peserta)";
-                badgeDesc.innerText = "Gunakan email SSO UNPAD (@unpad.ac.id) Anda.";
+                emailInput.value = 'rina.rahmawati@email.com';
+                badgeTitle.innerText = "Akses Login Peserta Umum";
+                badgeDesc.innerText = "Gunakan email akun terdaftar Anda.";
                 badgeIcon.className = "w-8 h-8 rounded-xl bg-syarat text-white flex items-center justify-center font-bold text-sm flex-shrink-0";
                 badgeIcon.innerHTML = '<i class="fa-solid fa-graduation-cap"></i>';
             } else if (role === 'mentor') {
-                emailInput.value = 'budi.santoso@unpad.ac.id';
+                emailInput.value = 'budi.santoso@email.com';
                 badgeTitle.innerText = "Akses Login Mentor BISINDO";
-                badgeDesc.innerText = "Kredensial khusus pengajar & penguji BISINDO UNPAD.";
+                badgeDesc.innerText = "Kredensial khusus pengajar & penguji BISINDO.";
                 badgeIcon.className = "w-8 h-8 rounded-xl bg-tigpad text-white flex items-center justify-center font-bold text-sm flex-shrink-0";
                 badgeIcon.innerHTML = '<i class="fa-solid fa-chalkboard-user"></i>';
             } else if (role === 'admin') {
-                emailInput.value = 'engkus.kuswandi@unpad.ac.id';
+                emailInput.value = 'engkus.kuswandi@email.com';
                 badgeTitle.innerText = "Akses Login Administrator LMS";
                 badgeDesc.innerText = "Hak akses penuh manajemen pengguna & kurikulum.";
                 badgeIcon.className = "w-8 h-8 rounded-xl bg-slate-800 text-white flex items-center justify-center font-bold text-sm flex-shrink-0";
@@ -248,7 +251,7 @@
         function handleLoginSubmit(e) {
             e.preventDefault();
             const btn = document.getElementById('btnSubmitLogin');
-            btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> <span>Memverifikasi SSO...</span>';
+            btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> <span>Memverifikasi Akun...</span>';
             btn.disabled = true;
 
             localStorage.setItem('kolab_role', selectedRoleState);

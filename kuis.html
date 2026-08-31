@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kuis Evaluasi - KOLAB SYARAT X TIGPAD UNPAD</title>
+    <title>Kuis Evaluasi - KOLAB SYARAT X TIGPAD</title>
     
     <!-- Google Fonts Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -56,8 +56,8 @@
                         <i class="fa-solid fa-hands-asl-interpreting"></i>
                     </div>
                     <div class="flex flex-col">
-                        <span class="font-black text-base sm:text-lg tracking-tight bg-gradient-to-r from-syarat via-blue-600 to-tigpad bg-clip-text text-transparent leading-none">KOLAB UNPAD</span>
-                        <span class="text-[9px] font-extrabold tracking-widest text-slate-400 uppercase mt-0.5">SYARAT X TIGPAD</span>
+                        <span class="font-black text-base sm:text-lg tracking-tight bg-gradient-to-r from-syarat via-blue-600 to-tigpad bg-clip-text text-transparent leading-none">SYARAT X TIGPAD</span>
+                        <span class="text-[9px] font-extrabold tracking-widest text-slate-400 uppercase mt-0.5">KOLAB BISINDO</span>
                     </div>
                 </a>
             </div>
@@ -74,14 +74,14 @@
                         </div>
                         <div class="hidden sm:block text-left">
                             <div id="userNameHeader" class="font-extrabold text-xs">Rina Rahmawati</div>
-                            <div id="userRoleBadge" class="text-[10px] text-tigpad font-bold">Mahasiswa (Peserta)</div>
+                            <div id="userRoleBadge" class="text-[10px] text-tigpad font-bold">Peserta Umum</div>
                         </div>
                     </div>
                     
                     <ul tabindex="0" class="dropdown-content z-[50] p-2 shadow-2xl glass-card rounded-2xl w-60 mt-3 text-xs space-y-1">
                         <li class="px-3 py-2.5 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 rounded-xl">
                             <div class="font-bold text-slate-700 dark:text-slate-200" id="dropdownHeaderName">Rina Rahmawati</div>
-                            <div id="userEmailDropdown" class="text-[10px] text-slate-500 font-mono truncate">rina.rahmawati@unpad.ac.id</div>
+                            <div id="userEmailDropdown" class="text-[10px] text-slate-500 font-mono truncate">rina.rahmawati@email.com</div>
                         </li>
                         <li>
                             <a href="dashboard.html" class="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 font-semibold">
@@ -146,20 +146,14 @@
                     <span id="navText_zoom">Zoom & Presensi</span>
                 </a>
 
-                <a href="kuis.html" class="flex items-center gap-3 px-3.5 py-3 rounded-2xl sidebar-active justify-between">
-                    <div class="flex items-center gap-3">
-                        <i class="fa-solid fa-stopwatch-20 text-sm"></i>
-                        <span id="navText_kuis">Kuis Evaluasi</span>
-                    </div>
-                    <span class="px-2 py-0.5 rounded-full bg-tigpad text-white text-[9px] font-bold">3 Soal</span>
+                <a href="kuis.html" class="flex items-center gap-3 px-3.5 py-3 rounded-2xl sidebar-active">
+                    <i class="fa-solid fa-stopwatch-20 text-sm"></i>
+                    <span id="navText_kuis">Kuis Evaluasi</span>
                 </a>
 
-                <a href="game.html" class="flex items-center gap-3 px-3.5 py-3 rounded-2xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all text-slate-600 dark:text-slate-300 justify-between">
-                    <div class="flex items-center gap-3">
-                        <i class="fa-solid fa-gamepad text-sm text-purple-500"></i>
-                        <span id="navText_game">Game BISINDO</span>
-                    </div>
-                    <span class="px-2 py-0.5 rounded-full bg-purple-500 text-white text-[9px] font-bold">Baru</span>
+                <a href="game.html" class="flex items-center gap-3 px-3.5 py-3 rounded-2xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all text-slate-600 dark:text-slate-300">
+                    <i class="fa-solid fa-gamepad text-sm text-purple-500"></i>
+                    <span id="navText_game">Game BISINDO</span>
                 </a>
 
                 <a href="sertifikat.html" class="flex items-center gap-3 px-3.5 py-3 rounded-2xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all text-slate-600 dark:text-slate-300">
@@ -173,14 +167,14 @@
                     </div>
                     <a href="users.html" class="flex items-center gap-3 px-3.5 py-3 rounded-2xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all text-slate-600 dark:text-slate-300">
                         <i class="fa-solid fa-users-gear text-sm"></i>
-                        <span>Kelola User UNPAD</span>
+                        <span>Kelola User</span>
                     </a>
                 </div>
 
                 <div id="reportNavSection" class="pt-2 space-y-1 hidden">
                     <a href="reports.html" class="flex items-center gap-3 px-3.5 py-3 rounded-2xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all text-slate-600 dark:text-slate-300">
-                        <i class="fa-solid fa-file-invoice-dollar text-sm"></i>
-                        <span>Laporan Peserta</span>
+                        <i class="fa-solid fa-file-invoice text-sm"></i>
+                        <span>Laporan & Analitik</span>
                     </a>
                 </div>
             </nav>
@@ -199,7 +193,7 @@
                             <span class="px-3 py-1 rounded-full bg-tigpad/15 text-tigpad text-xs font-bold border border-tigpad/30 inline-block mb-1">
                                 <i class="fa-solid fa-stopwatch-20"></i> Evaluasi Pembelajaran BISINDO
                             </span>
-                            <h1 class="text-2xl sm:text-3xl font-black tracking-tight">Daftar Kuis Evaluasi Mahasiswa</h1>
+                            <h1 class="text-2xl sm:text-3xl font-black tracking-tight">Daftar Kuis Evaluasi Peserta</h1>
                             <p class="text-xs sm:text-sm text-slate-500">Pilih modul kuis yang sudah dibuka oleh Mentor/Admin untuk mulai mengerjakan.</p>
                         </div>
                     </div>
@@ -217,22 +211,31 @@
                     </div>
 
                     <div class="space-y-2">
-                        <span class="px-3 py-1 rounded-full bg-tigpad/15 text-tigpad text-xs font-bold border border-tigpad/30">Kuis Evaluasi Resmi UNPAD</span>
+                        <span class="px-3 py-1 rounded-full bg-tigpad/15 text-tigpad text-xs font-bold border border-tigpad/30">Kuis Evaluasi Pembelajaran</span>
                         <h1 id="selectedQuizTitleHeader" class="text-2xl sm:text-3xl font-black">Ujian Kuis BISINDO Komprehensif</h1>
                         <p id="selectedQuizDescHeader" class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
                             Pastikan Anda berada di lokasi yang kondusif dan koneksi stabil sebelum memulai ujian.
                         </p>
                     </div>
 
-                    <!-- Anti-Cheat Rules Box -->
-                    <div class="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-left text-xs space-y-2 text-slate-700 dark:text-slate-300">
-                        <div class="font-bold text-red-500 flex items-center gap-2">
-                            <i class="fa-solid fa-shield-halved text-base"></i> Aturan Ketat Anti-Curang (Proctored):
+                    <!-- Clean Instructions Box -->
+                    <div class="p-4 rounded-2xl bg-slate-100 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 text-left text-xs space-y-2 text-slate-700 dark:text-slate-300">
+                        <div class="font-bold text-syarat dark:text-syarat-light flex items-center gap-2">
+                            <i class="fa-solid fa-circle-info text-base"></i> Petunjuk Pengerjaan Ujian:
                         </div>
-                        <ul class="list-disc list-inside space-y-1 text-[11px]">
-                            <li><strong>Timer Real-Time:</strong> Timer berjalan terus begitu Anda menekan tombol Start.</li>
-                            <li><strong>Kunci Anti-Refresh:</strong> Merefresh halaman <em>TIDAK AKAN</em> mereset waktu ujian. Timer tetap berjalan.</li>
-                            <li><strong>Satu Kali Kesempatan:</strong> Jawaban yang telah dikirim bersifat final dan menentukan kelulusan sertifikat.</li>
+                        <ul class="space-y-1.5 text-[11px] text-slate-600 dark:text-slate-400">
+                            <li class="flex items-start gap-1.5">
+                                <i class="fa-solid fa-stopwatch text-tigpad mt-0.5"></i>
+                                <span><strong>Timer Otomatis:</strong> Waktu pengerjaan berjalan otomatis saat kuis dimulai.</span>
+                            </li>
+                            <li class="flex items-start gap-1.5">
+                                <i class="fa-solid fa-shield-check text-emerald-500 mt-0.5"></i>
+                                <span><strong>Anti-Copy & Anti-Inspect:</strong> Konten kuis dilindungi demi menjaga objektivitas evaluasi.</span>
+                            </li>
+                            <li class="flex items-start gap-1.5">
+                                <i class="fa-solid fa-paper-plane text-syarat mt-0.5"></i>
+                                <span><strong>Pengiriman Jawaban:</strong> Pastikan seluruh soal telah terjawab sebelum menekan tombol Kirim.</span>
+                            </li>
                         </ul>
                     </div>
 
@@ -276,9 +279,11 @@
                     <!-- Quiz Header Card -->
                     <div class="glass-card p-6 rounded-3xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-2 border-tigpad/40">
                         <div>
-                            <div class="flex items-center gap-2">
+                            <div class="flex flex-wrap items-center gap-2">
                                 <span class="px-2.5 py-1 rounded-full bg-syarat text-white text-[10px] font-bold">Ujian Berlangsung</span>
-                                <span class="text-xs text-slate-500 font-semibold">• Mode Terkunci Anti-Curang</span>
+                                <span class="px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold border border-emerald-500/30 flex items-center gap-1.5 shadow-sm">
+                                    <i class="fa-solid fa-shield-halved"></i> Mode Ujian Aktif
+                                </span>
                             </div>
                             <h1 id="activeQuizTitleHeader" class="text-xl font-black mt-1">Ujian Kuis Evaluasi Komprehensif BISINDO</h1>
                         </div>
@@ -366,7 +371,7 @@
                                         <span class="text-xs font-mono text-slate-500 dark:text-slate-400">Bobot: 33.4 Poin</span>
                                     </div>
                                     <h3 class="font-extrabold text-sm sm:text-base">
-                                        Jelaskan pentingnya menerapkan etika dan kontak mata saat berkomunikasi menggunakan bahasa isyarat dengan teman Tuli di kampus UNPAD!
+                                        Jelaskan pentingnya menerapkan etika dan kontak mata saat berkomunikasi menggunakan bahasa isyarat dengan teman Tuli!
                                     </h3>
                                     <textarea name="q3" rows="3" oninput="updateQuizProgress()" placeholder="Tuliskan jawaban esai Anda di sini..." class="w-full p-3 rounded-xl bg-white dark:bg-slate-800/50 border border-slate-300 dark:border-slate-700 text-xs focus:ring-2 focus:ring-tigpad"></textarea>
                                 </div>
@@ -419,11 +424,11 @@
                     <div class="flex flex-wrap items-center gap-2">
                         <button onclick="openAddQuizModal()" class="btn-duotone px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 shadow-lg">
                             <i class="fa-solid fa-folder-plus"></i>
-                            <span>+ Buat Paket Kuis Baru</span>
+                            <span>Buat Paket Kuis Baru</span>
                         </button>
                         <button onclick="openAddQuestionModal()" class="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold flex items-center gap-2 shadow-lg transition-all">
                             <i class="fa-solid fa-plus"></i>
-                            <span>+ Tambah Soal ke Bank</span>
+                            <span>Tambah Soal ke Bank</span>
                         </button>
                     </div>
                 </div>
@@ -535,7 +540,7 @@
                     <input id="editQuizDuration" type="number" min="5" max="180" required class="input input-bordered input-sm w-full text-xs" />
                 </div>
                 <div>
-                    <label class="block font-bold mb-1">Status Akses Mahasiswa</label>
+                    <label class="block font-bold mb-1">Status Akses Peserta</label>
                     <select id="editQuizStatus" class="select select-bordered select-sm w-full text-xs">
                         <option value="open">🟢 DIBUKA (Peserta BISA Mengerjakan)</option>
                         <option value="locked">🔒 DIKUNCI (Peserta TIDAK BISA Mengerjakan)</option>
@@ -644,7 +649,7 @@
             <div class="space-y-2">
                 <span class="px-3 py-1 rounded-full bg-green-500/15 text-green-600 dark:text-green-400 text-xs font-extrabold border border-green-500/30 inline-flex items-center gap-1.5 shadow-sm">
                     <i class="fa-solid fa-shield-check"></i>
-                    <span>Tersimpan Resmi • Anti-Cheat Proctoring UNPAD</span>
+                    <span>Tersimpan Resmi • Evaluasi Terverifikasi</span>
                 </span>
                 <h2 class="text-2xl font-black text-slate-800 dark:text-white tracking-tight">Jawaban Kuis Berhasil Dikirim! 🎉</h2>
                 <p id="popupQuizTitle" class="text-xs text-slate-500 font-bold">Kuis 1: Pengenalan Abjad & Gestur Tangan</p>
@@ -662,7 +667,7 @@
                     </span>
                 </div>
                 <div id="popupStatusDesc" class="text-xs pt-1 leading-relaxed text-slate-600 dark:text-slate-300">
-                    Selamat! Anda telah memenuhi syarat kelulusan dan berhak mengklaim sertifikat resmi UNPAD.
+                    Selamat! Anda telah memenuhi syarat kelulusan dan berhak mengklaim sertifikat resmi.
                 </div>
             </div>
 
@@ -680,12 +685,31 @@
         </div>
     </dialog>
 
+    <!-- FLOATING TOAST: ANTI-CHEAT & ANTI-INSPECT WARNING -->
+    <div id="antiCheatToast" class="fixed bottom-6 right-6 z-50 transform translate-y-24 opacity-0 transition-all duration-300 pointer-events-none max-w-sm">
+        <div class="glass-card p-4 rounded-2xl border-2 border-red-500/70 shadow-2xl bg-white/95 dark:bg-slate-900/95 flex items-start gap-3 text-left">
+            <div class="w-10 h-10 rounded-xl bg-red-500/20 text-red-500 flex items-center justify-center text-xl flex-shrink-0">
+                <i id="toastIcon" class="fa-solid fa-shield-halved"></i>
+            </div>
+            <div class="space-y-0.5">
+                <h4 id="toastTitle" class="font-extrabold text-xs text-red-600 dark:text-red-400">Tindakan Dibatasi</h4>
+                <p id="toastMessage" class="text-[11px] text-slate-600 dark:text-slate-300 leading-tight">Fitur ini dinonaktifkan selama ujian evaluasi berlangsung.</p>
+            </div>
+        </div>
+    </div>
+
     <script>
         let currentRole = localStorage.getItem('kolab_role') || 'peserta';
         let quizTimerInterval = null;
         let selectedQuizId = 1;
         let currentMentorQuizId = 1;
         const TOTAL_QUIZ_SECONDS = 30 * 60; // 30 Menit
+
+        // PROCTORING & ANTI-CHEAT SYSTEM STATE
+        let isProctoringActive = false;
+        let tabSwitchViolationCount = 0;
+        const MAX_TAB_SWITCH_ALLOWED = 3;
+        let toastTimeout = null;
 
         const DEFAULT_QUIZZES = [
             {
@@ -715,7 +739,7 @@
                     {
                         id: 103,
                         type: "Esai Singkat",
-                        question: "Jelaskan pentingnya menerapkan etika dan kontak mata saat berkomunikasi menggunakan bahasa isyarat dengan teman Tuli di kampus UNPAD!",
+                        question: "Jelaskan pentingnya menerapkan etika dan kontak mata saat berkomunikasi menggunakan bahasa isyarat dengan teman Tuli!",
                         options: [],
                         correctAnswer: "Kontak mata menunjukkan rasa hormat, perhatian penuh, dan keterlibatan aktif saat berkomunikasi.",
                         points: 33.4
@@ -724,8 +748,8 @@
             },
             {
                 id: 2,
-                title: "Kuis 2: Kosakata & Interaksi Lingkungan Kampus",
-                desc: "Evaluasi mengenai kosakata di perpustakaan, ruang kuliah, dan sapaan sivitas akademika UNPAD.",
+                title: "Kuis 2: Kosakata & Interaksi Percakapan Umum",
+                desc: "Evaluasi mengenai kosakata percakapan umum, fasilitas publik, dan sapaan sehari-hari.",
                 soalCount: 2,
                 durationMinutes: 20,
                 status: "locked",
@@ -741,7 +765,7 @@
                     {
                         id: 202,
                         type: "Benar / Salah",
-                        question: "Saat menyapa teman Tuli di area kampus UNPAD, menepuk pundak secara perlahan adalah cara yang sopan untuk mendapatkan perhatian.",
+                        question: "Saat menyapa teman Tuli di area publik, menepuk pundak secara perlahan adalah cara yang sopan untuk mendapatkan perhatian.",
                         options: ["BENAR", "SALAH"],
                         correctAnswer: "BENAR",
                         points: 50.0
@@ -750,7 +774,7 @@
             },
             {
                 id: 3,
-                title: "Kuis 3: Ujian Komprehensif Sertifikasi UNPAD",
+                title: "Kuis 3: Ujian Komprehensif Sertifikasi BISINDO",
                 desc: "Ujian evaluasi akhir untuk pemenuhan kelayakan penerbitan sertifikat resmi.",
                 soalCount: 2,
                 durationMinutes: 30,
@@ -759,8 +783,8 @@
                     {
                         id: 301,
                         type: "Pilihan Ganda",
-                        question: "Apa tujuan utama dari program kolaborasi KOLAB SYARAT X TIGPAD UNPAD?",
-                        options: ["Menciptakan lingkungan kampus inklusif dan ramah disabilitas Tuli", "Pelatihan olahraga mahasiswa", "Pengembangan kompetensi bisnis digital", "Pementasan teater budaya"],
+                        question: "Apa tujuan utama dari program kolaborasi KOLAB SYARAT X TIGPAD?",
+                        options: ["Menciptakan lingkungan masyarakat inklusif dan ramah disabilitas Tuli", "Pelatihan olahraga", "Pengembangan kompetensi bisnis digital", "Pementasan seni teater"],
                         correctAnswer: "A",
                         points: 50.0
                     },
@@ -837,25 +861,39 @@
                 mobileDrawer.id = 'mobileSidebarDrawer';
                 mobileDrawer.className = 'fixed inset-0 z-50 flex md:hidden';
                 mobileDrawer.innerHTML = `
-                    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="toggleMobileSidebar()"></div>
-                    <div class="relative w-72 max-w-[80vw] bg-white dark:bg-slate-900 h-full p-5 space-y-6 shadow-2xl flex flex-col justify-between overflow-y-auto z-10">
+                    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onclick="toggleMobileSidebar()"></div>
+                    <div class="mobile-drawer-content relative w-72 max-w-[85vw] bg-white dark:bg-slate-900 h-full p-5 space-y-6 shadow-2xl flex flex-col justify-between overflow-y-auto z-10">
                         <div class="space-y-6">
                             <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
                                 <div class="flex items-center gap-2 font-black text-syarat dark:text-syarat-light text-base">
-                                    <i class="fa-solid fa-hands-asl-interpreting"></i> KOLAB UNPAD
+                                    <i class="fa-solid fa-hands-asl-interpreting text-tigpad"></i> SYARAT X TIGPAD
                                 </div>
-                                <button onclick="toggleMobileSidebar()" class="p-2 text-slate-500 hover:text-red-500">
+                                <button onclick="toggleMobileSidebar()" class="p-2 text-slate-500 hover:text-red-500 rounded-xl" aria-label="Tutup Menu">
                                     <i class="fa-solid fa-xmark text-lg"></i>
                                 </button>
                             </div>
-                            ${document.getElementById('sidebarNav').innerHTML}
+                            <div id="mobileDrawerNavContainer">
+                                ${document.getElementById('sidebarNav').innerHTML}
+                            </div>
                         </div>
                     </div>
                 `;
                 document.body.appendChild(mobileDrawer);
             } else {
+                const navContainer = document.getElementById('mobileDrawerNavContainer');
+                if (navContainer) navContainer.innerHTML = document.getElementById('sidebarNav').innerHTML;
                 mobileDrawer.classList.toggle('hidden');
             }
+        }
+
+        function escapeHTML(str) {
+            if (str === null || str === undefined) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
         }
 
         function applyRoleUI(role) {
@@ -874,53 +912,62 @@
             const navTextZoom = document.getElementById('navText_zoom');
             const navTextKuis = document.getElementById('navText_kuis');
             const navTextGame = document.getElementById('navText_game');
+            const navTextSertifikat = document.getElementById('navText_sertifikat');
 
             if (role === 'peserta') {
-                userNameHeader.innerText = "Rina Rahmawati";
-                if(dropdownHeaderName) dropdownHeaderName.innerText = "Rina Rahmawati";
-                userRoleBadge.innerText = "Mahasiswa (Peserta)";
-                userEmailDropdown.innerText = "rina.rahmawati@unpad.ac.id";
-                sidebarRoleTitle.innerText = "Mode Peserta";
-                sidebarRoleIcon.className = "fa-solid fa-user-graduate";
+                if (userNameHeader) userNameHeader.innerText = "Rina Rahmawati";
+                if (dropdownHeaderName) dropdownHeaderName.innerText = "Rina Rahmawati";
+                if (userRoleBadge) userRoleBadge.innerText = "Peserta Umum";
+                if (userEmailDropdown) userEmailDropdown.innerText = "rina.rahmawati@email.com";
+                if (sidebarRoleTitle) sidebarRoleTitle.innerText = "Mode Peserta";
+                if (sidebarRoleIcon) sidebarRoleIcon.className = "fa-solid fa-user-graduate";
 
                 if (navItemProfile) navItemProfile.classList.remove('hidden');
                 if (dropdownProfileItem) dropdownProfileItem.classList.remove('hidden');
                 
-                navTextModul.innerText = "Modul Video & PDF";
-                navTextZoom.innerText = "Zoom & Presensi";
-                navTextKuis.innerText = "Kuis Evaluasi";
+                if (navTextModul) navTextModul.innerText = "Modul Video & PDF";
+                if (navTextZoom) navTextZoom.innerText = "Zoom & Presensi";
+                if (navTextKuis) navTextKuis.innerText = "Kuis Evaluasi";
                 if (navTextGame) navTextGame.innerText = "Game BISINDO";
+                if (navTextSertifikat) navTextSertifikat.innerText = "Verifikasi Sertifikat";
 
-                document.getElementById('pesertaQuizSection').classList.remove('hidden');
-                document.getElementById('mentorQuizManagementSection').classList.add('hidden');
-                adminNavSection.classList.add('hidden');
-                reportNavSection.classList.add('hidden');
+                const pesertaQuiz = document.getElementById('pesertaQuizSection');
+                const mentorQuiz = document.getElementById('mentorQuizManagementSection');
+                if (pesertaQuiz) pesertaQuiz.classList.remove('hidden');
+                if (mentorQuiz) mentorQuiz.classList.add('hidden');
+                
+                if (adminNavSection) adminNavSection.classList.add('hidden');
+                if (reportNavSection) reportNavSection.classList.add('hidden');
             } else if (role === 'mentor' || role === 'admin') {
                 const isMentor = role === 'mentor';
-                userNameHeader.innerText = isMentor ? "Budi Santoso" : "Engkus Kuswandi";
-                if(dropdownHeaderName) dropdownHeaderName.innerText = isMentor ? "Budi Santoso" : "Engkus Kuswandi";
-                userRoleBadge.innerText = isMentor ? "Mentor BISINDO" : "Administrator";
-                userEmailDropdown.innerText = isMentor ? "mentor@unpad.ac.id" : "admin@unpad.ac.id";
-                sidebarRoleTitle.innerText = isMentor ? "Mode Mentor" : "Mode Admin";
-                sidebarRoleIcon.className = isMentor ? "fa-solid fa-chalkboard-user" : "fa-solid fa-user-shield";
+                if (userNameHeader) userNameHeader.innerText = isMentor ? "Budi Santoso" : "Engkus Kuswandi";
+                if (dropdownHeaderName) dropdownHeaderName.innerText = isMentor ? "Budi Santoso" : "Engkus Kuswandi";
+                if (userRoleBadge) userRoleBadge.innerText = isMentor ? "Mentor BISINDO" : "Administrator";
+                if (userEmailDropdown) userEmailDropdown.innerText = isMentor ? "mentor@kolab.id" : "admin@kolab.id";
+                if (sidebarRoleTitle) sidebarRoleTitle.innerText = isMentor ? "Mode Mentor" : "Mode Admin";
+                if (sidebarRoleIcon) sidebarRoleIcon.className = isMentor ? "fa-solid fa-chalkboard-user" : "fa-solid fa-user-shield";
 
                 if (isMentor) {
                     if (navItemProfile) navItemProfile.classList.remove('hidden');
                     if (dropdownProfileItem) dropdownProfileItem.classList.remove('hidden');
+                    if (adminNavSection) adminNavSection.classList.add('hidden');
                 } else {
                     if (navItemProfile) navItemProfile.classList.add('hidden');
                     if (dropdownProfileItem) dropdownProfileItem.classList.add('hidden');
+                    if (adminNavSection) adminNavSection.classList.remove('hidden');
                 }
 
-                navTextModul.innerText = "Kelola Modul";
-                navTextZoom.innerText = "Kelola Zoom & Presensi";
-                navTextKuis.innerText = "Kelola Kuis & Soal";
-                if (navTextGame) navTextGame.innerText = "Kelola Game";
+                if (navTextModul) navTextModul.innerText = "Kelola Modul";
+                if (navTextZoom) navTextZoom.innerText = "Kelola Zoom & Presensi";
+                if (navTextKuis) navTextKuis.innerText = "Kelola Kuis & Soal";
+                if (navTextGame) navTextGame.innerText = "Game BISINDO";
+                if (navTextSertifikat) navTextSertifikat.innerText = "Kelola Sertifikat";
 
-                document.getElementById('pesertaQuizSection').classList.add('hidden');
-                document.getElementById('mentorQuizManagementSection').classList.remove('hidden');
-                reportNavSection.classList.remove('hidden');
-                if (role === 'admin') adminNavSection.classList.remove('hidden');
+                const pesertaQuiz = document.getElementById('pesertaQuizSection');
+                const mentorQuiz = document.getElementById('mentorQuizManagementSection');
+                if (pesertaQuiz) pesertaQuiz.classList.add('hidden');
+                if (mentorQuiz) mentorQuiz.classList.remove('hidden');
+                if (reportNavSection) reportNavSection.classList.remove('hidden');
             }
         }
 
@@ -1083,6 +1130,10 @@
             }
 
             container.innerHTML = quiz.questions.map((q, idx) => {
+                const safeQuestion = escapeHTML(q.question);
+                const safeType = escapeHTML(q.type);
+                const safePoints = Number(q.points) || 25;
+
                 let optionsHtml = '';
                 if (q.type === 'Pilihan Ganda' && q.options && q.options.length > 0) {
                     optionsHtml = `
@@ -1090,9 +1141,10 @@
                             ${q.options.map((opt, oIdx) => {
                                 const letter = String.fromCharCode(65 + oIdx);
                                 const isCorrect = q.correctAnswer === letter || q.correctAnswer === opt;
+                                const safeOpt = escapeHTML(opt);
                                 return `
                                     <div class="p-2.5 rounded-xl border ${isCorrect ? 'bg-green-500/15 border-green-500/40 text-green-700 dark:text-green-300 font-bold' : 'bg-slate-50 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400'} flex items-center justify-between">
-                                        <span><strong>${letter}.</strong> ${opt}</span>
+                                        <span><strong>${letter}.</strong> ${safeOpt}</span>
                                         ${isCorrect ? '<i class="fa-solid fa-circle-check text-green-500"></i>' : ''}
                                     </div>
                                 `;
@@ -1107,9 +1159,10 @@
                         </div>
                     `;
                 } else {
+                    const safeRef = escapeHTML(q.correctAnswer || 'Kriteria jawaban terbuka esai.');
                     optionsHtml = `
                         <div class="p-3 rounded-xl bg-slate-100 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 text-xs italic text-slate-500">
-                            <strong>Acuan Kunci Jawaban:</strong> ${q.correctAnswer || 'Kriteria jawaban terbuka esai.'}
+                            <strong>Acuan Kunci Jawaban:</strong> ${safeRef}
                         </div>
                     `;
                 }
@@ -1119,8 +1172,8 @@
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-800 pb-2.5">
                             <div class="flex items-center gap-2">
                                 <span class="px-2.5 py-0.5 rounded-full bg-syarat text-white text-[10px] font-bold">Soal #${idx + 1}</span>
-                                <span class="px-2 py-0.5 rounded-full bg-tigpad/15 text-tigpad text-[10px] font-bold">${q.type}</span>
-                                <span class="text-[11px] font-mono text-slate-400">• Bobot: ${q.points || 25} Poin</span>
+                                <span class="px-2 py-0.5 rounded-full bg-tigpad/15 text-tigpad text-[10px] font-bold">${safeType}</span>
+                                <span class="text-[11px] font-mono text-slate-400">• Bobot: ${safePoints} Poin</span>
                             </div>
                             <div class="flex items-center gap-1.5 self-end sm:self-auto">
                                 <button onclick="openEditQuestionModal(${quiz.id}, ${q.id})" class="px-3 py-1.5 rounded-xl bg-syarat/10 text-syarat hover:bg-syarat hover:text-white text-xs font-bold transition-all flex items-center gap-1">
@@ -1132,7 +1185,7 @@
                             </div>
                         </div>
 
-                        <h4 class="font-extrabold text-sm text-slate-800 dark:text-white leading-relaxed">${q.question}</h4>
+                        <h4 class="font-extrabold text-sm text-slate-800 dark:text-white leading-relaxed">${safeQuestion}</h4>
                         ${optionsHtml}
                     </div>
                 `;
@@ -1146,22 +1199,33 @@
             if (quiz) {
                 quiz.status = (quiz.status === 'open') ? 'locked' : 'open';
                 saveQuizzesData(quizzes);
-                const statusText = quiz.status === 'open' ? 'DIBUKA 🔓 (Mahasiswa BISA Mengerjakan)' : 'DIKUNCI 🔒 (Mahasiswa TIDAK BISA Mengerjakan)';
-                alert(`✨ Status akses "${quiz.title}" berhasil diubah menjadi: ${statusText}`);
+                const statusText = quiz.status === 'open' ? 'DIBUKA 🔓 (Peserta BISA Mengerjakan)' : 'DIKUNCI 🔒 (Peserta TIDAK BISA Mengerjakan)';
+                showToast(`✨ Status akses "${escapeHTML(quiz.title)}" berhasil diubah menjadi: ${statusText}`, 'info');
             }
         }
 
         function deleteQuizPackage(quizId) {
             let quizzes = getQuizzesData();
             if (quizzes.length <= 1) {
-                alert('Tidak dapat menghapus kuis terakhir.');
+                showToast('Tidak dapat menghapus paket kuis terakhir.', 'warning');
                 return;
             }
-            if (confirm('Apakah Anda yakin ingin menghapus paket kuis ini beserta seluruh soalnya?')) {
-                quizzes = quizzes.filter(q => q.id !== quizId);
-                saveQuizzesData(quizzes);
-                backToMentorQuizList();
-            }
+            const quiz = quizzes.find(q => q.id === quizId);
+            const quizTitle = quiz ? quiz.title : 'paket kuis ini';
+
+            showConfirmModal({
+                title: 'Hapus Paket Kuis',
+                message: `Apakah Anda yakin ingin menghapus <strong>"${escapeHTML(quizTitle)}"</strong> beserta seluruh bank soal di dalamnya?`,
+                type: 'danger',
+                confirmText: 'Ya, Hapus Paket',
+                cancelText: 'Batal',
+                onConfirm: () => {
+                    quizzes = quizzes.filter(q => q.id !== quizId);
+                    saveQuizzesData(quizzes);
+                    backToMentorQuizList();
+                    showToast(`Paket kuis "${escapeHTML(quizTitle)}" berhasil dihapus.`, 'info');
+                }
+            });
         }
 
         // EDIT QUIZ PACKAGE MODAL HANDLERS
@@ -1193,7 +1257,7 @@
 
                 saveQuizzesData(quizzes);
                 document.getElementById('editQuizModal').close();
-                alert(`✨ Info paket kuis "${quiz.title}" berhasil diperbarui!`);
+                showToast(`✨ Info paket kuis "${escapeHTML(quiz.title)}" berhasil diperbarui!`, 'success');
             }
         }
 
@@ -1310,7 +1374,7 @@
                 const c = document.getElementById('optC').value.trim();
                 const d = document.getElementById('optD').value.trim();
                 if (!a || !b) {
-                    alert('Mohon isi minimal Opsi A dan Opsi B untuk soal pilihan ganda.');
+                    showToast('Mohon isi minimal Opsi A dan Opsi B untuk soal pilihan ganda.', 'warning');
                     return;
                 }
                 options = [a, b, c, d].filter(opt => opt.length > 0);
@@ -1339,7 +1403,7 @@
                     existingQuestion.correctAnswer = correctAnswer;
                     existingQuestion.points = points;
                 }
-                alert('✨ Soal berhasil diperbarui!');
+                showToast('✨ Soal berhasil diperbarui!', 'success');
             } else {
                 // ADD NEW QUESTION
                 const newQuestion = {
@@ -1351,7 +1415,7 @@
                     points: points
                 };
                 targetQuiz.questions.push(newQuestion);
-                alert('✨ Soal baru berhasil ditambahkan!');
+                showToast('✨ Soal baru berhasil ditambahkan!', 'success');
             }
 
             targetQuiz.soalCount = targetQuiz.questions.length;
@@ -1366,17 +1430,24 @@
         }
 
         function deleteQuestion(quizId, questionId) {
-            if (!confirm('Apakah Anda yakin ingin menghapus soal ini dari paket kuis?')) return;
-
-            let quizzes = getQuizzesData();
-            const quiz = quizzes.find(q => q.id === quizId);
-            if (quiz && quiz.questions) {
-                quiz.questions = quiz.questions.filter(q => q.id !== questionId);
-                quiz.soalCount = quiz.questions.length;
-                saveQuizzesData(quizzes);
-                renderMentorQuizDetailScreen();
-                alert('🗑️ Soal berhasil dihapus.');
-            }
+            showConfirmModal({
+                title: 'Hapus Soal Kuis',
+                message: 'Apakah Anda yakin ingin menghapus butir soal ini dari paket kuis?',
+                type: 'danger',
+                confirmText: 'Ya, Hapus Soal',
+                cancelText: 'Batal',
+                onConfirm: () => {
+                    let quizzes = getQuizzesData();
+                    const quiz = quizzes.find(q => q.id === quizId);
+                    if (quiz && quiz.questions) {
+                        quiz.questions = quiz.questions.filter(q => q.id !== questionId);
+                        quiz.soalCount = quiz.questions.length;
+                        saveQuizzesData(quizzes);
+                        renderMentorQuizDetailScreen();
+                        showToast('Soal berhasil dihapus.', 'info');
+                    }
+                }
+            });
         }
 
         function handleAddQuizSubmit(e) {
@@ -1404,7 +1475,7 @@
 
             document.getElementById('addQuizModal').close();
             e.target.reset();
-            alert(`✨ Paket Kuis Baru "${title}" Berhasil Dibuat! Anda dapat memasukkan soal sekarang.`);
+            showToast(`✨ Paket Kuis Baru "${escapeHTML(title)}" Berhasil Dibuat!`, 'success');
             openMentorQuizDetail(newQuiz.id);
         }
 
@@ -1419,7 +1490,7 @@
             if (!quiz) return;
 
             if (quiz.status === 'locked') {
-                alert('⚠️ Kuis ini sedang dikunci oleh Mentor/Admin.');
+                showToast('⚠️ Kuis ini sedang dikunci oleh Mentor/Admin.', 'warning');
                 return;
             }
 
@@ -1433,6 +1504,7 @@
         }
 
         function backToQuizList() {
+            disableQuizProctoring();
             document.getElementById('quizStartScreen').classList.add('hidden');
             document.getElementById('quizActiveContainer').classList.add('hidden');
             document.getElementById('quizCompletedScreen').classList.add('hidden');
@@ -1449,6 +1521,7 @@
             const completedScreen = document.getElementById('quizCompletedScreen');
 
             if (isSubmitted) {
+                disableQuizProctoring();
                 const savedScore = localStorage.getItem('kolab_quiz_score_' + selectedQuizId) || '85';
                 document.getElementById('quizFinalScoreDisplay').innerText = `${savedScore} / 100`;
                 listScreen.classList.add('hidden');
@@ -1460,9 +1533,11 @@
                 startScreen.classList.add('hidden');
                 completedScreen.classList.add('hidden');
                 activeContainer.classList.remove('hidden');
+                enableQuizProctoring();
                 renderActiveQuizForm();
                 resumeQuizTimer();
             } else {
+                disableQuizProctoring();
                 listScreen.classList.remove('hidden');
                 startScreen.classList.add('hidden');
                 activeContainer.classList.add('hidden');
@@ -1482,6 +1557,7 @@
             document.getElementById('quizStartScreen').classList.add('hidden');
             document.getElementById('quizActiveContainer').classList.remove('hidden');
             
+            enableQuizProctoring();
             renderActiveQuizForm();
             resumeQuizTimer(durationSecs);
         }
@@ -1531,9 +1607,9 @@
 
                 return `
                     <div id="question_box_${num}" class="p-5 rounded-2xl bg-white/90 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-4 shadow-sm">
-                        <div class="flex justify-between items-center">
-                            <span class="px-2.5 py-1 rounded-full bg-syarat text-white text-[10px] font-bold">Soal ${num} • ${q.type}</span>
-                            <span class="text-xs font-mono text-slate-500 dark:text-slate-400">Bobot: ${q.points || 25} Poin</span>
+                        <div class="flex justify-between items-center text-xs font-bold text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-slate-800/80 pb-2">
+                            <span>Soal ${num} • ${q.type}</span>
+                            <span class="font-mono text-[11px]">${q.points || 25} Poin</span>
                         </div>
                         <h3 class="font-extrabold text-sm sm:text-base text-slate-800 dark:text-white">
                             ${q.question}
@@ -1581,7 +1657,7 @@
                 if (remainingSeconds <= 0) {
                     clearInterval(quizTimerInterval);
                     document.getElementById('timerDisplay').innerText = "00:00";
-                    alert("Waktu ujian telah habis! Jawaban otomatis dikirim.");
+                    showToast("⏰ Waktu ujian telah habis! Jawaban Anda otomatis dikirim.", "warning", 5000);
                     submitQuiz(true);
                     return;
                 }
@@ -1694,10 +1770,154 @@
             localStorage.setItem('kolab_quiz_submitted_' + selectedQuizId, 'true');
             localStorage.setItem('kolab_quiz_score_' + selectedQuizId, score);
             if (quizTimerInterval) clearInterval(quizTimerInterval);
+            disableQuizProctoring();
 
             // Trigger Pop-up Berhasil Modal
-            openQuizSuccessPopup(score, quiz ? quiz.title : 'Kuis Evaluasi BISINDO UNPAD');
+            openQuizSuccessPopup(score, quiz ? quiz.title : 'Kuis Evaluasi BISINDO');
         }
+
+        // ==========================================
+        // PROCTORING, ANTI-COPY & ANTI-INSPECT ENGINE
+        // ==========================================
+        function enableQuizProctoring() {
+            isProctoringActive = true;
+            const container = document.getElementById('quizActiveContainer');
+            if (container) container.classList.add('quiz-no-copy');
+        }
+
+        function disableQuizProctoring() {
+            isProctoringActive = false;
+            const container = document.getElementById('quizActiveContainer');
+            if (container) container.classList.remove('quiz-no-copy');
+        }
+
+        function updateTabViolationBadgeUI() {
+            // Non-intrusive: badge omitted
+        }
+
+        function showAntiCheatToast(title, message, iconClass = 'fa-solid fa-shield-halved') {
+            const toast = document.getElementById('antiCheatToast');
+            const toastTitle = document.getElementById('toastTitle');
+            const toastMsg = document.getElementById('toastMessage');
+            const toastIcon = document.getElementById('toastIcon');
+
+            if (!toast) return;
+
+            if (toastTitle) toastTitle.innerText = title;
+            if (toastMsg) toastMsg.innerText = message;
+            if (toastIcon) toastIcon.className = iconClass;
+
+            toast.classList.remove('translate-y-24', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            if (toastTimeout) clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-24', 'opacity-0');
+            }, 3000);
+        }
+
+        function handleTabSwitchViolation() {
+            if (!isProctoringActive) return;
+            showAntiCheatToast('Fokus Ujian', 'Tetap berada di halaman ujian untuk menyelesaikan kuis dengan lancar.', 'fa-solid fa-circle-info');
+        }
+
+        // 1. Right Click (Context Menu) Blocker
+        document.addEventListener('contextmenu', function(e) {
+            if (isProctoringActive) {
+                e.preventDefault();
+                showAntiCheatToast('Klik Kanan Dinonaktifkan', 'Fitur menu klik kanan dibatasi selama sesi ujian evaluasi.', 'fa-solid fa-ban');
+                return false;
+            }
+        });
+
+        // 2. Anti-Copy, Cut & Drag Blocker
+        document.addEventListener('copy', function(e) {
+            if (isProctoringActive && e.target.tagName !== 'TEXTAREA' && e.target.tagName !== 'INPUT') {
+                e.preventDefault();
+                showAntiCheatToast('Anti-Copy Aktif', 'Penyalinan teks soal kuis dibatasi.', 'fa-solid fa-copy');
+                return false;
+            }
+        });
+        document.addEventListener('cut', function(e) {
+            if (isProctoringActive && e.target.tagName !== 'TEXTAREA' && e.target.tagName !== 'INPUT') {
+                e.preventDefault();
+                showAntiCheatToast('Tindakan Dibatasi', 'Fungsi Cut dinonaktifkan selama ujian.', 'fa-solid fa-scissors');
+                return false;
+            }
+        });
+        document.addEventListener('dragstart', function(e) {
+            if (isProctoringActive && e.target.tagName !== 'TEXTAREA' && e.target.tagName !== 'INPUT') {
+                e.preventDefault();
+                return false;
+            }
+        });
+
+        // 3. Anti-Inspect & DevTools Keyboard Shortcut Blocker
+        document.addEventListener('keydown', function(e) {
+            if (!isProctoringActive) return;
+
+            // Block F12 (DevTools)
+            if (e.key === 'F12' || e.keyCode === 123) {
+                e.preventDefault();
+                e.stopPropagation();
+                showAntiCheatToast('DevTools Ditolak', 'Akses Developer Tools (F12) dinonaktifkan selama ujian.', 'fa-solid fa-code');
+                return false;
+            }
+
+            // Block Ctrl+Shift+I / Ctrl+Shift+J / Ctrl+Shift+C / Cmd+Option+I (Inspect Element / Console)
+            if ((e.ctrlKey || e.metaKey) && e.shiftKey && ['I', 'i', 'J', 'j', 'C', 'c', 'K', 'k'].includes(e.key)) {
+                e.preventDefault();
+                e.stopPropagation();
+                showAntiCheatToast('Inspect Ditolak', 'Pintasan Inspect / Console browser diblokir selama ujian.', 'fa-solid fa-bug-slash');
+                return false;
+            }
+
+            // Block Ctrl+U / Cmd+Option+U (View Page Source)
+            if ((e.ctrlKey || e.metaKey) && (e.key === 'U' || e.key === 'u')) {
+                e.preventDefault();
+                e.stopPropagation();
+                showAntiCheatToast('View Source Ditolak', 'Melihat kode sumber halaman dinonaktifkan.', 'fa-solid fa-file-code');
+                return false;
+            }
+
+            // Block Ctrl+S (Save page)
+            if ((e.ctrlKey || e.metaKey) && (e.key === 'S' || e.key === 's')) {
+                e.preventDefault();
+                e.stopPropagation();
+                showAntiCheatToast('Tindakan Dibatasi', 'Penyimpanan halaman dinonaktifkan.', 'fa-solid fa-floppy-disk');
+                return false;
+            }
+
+            // Block Ctrl+P (Print page)
+            if ((e.ctrlKey || e.metaKey) && (e.key === 'P' || e.key === 'p')) {
+                e.preventDefault();
+                e.stopPropagation();
+                showAntiCheatToast('Tindakan Dibatasi', 'Mencetak halaman dinonaktifkan selama ujian.', 'fa-solid fa-print');
+                return false;
+            }
+
+            // Block Ctrl+C / Ctrl+X outside input/textarea
+            if ((e.ctrlKey || e.metaKey) && (e.key === 'C' || e.key === 'c' || e.key === 'X' || e.key === 'x')) {
+                if (e.target.tagName !== 'TEXTAREA' && e.target.tagName !== 'INPUT') {
+                    e.preventDefault();
+                    showAntiCheatToast('Anti-Copy Aktif', 'Penyalinan teks soal tidak diizinkan.', 'fa-solid fa-copy');
+                    return false;
+                }
+            }
+        });
+
+        // 4. Tab Switch & Window Blur Detection (Gentle Reminder)
+        document.addEventListener('visibilitychange', function() {
+            if (isProctoringActive && document.hidden) {
+                handleTabSwitchViolation();
+            }
+        });
+        window.addEventListener('blur', function() {
+            if (isProctoringActive) {
+                handleTabSwitchViolation();
+            }
+        });
 
         function openQuizSuccessPopup(score, quizTitle) {
             const popup = document.getElementById('quizSuccessPopupModal');
@@ -1718,7 +1938,7 @@
             }
             if (descDisplay) {
                 descDisplay.innerHTML = isPassed 
-                    ? '<span class="text-green-600 dark:text-green-400 font-bold">Selamat! Anda telah memenuhi syarat kelulusan dan berhak mengklaim sertifikat resmi UNPAD.</span>'
+                    ? '<span class="text-green-600 dark:text-green-400 font-bold">Selamat! Anda telah memenuhi syarat kelulusan dan berhak mengklaim sertifikat resmi.</span>'
                     : '<span class="text-amber-600 dark:text-amber-400 font-bold">Nilai Anda belum mencapai batas minimal kelulusan (70). Silakan pelajari kembali modul kurikulum.</span>';
             }
 
@@ -1741,5 +1961,7 @@
 
         document.addEventListener('DOMContentLoaded', initApp);
     </script>
+    <!-- Universal Popup & Toast System -->
+    <script src="js/popup.js"></script>
 </body>
 </html>

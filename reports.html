@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Laporan & Analitik - KOLAB SYARAT X TIGPAD UNPAD</title>
+    <title>Laporan & Analitik - KOLAB SYARAT X TIGPAD</title>
     
     <!-- Google Fonts Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -73,8 +73,8 @@
                         <i class="fa-solid fa-hands-asl-interpreting"></i>
                     </div>
                     <div class="flex flex-col">
-                        <span class="font-black text-base sm:text-lg tracking-tight bg-gradient-to-r from-syarat via-blue-600 to-tigpad bg-clip-text text-transparent leading-none">KOLAB UNPAD</span>
-                        <span class="text-[9px] font-extrabold tracking-widest text-slate-400 uppercase mt-0.5">SYARAT X TIGPAD</span>
+                        <span class="font-black text-base sm:text-lg tracking-tight bg-gradient-to-r from-syarat via-blue-600 to-tigpad bg-clip-text text-transparent leading-none">SYARAT X TIGPAD</span>
+                        <span class="text-[9px] font-extrabold tracking-widest text-slate-400 uppercase mt-0.5">KOLAB BISINDO</span>
                     </div>
                 </a>
             </div>
@@ -98,7 +98,7 @@
                     <ul tabindex="0" class="dropdown-content z-[50] p-2 shadow-2xl glass-card rounded-2xl w-60 mt-3 text-xs space-y-1">
                         <li class="px-3 py-2.5 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 rounded-xl">
                             <div class="font-bold text-slate-700 dark:text-slate-200" id="dropdownHeaderName">Budi Santoso</div>
-                            <div id="userEmailDropdown" class="text-[10px] text-slate-500 font-mono truncate">mentor@unpad.ac.id</div>
+                            <div id="userEmailDropdown" class="text-[10px] text-slate-500 font-mono truncate">mentor@kolab.id</div>
                         </li>
                         <li>
                             <a href="dashboard.html" class="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 font-semibold">
@@ -155,33 +155,27 @@
 
                 <a href="modul.html" class="flex items-center gap-3 px-3.5 py-3 rounded-2xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all text-slate-600 dark:text-slate-300">
                     <i class="fa-solid fa-book-open text-sm"></i>
-                    <span>Kelola Modul</span>
+                    <span id="navText_modul">Modul Video & PDF</span>
                 </a>
 
                 <a href="zoom.html" class="flex items-center gap-3 px-3.5 py-3 rounded-2xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all text-slate-600 dark:text-slate-300">
                     <i class="fa-solid fa-headset text-sm"></i>
-                    <span>Kelola Zoom & Presensi</span>
+                    <span id="navText_zoom">Zoom & Presensi</span>
                 </a>
 
-                <a href="kuis.html" class="flex items-center gap-3 px-3.5 py-3 rounded-2xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all text-slate-600 dark:text-slate-300 justify-between">
-                    <div class="flex items-center gap-3">
-                        <i class="fa-solid fa-stopwatch-20 text-sm"></i>
-                        <span>Kelola Kuis & Soal</span>
-                    </div>
-                    <span class="px-2 py-0.5 rounded-full bg-tigpad text-white text-[9px] font-bold">10 Soal</span>
+                <a href="kuis.html" class="flex items-center gap-3 px-3.5 py-3 rounded-2xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all text-slate-600 dark:text-slate-300">
+                    <i class="fa-solid fa-stopwatch-20 text-sm"></i>
+                    <span id="navText_kuis">Kuis Evaluasi</span>
                 </a>
 
-                <a href="game.html" class="flex items-center gap-3 px-3.5 py-3 rounded-2xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all text-slate-600 dark:text-slate-300 justify-between">
-                    <div class="flex items-center gap-3">
-                        <i class="fa-solid fa-gamepad text-sm text-purple-500"></i>
-                        <span>Game BISINDO</span>
-                    </div>
-                    <span class="px-2 py-0.5 rounded-full bg-purple-500 text-white text-[9px] font-bold">Main</span>
+                <a href="game.html" class="flex items-center gap-3 px-3.5 py-3 rounded-2xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all text-slate-600 dark:text-slate-300">
+                    <i class="fa-solid fa-gamepad text-sm text-purple-500"></i>
+                    <span id="navText_game">Game BISINDO</span>
                 </a>
 
                 <a href="sertifikat.html" class="flex items-center gap-3 px-3.5 py-3 rounded-2xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all text-slate-600 dark:text-slate-300">
                     <i class="fa-solid fa-award text-sm"></i>
-                    <span>Verifikasi Sertifikat</span>
+                    <span id="navText_sertifikat">Verifikasi Sertifikat</span>
                 </a>
 
                 <div id="adminNavSection" class="pt-4 space-y-1 hidden">
@@ -190,7 +184,7 @@
                     </div>
                     <a href="users.html" class="flex items-center gap-3 px-3.5 py-3 rounded-2xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all text-slate-600 dark:text-slate-300">
                         <i class="fa-solid fa-users-gear text-sm"></i>
-                        <span>Kelola User UNPAD</span>
+                        <span>Kelola User</span>
                     </a>
                 </div>
 
@@ -208,7 +202,7 @@
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                     <h1 class="text-2xl font-black bg-gradient-to-r from-syarat to-tigpad bg-clip-text text-transparent">Laporan & Analitik Pembelajaran</h1>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">Statistik kemajuan belajar, distribusi nilai kuis, dan kelulusan mahasiswa sivitas akademika UNPAD.</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Statistik kemajuan belajar, distribusi nilai kuis, dan kelulusan peserta umum.</p>
                 </div>
                 <div class="flex items-center gap-2">
                     <button onclick="window.print()" class="btn-duotone px-4 py-2.5 rounded-2xl text-xs font-bold flex items-center gap-2 shadow-md">
@@ -225,7 +219,7 @@
                         <span>Total Peserta Aktif</span>
                         <i class="fa-solid fa-users text-syarat text-base"></i>
                     </div>
-                    <div class="text-2xl font-black text-slate-800 dark:text-white">124 Mahasiswa</div>
+                    <div class="text-2xl font-black text-slate-800 dark:text-white">124 Peserta</div>
                     <p class="text-[11px] text-green-500 font-semibold"><i class="fa-solid fa-arrow-trend-up"></i> +12% dari semester lalu</p>
                 </div>
 
@@ -262,13 +256,13 @@
                 <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-3">
                     <h3 class="font-extrabold text-sm flex items-center gap-2">
                         <i class="fa-solid fa-table-list text-syarat dark:text-syarat-light"></i>
-                        <span>Rekapitulasi Nilai & Kelulusan Mahasiswa</span>
+                        <span>Rekapitulasi Nilai & Kelulusan Peserta</span>
                     </h3>
                     <div class="relative w-full sm:w-64">
                         <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                             <i class="fa-solid fa-magnifying-glass text-xs"></i>
                         </span>
-                        <input type="text" id="studentSearchInput" oninput="filterStudentTable()" placeholder="Cari nama / NPM..." class="w-full pl-9 pr-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-semibold focus:ring-2 focus:ring-tigpad outline-none">
+                        <input type="text" id="studentSearchInput" oninput="filterStudentTable()" placeholder="Cari nama / ID..." class="w-full pl-9 pr-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-semibold focus:ring-2 focus:ring-tigpad outline-none">
                     </div>
                 </div>
 
@@ -276,8 +270,8 @@
                     <table class="w-full text-left text-xs border-collapse" id="reportStudentTable">
                         <thead>
                             <tr class="border-b border-slate-200 dark:border-slate-800 text-slate-400 font-bold uppercase text-[10px]">
-                                <th class="py-3 px-3">Mahasiswa</th>
-                                <th class="py-3 px-3">NPM / Fakultas</th>
+                                <th class="py-3 px-3">Peserta</th>
+                                <th class="py-3 px-3">ID Peserta</th>
                                 <th class="py-3 px-3">Modul Selesai</th>
                                 <th class="py-3 px-3">Nilai Kuis</th>
                                 <th class="py-3 px-3">Presensi</th>
@@ -290,7 +284,7 @@
                                     <div class="w-7 h-7 rounded-lg bg-syarat text-white flex items-center justify-center font-extrabold text-[10px]">RR</div>
                                     <span>Rina Rahmawati</span>
                                 </td>
-                                <td class="py-3 px-3 text-slate-500 font-mono">140810230001 • FMIPA</td>
+                                <td class="py-3 px-3 text-slate-500 font-mono">ID: 140810230001</td>
                                 <td class="py-3 px-3 font-bold text-syarat dark:text-syarat-light">5 / 5 Modul</td>
                                 <td class="py-3 px-3 font-extrabold text-green-600">85 (Lulus)</td>
                                 <td class="py-3 px-3 font-semibold text-slate-600 dark:text-slate-300">4 / 4 Sesi (100%)</td>
@@ -301,7 +295,7 @@
                                     <div class="w-7 h-7 rounded-lg bg-tigpad text-white flex items-center justify-center font-extrabold text-[10px]">DA</div>
                                     <span>Dimas Anggara</span>
                                 </td>
-                                <td class="py-3 px-3 text-slate-500 font-mono">170110230045 • FISIP</td>
+                                <td class="py-3 px-3 text-slate-500 font-mono">ID: 170110230045</td>
                                 <td class="py-3 px-3 font-bold text-syarat dark:text-syarat-light">5 / 5 Modul</td>
                                 <td class="py-3 px-3 font-extrabold text-green-600">92 (Lulus)</td>
                                 <td class="py-3 px-3 font-semibold text-slate-600 dark:text-slate-300">4 / 4 Sesi (100%)</td>
@@ -312,7 +306,7 @@
                                     <div class="w-7 h-7 rounded-lg bg-purple-600 text-white flex items-center justify-center font-extrabold text-[10px]">SP</div>
                                     <span>Siti Permatasari</span>
                                 </td>
-                                <td class="py-3 px-3 text-slate-500 font-mono">180210230018 • FIB</td>
+                                <td class="py-3 px-3 text-slate-500 font-mono">ID: 180210230018</td>
                                 <td class="py-3 px-3 font-bold text-syarat dark:text-syarat-light">4 / 5 Modul</td>
                                 <td class="py-3 px-3 font-extrabold text-amber-500">78 (Lulus)</td>
                                 <td class="py-3 px-3 font-semibold text-slate-600 dark:text-slate-300">3 / 4 Sesi (75%)</td>
@@ -323,7 +317,7 @@
                                     <div class="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-extrabold text-[10px]">FA</div>
                                     <span>Fajar Alamsyah</span>
                                 </td>
-                                <td class="py-3 px-3 text-slate-500 font-mono">130110230022 • FK</td>
+                                <td class="py-3 px-3 text-slate-500 font-mono">ID: 130110230022</td>
                                 <td class="py-3 px-3 font-bold text-syarat dark:text-syarat-light">5 / 5 Modul</td>
                                 <td class="py-3 px-3 font-extrabold text-green-600">88 (Lulus)</td>
                                 <td class="py-3 px-3 font-semibold text-slate-600 dark:text-slate-300">4 / 4 Sesi (100%)</td>
@@ -373,35 +367,54 @@
             const navItemProfile = document.getElementById('navItem_profile');
             const dropdownProfileItem = document.getElementById('dropdownProfileItem');
 
+            const navTextModul = document.getElementById('navText_modul');
+            const navTextZoom = document.getElementById('navText_zoom');
+            const navTextKuis = document.getElementById('navText_kuis');
+            const navTextGame = document.getElementById('navText_game');
+            const navTextSertifikat = document.getElementById('navText_sertifikat');
+
             if (role === 'peserta') {
                 if (userNameHeader) userNameHeader.innerText = "Rina Rahmawati";
                 if (dropdownHeaderName) dropdownHeaderName.innerText = "Rina Rahmawati";
-                if (userRoleBadge) userRoleBadge.innerText = "Mahasiswa (Peserta)";
-                if (userEmailDropdown) userEmailDropdown.innerText = "rina.rahmawati@unpad.ac.id";
+                if (userRoleBadge) userRoleBadge.innerText = "Peserta Umum";
+                if (userEmailDropdown) userEmailDropdown.innerText = "rina.rahmawati@email.com";
                 if (sidebarRoleTitle) sidebarRoleTitle.innerText = "Mode Peserta";
                 if (sidebarRoleIcon) sidebarRoleIcon.className = "fa-solid fa-user-graduate";
 
                 if (navItemProfile) navItemProfile.classList.remove('hidden');
                 if (dropdownProfileItem) dropdownProfileItem.classList.remove('hidden');
+
+                if (navTextModul) navTextModul.innerText = "Modul Video & PDF";
+                if (navTextZoom) navTextZoom.innerText = "Zoom & Presensi";
+                if (navTextKuis) navTextKuis.innerText = "Kuis Evaluasi";
+                if (navTextGame) navTextGame.innerText = "Game BISINDO";
+                if (navTextSertifikat) navTextSertifikat.innerText = "Verifikasi Sertifikat";
+
                 if (adminNavSection) adminNavSection.classList.add('hidden');
             } else if (role === 'mentor' || role === 'admin') {
                 const isMentor = role === 'mentor';
                 if (userNameHeader) userNameHeader.innerText = isMentor ? "Budi Santoso" : "Engkus Kuswandi";
                 if (dropdownHeaderName) dropdownHeaderName.innerText = isMentor ? "Budi Santoso" : "Engkus Kuswandi";
                 if (userRoleBadge) userRoleBadge.innerText = isMentor ? "Mentor BISINDO" : "Administrator";
-                if (userEmailDropdown) userEmailDropdown.innerText = isMentor ? "mentor@unpad.ac.id" : "admin@unpad.ac.id";
+                if (userEmailDropdown) userEmailDropdown.innerText = isMentor ? "mentor@kolab.id" : "admin@kolab.id";
                 if (sidebarRoleTitle) sidebarRoleTitle.innerText = isMentor ? "Mode Mentor" : "Mode Admin";
                 if (sidebarRoleIcon) sidebarRoleIcon.className = isMentor ? "fa-solid fa-chalkboard-user" : "fa-solid fa-user-shield";
 
                 if (isMentor) {
                     if (navItemProfile) navItemProfile.classList.remove('hidden');
                     if (dropdownProfileItem) dropdownProfileItem.classList.remove('hidden');
+                    if (adminNavSection) adminNavSection.classList.add('hidden');
                 } else {
                     if (navItemProfile) navItemProfile.classList.add('hidden');
                     if (dropdownProfileItem) dropdownProfileItem.classList.add('hidden');
+                    if (adminNavSection) adminNavSection.classList.remove('hidden');
                 }
 
-                if (role === 'admin' && adminNavSection) adminNavSection.classList.remove('hidden');
+                if (navTextModul) navTextModul.innerText = "Kelola Modul";
+                if (navTextZoom) navTextZoom.innerText = "Kelola Zoom & Presensi";
+                if (navTextKuis) navTextKuis.innerText = "Kelola Kuis & Soal";
+                if (navTextGame) navTextGame.innerText = "Game BISINDO";
+                if (navTextSertifikat) navTextSertifikat.innerText = "Kelola Sertifikat";
             }
         }
 
@@ -435,28 +448,34 @@
                 mobileDrawer.id = 'mobileSidebarDrawer';
                 mobileDrawer.className = 'fixed inset-0 z-50 flex md:hidden';
                 mobileDrawer.innerHTML = `
-                    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="toggleMobileSidebar()"></div>
-                    <div class="relative w-72 max-w-[80vw] bg-white dark:bg-slate-900 h-full p-5 space-y-6 shadow-2xl flex flex-col justify-between overflow-y-auto z-10">
+                    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onclick="toggleMobileSidebar()"></div>
+                    <div class="mobile-drawer-content relative w-72 max-w-[85vw] bg-white dark:bg-slate-900 h-full p-5 space-y-6 shadow-2xl flex flex-col justify-between overflow-y-auto z-10">
                         <div class="space-y-6">
                             <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
                                 <div class="flex items-center gap-2 font-black text-syarat dark:text-syarat-light text-base">
-                                    <i class="fa-solid fa-hands-asl-interpreting text-tigpad"></i> KOLAB UNPAD
+                                    <i class="fa-solid fa-hands-asl-interpreting text-tigpad"></i> SYARAT X TIGPAD
                                 </div>
-                                <button onclick="toggleMobileSidebar()" class="p-2 text-slate-500 hover:text-red-500">
+                                <button onclick="toggleMobileSidebar()" class="p-2 text-slate-500 hover:text-red-500 rounded-xl" aria-label="Tutup Menu">
                                     <i class="fa-solid fa-xmark text-lg"></i>
                                 </button>
                             </div>
-                            ${document.getElementById('sidebarNav').innerHTML}
+                            <div id="mobileDrawerNavContainer">
+                                ${document.getElementById('sidebarNav').innerHTML}
+                            </div>
                         </div>
                     </div>
                 `;
                 document.body.appendChild(mobileDrawer);
             } else {
+                const navContainer = document.getElementById('mobileDrawerNavContainer');
+                if (navContainer) navContainer.innerHTML = document.getElementById('sidebarNav').innerHTML;
                 mobileDrawer.classList.toggle('hidden');
             }
         }
 
         document.addEventListener('DOMContentLoaded', initApp);
     </script>
+    <!-- Universal Popup & Toast System -->
+    <script src="js/popup.js"></script>
 </body>
 </html>

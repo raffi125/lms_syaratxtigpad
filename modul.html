@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modul Pembelajaran - KOLAB SYARAT X TIGPAD UNPAD</title>
+    <title>Modul Pembelajaran - KOLAB SYARAT X TIGPAD</title>
     
     <!-- Google Fonts Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -56,8 +56,8 @@
                         <i class="fa-solid fa-hands-asl-interpreting"></i>
                     </div>
                     <div class="flex flex-col">
-                        <span class="font-black text-base sm:text-lg tracking-tight bg-gradient-to-r from-syarat via-blue-600 to-tigpad bg-clip-text text-transparent leading-none">KOLAB UNPAD</span>
-                        <span class="text-[9px] font-extrabold tracking-widest text-slate-400 uppercase mt-0.5">SYARAT X TIGPAD</span>
+                        <span class="font-black text-base sm:text-lg tracking-tight bg-gradient-to-r from-syarat via-blue-600 to-tigpad bg-clip-text text-transparent leading-none">SYARAT X TIGPAD</span>
+                        <span class="text-[9px] font-extrabold tracking-widest text-slate-400 uppercase mt-0.5">KOLAB BISINDO</span>
                     </div>
                 </a>
             </div>
@@ -74,14 +74,14 @@
                         </div>
                         <div class="hidden sm:block text-left">
                             <div id="userNameHeader" class="font-extrabold text-xs">Rina Rahmawati</div>
-                            <div id="userRoleBadge" class="text-[10px] text-tigpad font-bold">Mahasiswa (Peserta)</div>
+                            <div id="userRoleBadge" class="text-[10px] text-tigpad font-bold">Peserta Umum</div>
                         </div>
                     </div>
                     
                     <ul tabindex="0" class="dropdown-content z-[50] p-2 shadow-2xl glass-card rounded-2xl w-60 mt-3 text-xs space-y-1">
                         <li class="px-3 py-2.5 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 rounded-xl">
                             <div class="font-bold text-slate-700 dark:text-slate-200" id="dropdownHeaderName">Rina Rahmawati</div>
-                            <div id="userEmailDropdown" class="text-[10px] text-slate-500 font-mono truncate">rina.rahmawati@unpad.ac.id</div>
+                            <div id="userEmailDropdown" class="text-[10px] text-slate-500 font-mono truncate">rina.rahmawati@email.com</div>
                         </li>
                         <li>
                             <a href="dashboard.html" class="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 font-semibold">
@@ -146,20 +146,14 @@
                     <span id="navText_zoom">Zoom & Presensi</span>
                 </a>
 
-                <a href="kuis.html" class="flex items-center gap-3 px-3.5 py-3 rounded-2xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all text-slate-600 dark:text-slate-300 justify-between">
-                    <div class="flex items-center gap-3">
-                        <i class="fa-solid fa-stopwatch-20 text-sm"></i>
-                        <span id="navText_kuis">Kuis Evaluasi</span>
-                    </div>
-                    <span class="px-2 py-0.5 rounded-full bg-tigpad text-white text-[9px] font-bold">10 Soal</span>
+                <a href="kuis.html" class="flex items-center gap-3 px-3.5 py-3 rounded-2xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all text-slate-600 dark:text-slate-300">
+                    <i class="fa-solid fa-stopwatch-20 text-sm"></i>
+                    <span id="navText_kuis">Kuis Evaluasi</span>
                 </a>
 
-                <a href="game.html" class="flex items-center gap-3 px-3.5 py-3 rounded-2xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all text-slate-600 dark:text-slate-300 justify-between">
-                    <div class="flex items-center gap-3">
-                        <i class="fa-solid fa-gamepad text-sm text-purple-500"></i>
-                        <span id="navText_game">Game BISINDO</span>
-                    </div>
-                    <span class="px-2 py-0.5 rounded-full bg-purple-500 text-white text-[9px] font-bold">Main</span>
+                <a href="game.html" class="flex items-center gap-3 px-3.5 py-3 rounded-2xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all text-slate-600 dark:text-slate-300">
+                    <i class="fa-solid fa-gamepad text-sm text-purple-500"></i>
+                    <span id="navText_game">Game BISINDO</span>
                 </a>
 
                 <a href="sertifikat.html" class="flex items-center gap-3 px-3.5 py-3 rounded-2xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all text-slate-600 dark:text-slate-300">
@@ -173,7 +167,7 @@
                     </div>
                     <a href="users.html" class="flex items-center gap-3 px-3.5 py-3 rounded-2xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all text-slate-600 dark:text-slate-300">
                         <i class="fa-solid fa-users-gear text-sm"></i>
-                        <span>Kelola User UNPAD</span>
+                        <span>Kelola User</span>
                     </a>
                 </div>
 
@@ -191,11 +185,11 @@
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                     <h1 id="modulTabHeader" class="text-2xl font-black bg-gradient-to-r from-syarat to-tigpad bg-clip-text text-transparent">Modul Pembelajaran BISINDO</h1>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">Setiap modul dilengkapi video tutorial visual, modul baca PDF, serta rangkuman materi praktis.</p>
+                    <p id="modulTabSub" class="text-xs text-slate-500 dark:text-slate-400">Setiap modul dilengkapi video tutorial visual, modul baca PDF, serta rangkuman materi praktis.</p>
                 </div>
 
                 <div id="mentorUploadModuleBtnContainer" class="hidden">
-                    <button onclick="openUploadModuleModal()" class="btn-duotone px-4 py-2.5 rounded-2xl text-xs font-bold flex items-center gap-2 shadow-lg">
+                    <button onclick="openUploadModuleModal()" class="btn-duotone px-4 py-2.5 rounded-2xl text-xs font-bold flex items-center gap-2 shadow-lg hover:scale-105 transition-all">
                         <i class="fa-solid fa-plus"></i>
                         <span>+ Tambah Modul Baru</span>
                     </button>
@@ -206,13 +200,14 @@
             <div class="glass-card p-5 sm:p-6 rounded-3xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div class="space-y-1">
                     <div class="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
-                        <i class="fa-solid fa-chart-line text-tigpad"></i> Progress Kelulusan Kurikulum
+                        <i id="progressBannerIcon" class="fa-solid fa-chart-line text-tigpad"></i> 
+                        <span id="progressBannerTitle">Progress Kelulusan Kurikulum</span>
                     </div>
                     <div id="overallProgressText" class="text-lg font-black text-syarat dark:text-syarat-light">
-                        4 dari 5 Modul Selesai (80%)
+                        4 dari 6 Modul Selesai (67%)
                     </div>
                 </div>
-                <div class="w-full sm:w-72 bg-slate-200 dark:bg-slate-800 h-3 rounded-full overflow-hidden shadow-inner">
+                <div id="overallProgressBarContainer" class="w-full sm:w-72 bg-slate-200 dark:bg-slate-800 h-3 rounded-full overflow-hidden shadow-inner">
                     <div id="overallProgressBar" class="bg-gradient-to-r from-syarat to-tigpad h-full w-4/5 transition-all duration-500"></div>
                 </div>
             </div>
@@ -238,7 +233,7 @@
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
                 <div>
                     <div class="flex items-center gap-2">
-                        <span class="px-2.5 py-0.5 rounded-full bg-syarat text-white text-[10px] font-bold">LMS Player UNPAD</span>
+                        <span class="px-2.5 py-0.5 rounded-full bg-syarat text-white text-[10px] font-bold">LMS Video Player</span>
                         <span id="playerModuleIdBadge" class="text-xs text-slate-500 font-semibold">• Modul 1</span>
                     </div>
                     <h3 id="playerModuleTitle" class="font-extrabold text-lg tracking-tight mt-1">Pengenalan Abjad & Angka Isyarat</h3>
@@ -289,7 +284,7 @@
                         <span id="pdfFileName">connectpdf_dummy_5page.pdf</span>
                     </div>
                     <div class="flex items-center gap-2">
-                        <a href="connectpdf_dummy_5page.pdf" target="_blank" class="px-3.5 py-1.5 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold text-xs hover:bg-slate-300 transition-all flex items-center gap-1.5">
+                        <a href="connectpdf_dummy_5page.pdf" target="_blank" rel="noopener noreferrer" class="px-3.5 py-1.5 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold text-xs hover:bg-slate-300 transition-all flex items-center gap-1.5">
                             <i class="fa-solid fa-up-right-from-square text-syarat"></i> Buka di Tab Baru
                         </a>
                         <a href="connectpdf_dummy_5page.pdf" download="connectpdf_dummy_5page.pdf" class="btn-duotone px-3.5 py-1.5 rounded-xl font-bold text-xs flex items-center gap-1.5 shadow">
@@ -313,9 +308,15 @@
                     <span>Tandai Modul Ini Selesai</span>
                 </button>
 
-                <button type="button" onclick="document.getElementById('learningModal').close()" class="px-5 py-2.5 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded-2xl font-bold text-xs hover:bg-slate-300">
-                    Tutup Player
-                </button>
+                <div class="flex items-center gap-2">
+                    <button type="button" id="modalEditModuleBtn" onclick="editCurrentModuleFromModal()" class="px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 bg-syarat text-white shadow hover:bg-syarat-light hidden">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                        <span>Edit Materi Ini</span>
+                    </button>
+                    <button type="button" onclick="document.getElementById('learningModal').close()" class="px-5 py-2.5 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded-2xl font-bold text-xs hover:bg-slate-300">
+                        Tutup Player
+                    </button>
+                </div>
             </div>
 
         </div>
@@ -337,7 +338,12 @@
                 <input type="hidden" id="editModIdx" value="-1">
                 <div>
                     <label class="block font-bold mb-1">Judul Modul Pembelajaran</label>
-                    <input type="text" id="newModTitle" required placeholder="Contoh: Modul 6: Isyarat Diskusi Ilmiah & Seminar" class="w-full px-3 py-2.5 rounded-xl bg-white dark:bg-slate-900 border text-xs font-bold">
+                    <input type="text" id="newModTitle" required placeholder="Contoh: Pertemuan 7: Komunikasi Khusus di Laboratorium" class="w-full px-3 py-2.5 rounded-xl bg-white dark:bg-slate-900 border text-xs font-bold">
+                </div>
+
+                <div>
+                    <label class="block font-bold mb-1">Mentor Pengampu</label>
+                    <input type="text" id="newModMentor" required placeholder="Nama Mentor / Tutor..." class="w-full px-3 py-2.5 rounded-xl bg-white dark:bg-slate-900 border text-xs font-semibold">
                 </div>
 
                 <div>
@@ -365,19 +371,34 @@
 
     <script>
         let currentRole = localStorage.getItem('kolab_role') || 'peserta';
+        let completedModuleIds = JSON.parse(localStorage.getItem('kolab_completed_modules') || '[1, 2, 3, 4]');
         let activeModuleIndexInModal = 0;
 
-        // Persistent completed module IDs state (Default 1, 2, 3, 4 completed out of 5)
-        let completedModuleIds = JSON.parse(localStorage.getItem('kolab_completed_modules')) || [1, 2, 3, 4];
-
-        let modulesData = [
-            { id: 1, title: "Pertemuan 1: Komunikasi & Inklusi, Ketulian & Budaya Tuli", mentor: "Tutor BISINDO 1", desc: "Hak & hambatan komunikasi, aksesibilitas, pengalaman nyata Tuli, perspektif & identitas Tuli, serta etika komunikasi inklusif." },
-            { id: 2, title: "Pertemuan 2: Bahasa Isyarat Dasar (1)", mentor: "Tutor BISINDO 2", desc: "Alfabet jari (fingerspelling A–Z), salam & sapaan harian, perkenalan diri (nama, prodi, NPM), dan isyarat nama-nama kota." },
-            { id: 3, title: "Pertemuan 3: Bahasa Isyarat Dasar (2)", mentor: "Tutor BISINDO 1", desc: "Isyarat anggota keluarga (Ayah, Ibu, Kakak, Adik, Kakek, Nenek) dan ragam aktivitas & rutinitas harian." },
-            { id: 4, title: "Pertemuan 4: Bahasa Isyarat Dasar (3)", mentor: "Tutor BISINDO 2", desc: "Isyarat angka satuan hingga ratusan ribu, uang & transaksi belanja, serta istilah kehidupan dan fasilitas kampus UNPAD." },
-            { id: 5, title: "Pertemuan 5: Percakapan Dasar BISINDO", mentor: "Tutor BISINDO 1", desc: "Struktur tanya jawab sederhana (5W+1H) dan latihan komunikasi dua arah dengan mimik wajah (non-manual markers)." },
-            { id: 6, title: "Pertemuan 6: Simulasi & Evaluasi Kelulusan", mentor: "Tim Tutor BISINDO", desc: "Praktik storytelling bahasa isyarat, roleplay percakapan situasi nyata kampus, dan evaluasi kelulusan berstandar UNPAD." }
+        const DEFAULT_MODULES_DATA = [
+            { id: 1, title: "Pertemuan 1: Komunikasi & Inklusi, Ketulian & Budaya Tuli", mentor: "Budi Santoso", desc: "Hak & hambatan komunikasi, aksesibilitas, pengalaman nyata Tuli, perspektif & identitas Tuli, serta etika komunikasi inklusif." },
+            { id: 2, title: "Pertemuan 2: Bahasa Isyarat Dasar (1)", mentor: "Prof. Dr. Rina Kusuma", desc: "Alfabet jari (BisindoSpelling A–Z), salam & sapaan harian, perkenalan diri (nama, identitas diri), dan isyarat nama-nama kota." },
+            { id: 3, title: "Pertemuan 3: Bahasa Isyarat Dasar (2)", mentor: "Budi Santoso", desc: "Isyarat anggota keluarga (Ayah, Ibu, Kakak, Adik, Kakek, Nenek) dan ragam aktivitas & rutinitas harian." },
+            { id: 4, title: "Pertemuan 4: Bahasa Isyarat Dasar (3)", mentor: "Prof. Dr. Rina Kusuma", desc: "Isyarat angka satuan hingga ratusan ribu, uang & transaksi belanja, serta istilah fasilitas umum dan ruang belajar." },
+            { id: 5, title: "Pertemuan 5: Percakapan Dasar BISINDO", mentor: "Budi Santoso", desc: "Struktur tanya jawab sederhana (5W+1H) dan latihan komunikasi dua arah dengan mimik wajah (non-manual markers)." },
+            { id: 6, title: "Pertemuan 6: Simulasi & Evaluasi Kelulusan", mentor: "Budi Santoso & Tim", desc: "Praktik storytelling bahasa isyarat, roleplay percakapan situasi nyata, dan evaluasi kelulusan akhir." }
         ];
+
+        function getModulesData() {
+            try {
+                const saved = localStorage.getItem('kolab_modules_data');
+                if (saved) return JSON.parse(saved);
+            } catch (e) {
+                console.error("Gagal membaca modul tersimpan:", e);
+            }
+            return DEFAULT_MODULES_DATA;
+        }
+
+        function saveModulesData(data) {
+            modulesData = data;
+            localStorage.setItem('kolab_modules_data', JSON.stringify(data));
+        }
+
+        let modulesData = getModulesData();
 
         function initApp() {
             initTheme();
@@ -423,25 +444,39 @@
                 mobileDrawer.id = 'mobileSidebarDrawer';
                 mobileDrawer.className = 'fixed inset-0 z-50 flex md:hidden';
                 mobileDrawer.innerHTML = `
-                    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="toggleMobileSidebar()"></div>
-                    <div class="relative w-72 max-w-[80vw] bg-white dark:bg-slate-900 h-full p-5 space-y-6 shadow-2xl flex flex-col justify-between overflow-y-auto z-10">
+                    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onclick="toggleMobileSidebar()"></div>
+                    <div class="mobile-drawer-content relative w-72 max-w-[85vw] bg-white dark:bg-slate-900 h-full p-5 space-y-6 shadow-2xl flex flex-col justify-between overflow-y-auto z-10">
                         <div class="space-y-6">
                             <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
                                 <div class="flex items-center gap-2 font-black text-syarat dark:text-syarat-light text-base">
-                                    <i class="fa-solid fa-hands-asl-interpreting text-tigpad"></i> KOLAB UNPAD
+                                    <i class="fa-solid fa-hands-asl-interpreting text-tigpad"></i> SYARAT X TIGPAD
                                 </div>
-                                <button onclick="toggleMobileSidebar()" class="p-2 text-slate-500 hover:text-red-500">
+                                <button onclick="toggleMobileSidebar()" class="p-2 text-slate-500 hover:text-red-500 rounded-xl" aria-label="Tutup Menu">
                                     <i class="fa-solid fa-xmark text-lg"></i>
                                 </button>
                             </div>
-                            ${document.getElementById('sidebarNav').innerHTML}
+                            <div id="mobileDrawerNavContainer">
+                                ${document.getElementById('sidebarNav').innerHTML}
+                            </div>
                         </div>
                     </div>
                 `;
                 document.body.appendChild(mobileDrawer);
             } else {
+                const navContainer = document.getElementById('mobileDrawerNavContainer');
+                if (navContainer) navContainer.innerHTML = document.getElementById('sidebarNav').innerHTML;
                 mobileDrawer.classList.toggle('hidden');
             }
+        }
+
+        function escapeHTML(str) {
+            if (str === null || str === undefined) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
         }
 
         function applyRoleUI(role) {
@@ -461,14 +496,20 @@
             const navTextZoom = document.getElementById('navText_zoom');
             const navTextKuis = document.getElementById('navText_kuis');
             const navTextGame = document.getElementById('navText_game');
+            const navTextSertifikat = document.getElementById('navText_sertifikat');
+
+            const modulTabHeader = document.getElementById('modulTabHeader');
+            const modulTabSub = document.getElementById('modulTabSub');
+            const progressBannerIcon = document.getElementById('progressBannerIcon');
+            const progressBannerTitle = document.getElementById('progressBannerTitle');
 
             if (role === 'peserta') {
-                if(userNameHeader) userNameHeader.innerText = "Rina Rahmawati";
-                if(dropdownHeaderName) dropdownHeaderName.innerText = "Rina Rahmawati";
-                if(userRoleBadge) userRoleBadge.innerText = "Mahasiswa (Peserta)";
-                if(userEmailDropdown) userEmailDropdown.innerText = "rina.rahmawati@unpad.ac.id";
-                if(sidebarRoleTitle) sidebarRoleTitle.innerText = "Mode Peserta";
-                if(sidebarRoleIcon) sidebarRoleIcon.className = "fa-solid fa-user-graduate";
+                if (userNameHeader) userNameHeader.innerText = "Rina Rahmawati";
+                if (dropdownHeaderName) dropdownHeaderName.innerText = "Rina Rahmawati";
+                if (userRoleBadge) userRoleBadge.innerText = "Peserta Umum";
+                if (userEmailDropdown) userEmailDropdown.innerText = "rina.rahmawati@email.com";
+                if (sidebarRoleTitle) sidebarRoleTitle.innerText = "Mode Peserta";
+                if (sidebarRoleIcon) sidebarRoleIcon.className = "fa-solid fa-user-graduate";
 
                 if (navItemProfile) navItemProfile.classList.remove('hidden');
                 if (dropdownProfileItem) dropdownProfileItem.classList.remove('hidden');
@@ -477,6 +518,12 @@
                 if (navTextZoom) navTextZoom.innerText = "Zoom & Presensi";
                 if (navTextKuis) navTextKuis.innerText = "Kuis Evaluasi";
                 if (navTextGame) navTextGame.innerText = "Game BISINDO";
+                if (navTextSertifikat) navTextSertifikat.innerText = "Verifikasi Sertifikat";
+
+                if (modulTabHeader) modulTabHeader.innerText = "Modul Pembelajaran BISINDO";
+                if (modulTabSub) modulTabSub.innerText = "Setiap modul dilengkapi video tutorial visual, modul baca PDF, serta rangkuman materi praktis.";
+                if (progressBannerIcon) progressBannerIcon.className = "fa-solid fa-chart-line text-tigpad";
+                if (progressBannerTitle) progressBannerTitle.innerText = "Progress Kelulusan Kurikulum";
 
                 if (mentorUploadBtn) mentorUploadBtn.classList.add('hidden');
                 if (modulManagementBanner) modulManagementBanner.classList.add('hidden');
@@ -484,30 +531,37 @@
                 if (reportNavSection) reportNavSection.classList.add('hidden');
             } else if (role === 'mentor' || role === 'admin') {
                 const isMentor = role === 'mentor';
-                if(userNameHeader) userNameHeader.innerText = isMentor ? "Budi Santoso" : "Engkus Kuswandi";
-                if(dropdownHeaderName) dropdownHeaderName.innerText = isMentor ? "Budi Santoso" : "Engkus Kuswandi";
-                if(userRoleBadge) userRoleBadge.innerText = isMentor ? "Mentor BISINDO" : "Administrator";
-                if(userEmailDropdown) userEmailDropdown.innerText = isMentor ? "mentor@unpad.ac.id" : "admin@unpad.ac.id";
-                if(sidebarRoleTitle) sidebarRoleTitle.innerText = isMentor ? "Mode Mentor" : "Mode Admin";
-                if(sidebarRoleIcon) sidebarRoleIcon.className = isMentor ? "fa-solid fa-chalkboard-user" : "fa-solid fa-user-shield";
+                if (userNameHeader) userNameHeader.innerText = isMentor ? "Budi Santoso" : "Engkus Kuswandi";
+                if (dropdownHeaderName) dropdownHeaderName.innerText = isMentor ? "Budi Santoso" : "Engkus Kuswandi";
+                if (userRoleBadge) userRoleBadge.innerText = isMentor ? "Mentor BISINDO" : "Administrator";
+                if (userEmailDropdown) userEmailDropdown.innerText = isMentor ? "mentor@kolab.id" : "admin@kolab.id";
+                if (sidebarRoleTitle) sidebarRoleTitle.innerText = isMentor ? "Mode Mentor" : "Mode Admin";
+                if (sidebarRoleIcon) sidebarRoleIcon.className = isMentor ? "fa-solid fa-chalkboard-user" : "fa-solid fa-user-shield";
 
                 if (isMentor) {
                     if (navItemProfile) navItemProfile.classList.remove('hidden');
                     if (dropdownProfileItem) dropdownProfileItem.classList.remove('hidden');
+                    if (adminNavSection) adminNavSection.classList.add('hidden');
                 } else {
                     if (navItemProfile) navItemProfile.classList.add('hidden');
                     if (dropdownProfileItem) dropdownProfileItem.classList.add('hidden');
+                    if (adminNavSection) adminNavSection.classList.remove('hidden');
                 }
 
                 if (navTextModul) navTextModul.innerText = "Kelola Modul";
                 if (navTextZoom) navTextZoom.innerText = "Kelola Zoom & Presensi";
                 if (navTextKuis) navTextKuis.innerText = "Kelola Kuis & Soal";
-                if (navTextGame) navTextGame.innerText = "Kelola Game";
+                if (navTextGame) navTextGame.innerText = "Game BISINDO";
+                if (navTextSertifikat) navTextSertifikat.innerText = "Kelola Sertifikat";
+
+                if (modulTabHeader) modulTabHeader.innerText = "Kelola Modul Pembelajaran BISINDO";
+                if (modulTabSub) modulTabSub.innerText = "Pusat pengelolaan silabus, unggah video pembelajaran visual, berkas PDF, serta pengaturan modul kelas.";
+                if (progressBannerIcon) progressBannerIcon.className = "fa-solid fa-book-bookmark text-syarat";
+                if (progressBannerTitle) progressBannerTitle.innerText = "Status Kurikulum & Penerbitan";
 
                 if (mentorUploadBtn) mentorUploadBtn.classList.remove('hidden');
                 if (modulManagementBanner) modulManagementBanner.classList.remove('hidden');
                 if (reportNavSection) reportNavSection.classList.remove('hidden');
-                if (role === 'admin' && adminNavSection) adminNavSection.classList.remove('hidden');
             }
         }
 
@@ -534,7 +588,7 @@
             const progressBar = document.getElementById('overallProgressBar');
 
             if (isManager) {
-                if (progressText) progressText.innerText = `Total ${total} Modul Kurikulum Diterbitkan (Mode Kelola)`;
+                if (progressText) progressText.innerText = `Total ${total} Modul Aktif Diterbitkan (Mode Pengajar)`;
                 if (progressBar) progressBar.style.width = `100%`;
             } else {
                 if (progressText) progressText.innerText = `${count} dari ${total} Modul Selesai (${percent}%)`;
@@ -548,6 +602,9 @@
 
             container.innerHTML = modulesData.map((m, idx) => {
                 const isCompleted = !isManager && completedModuleIds.includes(m.id);
+                const safeTitle = escapeHTML(m.title);
+                const safeDesc = escapeHTML(m.desc);
+                const safeMentor = escapeHTML(m.mentor || 'Mentor BISINDO');
 
                 return `
                     <div class="glass-card p-6 rounded-3xl space-y-4 flex flex-col justify-between group relative overflow-hidden border-2 transition-all ${isCompleted ? 'border-green-500/50 bg-green-500/5' : 'border-transparent hover:border-slate-300 dark:hover:border-slate-700'}">
@@ -564,12 +621,12 @@
                                 <span><i class="fa-solid fa-circle-play text-syarat"></i> Video HD</span> • 
                                 <span><i class="fa-solid fa-file-pdf text-red-500"></i> Ringkasan PDF</span>
                             </div>
-                            <h3 class="font-extrabold text-base group-hover:text-syarat transition-colors ${isCompleted ? 'text-green-700 dark:text-green-400' : ''}">${m.title}</h3>
-                            <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">${m.desc}</p>
+                            <h3 class="font-extrabold text-base group-hover:text-syarat transition-colors ${isCompleted ? 'text-green-700 dark:text-green-400' : ''}">${safeTitle}</h3>
+                            <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">${safeDesc}</p>
                         </div>
 
                         <div class="pt-4 border-t border-slate-100 dark:border-slate-800/80 flex flex-wrap items-center justify-between text-xs gap-2">
-                            <span class="font-semibold text-slate-500"><i class="fa-solid fa-user-tie text-tigpad mr-1"></i> ${m.mentor}</span>
+                            <span class="font-semibold text-slate-500"><i class="fa-solid fa-user-tie text-tigpad mr-1"></i> ${safeMentor}</span>
                             
                             <div class="flex items-center gap-2">
                                 ${!isManager ? `
@@ -609,20 +666,32 @@
             document.getElementById('playerModuleIdBadge').innerText = `• Modul ${moduleIdx + 1}`;
             document.getElementById('playerModuleTitle').innerText = module.title;
 
+            const pdfFileNameEl = document.getElementById('pdfFileName');
+            if (pdfFileNameEl) pdfFileNameEl.innerText = `${module.title.split(':')[0] || 'Modul'}_Rangkuman_BISINDO.pdf`;
+
             switchPlayerMode('video');
             switchVideoSource('youtube');
 
             const modalMarkBtn = document.getElementById('modalMarkCompleteBtn');
+            const modalEditBtn = document.getElementById('modalEditModuleBtn');
+
             if (isManager) {
                 if (modalMarkBtn) modalMarkBtn.classList.add('hidden');
+                if (modalEditBtn) modalEditBtn.classList.remove('hidden');
             } else {
                 if (modalMarkBtn) {
                     modalMarkBtn.classList.remove('hidden');
                     updateModalMarkCompleteButtonState();
                 }
+                if (modalEditBtn) modalEditBtn.classList.add('hidden');
             }
 
             document.getElementById('learningModal').showModal();
+        }
+
+        function editCurrentModuleFromModal() {
+            document.getElementById('learningModal').close();
+            openEditModuleModal(activeModuleIndexInModal);
         }
 
         function updateModalMarkCompleteButtonState() {
@@ -685,17 +754,28 @@
         }
 
         function deleteModule(idx) {
-            if (confirm(`Hapus modul "${modulesData[idx].title}"?`)) {
-                modulesData.splice(idx, 1);
-                renderModules();
-                updateOverallProgress();
-            }
+            const title = modulesData[idx].title;
+            showConfirmModal({
+                title: 'Hapus Modul Pembelajaran',
+                message: `Apakah Anda yakin ingin menghapus modul <strong>"${escapeHTML(title)}"</strong>? Data materi dan dokumen terkait modul ini akan dihapus dari kurikulum.`,
+                type: 'danger',
+                confirmText: 'Ya, Hapus Modul',
+                cancelText: 'Batal',
+                onConfirm: () => {
+                    modulesData.splice(idx, 1);
+                    saveModulesData(modulesData);
+                    renderModules();
+                    updateOverallProgress();
+                    showToast(`Modul "${escapeHTML(title)}" berhasil dihapus.`, 'info');
+                }
+            });
         }
 
         function openUploadModuleModal() {
             document.getElementById('editModIdx').value = "-1";
             document.getElementById('modalUploadTitle').innerHTML = `<i class="fa-solid fa-folder-plus text-tigpad"></i> Upload & Kelola Modul Pembelajaran Baru`;
             document.getElementById('newModTitle').value = "";
+            document.getElementById('newModMentor').value = document.getElementById('userNameHeader').innerText || "Budi Santoso";
             document.getElementById('newModDesc').value = "";
             document.getElementById('uploadModuleModal').showModal();
         }
@@ -705,6 +785,7 @@
             document.getElementById('editModIdx').value = idx;
             document.getElementById('modalUploadTitle').innerHTML = `<i class="fa-solid fa-pen-to-square text-syarat"></i> Edit Modul Pembelajaran`;
             document.getElementById('newModTitle').value = m.title;
+            document.getElementById('newModMentor').value = m.mentor || document.getElementById('userNameHeader').innerText;
             document.getElementById('newModDesc').value = m.desc || "";
             document.getElementById('uploadModuleModal').showModal();
         }
@@ -713,22 +794,25 @@
             e.preventDefault();
             const editIdx = parseInt(document.getElementById('editModIdx').value);
             const title = document.getElementById('newModTitle').value.trim();
-            const desc = document.getElementById('newModDesc').value.trim() || "Modul pembelajaran BISINDO UNPAD.";
+            const mentor = document.getElementById('newModMentor').value.trim() || document.getElementById('userNameHeader').innerText;
+            const desc = document.getElementById('newModDesc').value.trim() || "Modul kurikulum pembelajaran BISINDO.";
 
             if (editIdx >= 0) {
                 modulesData[editIdx].title = title;
+                modulesData[editIdx].mentor = mentor;
                 modulesData[editIdx].desc = desc;
-                alert(`✨ Modul "${title}" berhasil diperbarui!`);
+                showToast(`✨ Modul "${escapeHTML(title)}" berhasil diperbarui!`, 'success');
             } else {
                 modulesData.unshift({
                     id: Date.now(),
                     title: title,
-                    mentor: document.getElementById('userNameHeader').innerText,
+                    mentor: mentor,
                     desc: desc
                 });
-                alert(`✨ Modul baru "${title}" berhasil ditambahkan & diterbitkan!`);
+                showToast(`✨ Modul baru "${escapeHTML(title)}" berhasil diterbitkan!`, 'success');
             }
 
+            saveModulesData(modulesData);
             document.getElementById('uploadModuleModal').close();
             renderModules();
             updateOverallProgress();
@@ -744,5 +828,7 @@
 
         document.addEventListener('DOMContentLoaded', initApp);
     </script>
+    <!-- Universal Popup & Toast System -->
+    <script src="js/popup.js"></script>
 </body>
 </html>
