@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profil Saya & Foto - KOLAB SYARAT X TIGPAD</title>
     
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="assets/logo_tigpad_syarat.png">
+    
     <!-- Google Fonts Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -52,11 +55,9 @@
                     <i class="fa-solid fa-bars text-lg"></i>
                 </button>
                 <a href="index.html" class="flex items-center gap-2.5 group">
-                    <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-syarat to-tigpad flex items-center justify-center text-white text-base font-bold shadow-md group-hover:scale-105 transition-transform">
-                        <i class="fa-solid fa-hands-asl-interpreting"></i>
-                    </div>
+                    <img src="assets/logo_tigpad_syarat.png" alt="Logo SYARAT X TIGPAD" class="w-9 h-9 object-contain rounded-xl drop-shadow group-hover:scale-105 transition-transform flex-shrink-0" />
                     <div class="flex flex-col">
-                        <span class="font-black text-base sm:text-lg tracking-tight bg-gradient-to-r from-syarat via-blue-600 to-tigpad bg-clip-text text-transparent leading-none">SYARAT X TIGPAD</span>
+                        <span class="font-black text-base sm:text-lg tracking-tight leading-none"><span class="text-syarat dark:text-syarat-light">SYARAT</span> <span class="text-slate-400 text-xs sm:text-sm font-semibold">X</span> <span class="text-tigpad font-black">TIGPAD</span></span>
                         <span class="text-[9px] font-extrabold tracking-widest text-slate-400 uppercase mt-0.5">KOLAB BISINDO</span>
                     </div>
                 </a>
@@ -106,66 +107,72 @@
         <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
             
             <!-- Left Sidebar Navigation -->
-            <aside class="md:col-span-3 space-y-4">
-                <div class="glass-card p-4 rounded-3xl space-y-3">
-                    <div class="flex items-center gap-3 pb-3 border-b border-slate-200 dark:border-slate-800">
-                        <div class="w-10 h-10 rounded-2xl bg-tigpad/15 text-tigpad flex items-center justify-center font-bold text-base">
-                            <i id="sidebarRoleIcon" class="fa-solid fa-user-graduate"></i>
+            <aside id="sidebarNav" class="md:col-span-4 lg:col-span-3 glass-card p-4 rounded-3xl h-fit space-y-6 hidden md:block">
+                <div class="p-3.5 rounded-2xl bg-gradient-to-br from-syarat/10 to-tigpad/10 border border-syarat/20 flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-syarat text-white flex items-center justify-center font-bold text-lg shadow overflow-hidden" id="sidebarAvatarBox">
+                        <i id="sidebarRoleIcon" class="fa-solid fa-user-graduate"></i>
+                    </div>
+                    <div>
+                        <h3 id="sidebarRoleTitle" class="font-extrabold text-sm">Mode Peserta</h3>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400">Status Aktif • BISINDO 2026</p>
+                    </div>
+                </div>
+
+                <nav class="space-y-1 text-xs font-semibold">
+                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-3 py-1">Menu Utama</div>
+                    
+                    <a href="dashboard.html" class="flex items-center gap-3 px-3.5 py-3 rounded-2xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all text-slate-600 dark:text-slate-300">
+                        <i class="fa-solid fa-chart-pie text-sm"></i>
+                        <span>Overview</span>
+                    </a>
+
+                    <a id="navItem_profile" href="profile.html" class="flex items-center gap-3 px-3.5 py-3 rounded-2xl sidebar-active">
+                        <i class="fa-solid fa-user-gear text-sm"></i>
+                        <span>Profil Saya & Foto</span>
+                    </a>
+
+                    <a href="modul.html" class="flex items-center gap-3 px-3.5 py-3 rounded-2xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all text-slate-600 dark:text-slate-300">
+                        <i class="fa-solid fa-book-open text-sm"></i>
+                        <span id="navText_modul">Modul Video & PDF</span>
+                    </a>
+
+                    <a href="zoom.html" class="flex items-center gap-3 px-3.5 py-3 rounded-2xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all text-slate-600 dark:text-slate-300">
+                        <i class="fa-solid fa-headset text-sm"></i>
+                        <span id="navText_zoom">Zoom & Presensi</span>
+                    </a>
+
+                    <a href="kuis.html" class="flex items-center gap-3 px-3.5 py-3 rounded-2xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all text-slate-600 dark:text-slate-300">
+                        <i class="fa-solid fa-stopwatch-20 text-sm"></i>
+                        <span id="navText_kuis">Kuis Evaluasi</span>
+                    </a>
+
+                    <a href="game.html" class="flex items-center gap-3 px-3.5 py-3 rounded-2xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all text-slate-600 dark:text-slate-300">
+                        <i class="fa-solid fa-gamepad text-sm text-purple-500"></i>
+                        <span id="navText_game">Game BISINDO</span>
+                    </a>
+
+                    <a href="sertifikat.html" class="flex items-center gap-3 px-3.5 py-3 rounded-2xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all text-slate-600 dark:text-slate-300">
+                        <i class="fa-solid fa-award text-sm"></i>
+                        <span id="navText_sertifikat">Verifikasi Sertifikat</span>
+                    </a>
+
+                    <div id="adminNavSection" class="pt-4 space-y-1 hidden">
+                        <div class="text-[10px] font-bold text-tigpad uppercase tracking-wider px-3 py-1 flex items-center gap-1">
+                            <i class="fa-solid fa-shield-halved"></i> Khusus Admin
                         </div>
-                        <div>
-                            <div id="sidebarRoleTitle" class="font-black text-xs">Mode Peserta</div>
-                            <div class="text-[10px] text-slate-400 font-medium">Navigasi Utama LMS</div>
-                        </div>
+                        <a href="users.html" class="flex items-center gap-3 px-3.5 py-3 rounded-2xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all text-slate-600 dark:text-slate-300">
+                            <i class="fa-solid fa-users-gear text-sm"></i>
+                            <span>Kelola User</span>
+                        </a>
                     </div>
 
-                    <nav class="space-y-1 text-xs font-semibold">
-                        <a href="dashboard.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-2xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all text-slate-600 dark:text-slate-300">
-                            <i class="fa-solid fa-chart-pie text-sm"></i>
-                            <span>Overview</span>
+                    <div id="reportNavSection" class="pt-2 space-y-1 hidden">
+                        <a href="reports.html" class="flex items-center gap-3 px-3.5 py-3 rounded-2xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all text-slate-600 dark:text-slate-300">
+                            <i class="fa-solid fa-file-invoice text-sm"></i>
+                            <span>Laporan & Analitik</span>
                         </a>
-                        <a href="modul.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-2xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all text-slate-600 dark:text-slate-300">
-                            <i class="fa-solid fa-book-open text-sm"></i>
-                            <span id="navText_modul">Modul Video & PDF</span>
-                        </a>
-                        <a href="zoom.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-2xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all text-slate-600 dark:text-slate-300">
-                            <i class="fa-solid fa-headset text-sm"></i>
-                            <span id="navText_zoom">Zoom & Presensi</span>
-                        </a>
-                        <a href="kuis.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-2xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all text-slate-600 dark:text-slate-300">
-                            <i class="fa-solid fa-stopwatch-20 text-sm"></i>
-                            <span id="navText_kuis">Kuis Evaluasi</span>
-                        </a>
-                        <a href="game.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-2xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all text-slate-600 dark:text-slate-300">
-                            <i class="fa-solid fa-gamepad text-sm text-purple-500"></i>
-                            <span id="navText_game">Game BISINDO</span>
-                        </a>
-                        <a href="sertifikat.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-2xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all text-slate-600 dark:text-slate-300">
-                            <i class="fa-solid fa-award text-sm"></i>
-                            <span id="navText_sertifikat">Verifikasi Sertifikat</span>
-                        </a>
-                        <a href="profile.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-2xl sidebar-active">
-                            <i class="fa-solid fa-id-card text-sm"></i>
-                            <span>Profil & ID Card</span>
-                        </a>
-                    </nav>
-                </div>
-
-                <!-- Admin Tools Sidebar -->
-                <div id="adminNavSection" class="glass-card p-4 rounded-3xl space-y-2 hidden">
-                    <div class="text-[10px] uppercase font-black tracking-wider text-slate-400 px-3 pt-1">Admin Khusus</div>
-                    <a href="users.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-2xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all text-slate-600 dark:text-slate-300 text-xs font-semibold">
-                        <i class="fa-solid fa-users-gear text-sm"></i>
-                        <span>Kelola User</span>
-                    </a>
-                </div>
-
-                <div id="reportNavSection" class="glass-card p-4 rounded-3xl space-y-2 hidden">
-                    <div class="text-[10px] uppercase font-black tracking-wider text-slate-400 px-3 pt-1">Laporan & Rekap</div>
-                    <a href="reports.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-2xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all text-slate-600 dark:text-slate-300 text-xs font-semibold">
-                        <i class="fa-solid fa-file-invoice text-sm"></i>
-                        <span>Laporan & Analitik</span>
-                    </a>
-                </div>
+                    </div>
+                </nav>
             </aside>
 
             <!-- Main Content Area: Profile -->
@@ -187,11 +194,9 @@
                         <div class="p-6 rounded-3xl relative overflow-hidden bg-gradient-to-br from-[#163C8A] via-[#1e4eb8] to-[#F97316] text-white space-y-6 border border-white/30 shadow-xl">
                             <div class="flex justify-between items-start">
                                 <div class="flex items-center gap-2.5">
-                                    <div class="w-8 h-8 rounded-xl bg-white/20 text-white flex items-center justify-center font-bold text-sm backdrop-blur-md">
-                                        <i class="fa-solid fa-hands-asl-interpreting"></i>
-                                    </div>
+                                    <img src="assets/logo_tigpad_syarat.png" alt="Logo" class="w-8 h-8 object-contain rounded-lg p-0.5 bg-white shadow-sm flex-shrink-0" />
                                     <div>
-                                        <h4 class="font-black text-xs tracking-tight">SYARAT X TIGPAD</h4>
+                                        <h4 class="font-black text-xs tracking-tight"><span class="text-white">SYARAT</span> <span class="text-white/60 text-[10px]">X</span> <span class="text-amber-300 font-black">TIGPAD</span></h4>
                                         <p class="text-[9px] text-white/80 uppercase tracking-wider">Program Pelatihan Inklusif</p>
                                     </div>
                                 </div>
@@ -342,33 +347,48 @@
 
         function toggleMobileSidebar() {
             let mobileDrawer = document.getElementById('mobileSidebarDrawer');
+            const sidebar = document.getElementById('sidebarNav');
+            if (!sidebar) return;
+
             if (!mobileDrawer) {
                 mobileDrawer = document.createElement('div');
                 mobileDrawer.id = 'mobileSidebarDrawer';
-                mobileDrawer.className = 'fixed inset-0 z-50 flex md:hidden';
+                mobileDrawer.className = 'fixed inset-0 z-50 md:hidden';
                 mobileDrawer.innerHTML = `
                     <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onclick="toggleMobileSidebar()"></div>
                     <div class="mobile-drawer-content relative w-72 max-w-[85vw] bg-white dark:bg-slate-900 h-full p-5 space-y-6 shadow-2xl flex flex-col justify-between overflow-y-auto z-10">
                         <div class="space-y-6">
                             <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
-                                <div class="flex items-center gap-2 font-black text-syarat dark:text-syarat-light text-base">
-                                    <i class="fa-solid fa-hands-asl-interpreting text-tigpad"></i> SYARAT X TIGPAD
+                                <div class="flex items-center gap-2.5 font-black text-base">
+                                    <img src="assets/logo_tigpad_syarat.png" alt="Logo" class="w-7 h-7 object-contain flex-shrink-0" />
+                                    <span><span class="text-syarat dark:text-syarat-light font-black">SYARAT</span> <span class="text-slate-400 text-xs font-semibold">X</span> <span class="text-tigpad font-black">TIGPAD</span></span>
                                 </div>
                                 <button onclick="toggleMobileSidebar()" class="p-2 text-slate-500 hover:text-red-500 rounded-xl" aria-label="Tutup Menu">
                                     <i class="fa-solid fa-xmark text-lg"></i>
                                 </button>
                             </div>
                             <div id="mobileDrawerNavContainer">
-                                ${document.getElementById('sidebarNav').innerHTML}
+                                ${sidebar.innerHTML}
                             </div>
+                        </div>
+                        <div class="pt-4 border-t border-slate-200 dark:border-slate-800">
+                            <a href="login.html" class="flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-red-500/10 text-red-600 dark:text-red-400 font-bold text-xs hover:bg-red-500 hover:text-white transition-colors">
+                                <i class="fa-solid fa-arrow-right-from-bracket"></i> Keluar / Logout
+                            </a>
                         </div>
                     </div>
                 `;
                 document.body.appendChild(mobileDrawer);
+                document.body.style.overflow = 'hidden';
             } else {
-                const navContainer = document.getElementById('mobileDrawerNavContainer');
-                if (navContainer) navContainer.innerHTML = document.getElementById('sidebarNav').innerHTML;
-                mobileDrawer.classList.toggle('hidden');
+                const isHidden = mobileDrawer.classList.toggle('hidden');
+                if (!isHidden) {
+                    const navContainer = document.getElementById('mobileDrawerNavContainer');
+                    if (navContainer) navContainer.innerHTML = sidebar.innerHTML;
+                    document.body.style.overflow = 'hidden';
+                } else {
+                    document.body.style.overflow = '';
+                }
             }
         }
 

@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LMS KOLAB SYARAT X TIGPAD - Platform Pembelajaran BISINDO</title>
     
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="assets/logo_tigpad_syarat.png">
+    
     <!-- Google Fonts Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -65,11 +68,9 @@
                 </button>
                 
                 <a href="landing.html" class="flex items-center gap-2.5 group">
-                    <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-syarat to-tigpad flex items-center justify-center text-white text-base sm:text-lg font-bold shadow-md shadow-syarat/20 group-hover:scale-105 transition-transform">
-                        <i class="fa-solid fa-hands-asl-interpreting"></i>
-                    </div>
+                    <img src="assets/logo_tigpad_syarat.png" alt="Logo SYARAT X TIGPAD" class="w-9 h-9 sm:w-10 sm:h-10 object-contain rounded-xl drop-shadow group-hover:scale-105 transition-transform flex-shrink-0" />
                     <div class="flex flex-col">
-                        <span class="font-black text-base sm:text-lg tracking-tight bg-gradient-to-r from-syarat via-blue-600 to-tigpad bg-clip-text text-transparent leading-none">SYARAT X TIGPAD</span>
+                        <span class="font-black text-base sm:text-lg tracking-tight leading-none"><span class="text-syarat dark:text-syarat-light">SYARAT</span> <span class="text-slate-400 text-xs sm:text-sm font-semibold">X</span> <span class="text-tigpad font-black">TIGPAD</span></span>
                         <span class="text-[9px] font-extrabold tracking-widest text-slate-400 uppercase mt-0.5">KOLAB BISINDO</span>
                     </div>
                 </a>
@@ -116,7 +117,7 @@
 
         <!-- Subheadline -->
         <p class="text-xs sm:text-sm md:text-base text-slate-600 dark:text-slate-300 max-w-2xl leading-relaxed">
-            Inisiatif kolaboratif <strong>SYARAT</strong> & <strong>TIGPAD</strong> untuk mewujudkan ekosistem pembelajaran yang ramah disabilitas dan terbuka untuk semua. Dilengkapi video pembelajaran interaktif, dokumen PDF ringkas, presensi kelas Zoom daring, kuis evaluasi 30 menit, dan sertifikat kelulusan resmi.
+            Inisiatif kolaboratif <strong class="text-syarat dark:text-syarat-light">SYARAT</strong> & <strong class="text-tigpad">TIGPAD</strong> untuk mewujudkan ekosistem pembelajaran yang ramah disabilitas dan terbuka untuk semua. Dilengkapi video pembelajaran interaktif, dokumen PDF ringkas, presensi kelas Zoom daring, kuis evaluasi 30 menit, dan sertifikat kelulusan resmi.
         </p>
 
         <!-- CTA Buttons -->
@@ -721,11 +722,9 @@
     <!-- Footer Section -->
     <footer class="relative z-10 glass-nav border-t border-slate-200 dark:border-slate-800 mt-auto">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-slate-500 font-semibold">
-            <div class="flex items-center gap-2">
-                <div class="w-6 h-6 rounded-lg bg-gradient-to-tr from-syarat to-tigpad flex items-center justify-center text-white text-xs font-bold">
-                    <i class="fa-solid fa-hands-asl-interpreting"></i>
-                </div>
-                <span>© 2026 LMS KOLAB SYARAT X TIGPAD • Platform Edukasi BISINDO Inklusif</span>
+            <div class="flex items-center gap-2.5">
+                <img src="assets/logo_tigpad_syarat.png" alt="Logo" class="w-6 h-6 object-contain flex-shrink-0" />
+                <span>© 2026 LMS KOLAB <span class="text-syarat dark:text-syarat-light font-black">SYARAT</span> X <span class="text-tigpad font-black">TIGPAD</span> • Platform Edukasi BISINDO Inklusif</span>
             </div>
             <div class="flex items-center gap-4 text-[11px]">
                 <a href="#fitur" class="hover:underline">Fitur</a>
@@ -768,14 +767,15 @@
             if (!mobileDrawer) {
                 mobileDrawer = document.createElement('div');
                 mobileDrawer.id = 'landingMobileDrawer';
-                mobileDrawer.className = 'fixed inset-0 z-50 flex md:hidden';
+                mobileDrawer.className = 'fixed inset-0 z-50 md:hidden';
                 mobileDrawer.innerHTML = `
                     <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onclick="toggleLandingMobileMenu()"></div>
                     <div class="mobile-drawer-content relative w-72 max-w-[85vw] bg-white dark:bg-slate-900 h-full p-5 space-y-6 shadow-2xl flex flex-col justify-between overflow-y-auto z-10">
                         <div class="space-y-6">
                             <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
-                                <div class="flex items-center gap-2 font-black text-syarat dark:text-syarat-light text-base">
-                                    <i class="fa-solid fa-hands-asl-interpreting text-tigpad"></i> SYARAT X TIGPAD
+                                <div class="flex items-center gap-2.5 font-black text-base">
+                                    <img src="assets/logo_tigpad_syarat.png" alt="Logo" class="w-7 h-7 object-contain flex-shrink-0" />
+                                    <span><span class="text-syarat dark:text-syarat-light font-black">SYARAT</span> <span class="text-slate-400 text-xs font-semibold">X</span> <span class="text-tigpad font-black">TIGPAD</span></span>
                                 </div>
                                 <button onclick="toggleLandingMobileMenu()" class="p-2 text-slate-500 hover:text-red-500 rounded-xl" aria-label="Tutup Menu">
                                     <i class="fa-solid fa-xmark text-lg"></i>
@@ -809,8 +809,10 @@
                     </div>
                 `;
                 document.body.appendChild(mobileDrawer);
+                document.body.style.overflow = 'hidden';
             } else {
-                mobileDrawer.classList.toggle('hidden');
+                const isHidden = mobileDrawer.classList.toggle('hidden');
+                document.body.style.overflow = isHidden ? '' : 'hidden';
             }
         }
 

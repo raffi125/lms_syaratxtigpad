@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Game Edukasi BISINDO - KOLAB SYARAT X TIGPAD</title>
     
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="assets/logo_tigpad_syarat.png">
+    
     <!-- Google Fonts Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -53,11 +56,9 @@
                     <i class="fa-solid fa-bars text-lg"></i>
                 </button>
                 <a href="index.html" class="flex items-center gap-2.5 group">
-                    <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-syarat to-tigpad flex items-center justify-center text-white text-base font-bold shadow-md group-hover:scale-105 transition-transform">
-                        <i class="fa-solid fa-hands-asl-interpreting"></i>
-                    </div>
+                    <img src="assets/logo_tigpad_syarat.png" alt="Logo SYARAT X TIGPAD" class="w-9 h-9 object-contain rounded-xl drop-shadow group-hover:scale-105 transition-transform flex-shrink-0" />
                     <div class="flex flex-col">
-                        <span class="font-black text-base sm:text-lg tracking-tight bg-gradient-to-r from-syarat via-blue-600 to-tigpad bg-clip-text text-transparent leading-none">SYARAT X TIGPAD</span>
+                        <span class="font-black text-base sm:text-lg tracking-tight leading-none"><span class="text-syarat dark:text-syarat-light">SYARAT</span> <span class="text-slate-400 text-xs sm:text-sm font-semibold">X</span> <span class="text-tigpad font-black">TIGPAD</span></span>
                         <span class="text-[9px] font-extrabold tracking-widest text-slate-400 uppercase mt-0.5">KOLAB BISINDO</span>
                     </div>
                 </a>
@@ -1214,33 +1215,48 @@
 
         function toggleMobileSidebar() {
             let mobileDrawer = document.getElementById('mobileSidebarDrawer');
+            const sidebar = document.getElementById('sidebarNav');
+            if (!sidebar) return;
+
             if (!mobileDrawer) {
                 mobileDrawer = document.createElement('div');
                 mobileDrawer.id = 'mobileSidebarDrawer';
-                mobileDrawer.className = 'fixed inset-0 z-50 flex md:hidden';
+                mobileDrawer.className = 'fixed inset-0 z-50 md:hidden';
                 mobileDrawer.innerHTML = `
                     <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onclick="toggleMobileSidebar()"></div>
                     <div class="mobile-drawer-content relative w-72 max-w-[85vw] bg-white dark:bg-slate-900 h-full p-5 space-y-6 shadow-2xl flex flex-col justify-between overflow-y-auto z-10">
                         <div class="space-y-6">
                             <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
-                                <div class="flex items-center gap-2 font-black text-syarat dark:text-syarat-light text-base">
-                                    <i class="fa-solid fa-hands-asl-interpreting text-tigpad"></i> SYARAT X TIGPAD
+                                <div class="flex items-center gap-2.5 font-black text-base">
+                                    <img src="assets/logo_tigpad_syarat.png" alt="Logo" class="w-7 h-7 object-contain flex-shrink-0" />
+                                    <span><span class="text-syarat dark:text-syarat-light font-black">SYARAT</span> <span class="text-slate-400 text-xs font-semibold">X</span> <span class="text-tigpad font-black">TIGPAD</span></span>
                                 </div>
                                 <button onclick="toggleMobileSidebar()" class="p-2 text-slate-500 hover:text-red-500 rounded-xl" aria-label="Tutup Menu">
                                     <i class="fa-solid fa-xmark text-lg"></i>
                                 </button>
                             </div>
                             <div id="mobileDrawerNavContainer">
-                                ${document.getElementById('sidebarNav').innerHTML}
+                                ${sidebar.innerHTML}
                             </div>
+                        </div>
+                        <div class="pt-4 border-t border-slate-200 dark:border-slate-800">
+                            <a href="login.html" class="flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-red-500/10 text-red-600 dark:text-red-400 font-bold text-xs hover:bg-red-500 hover:text-white transition-colors">
+                                <i class="fa-solid fa-arrow-right-from-bracket"></i> Keluar / Logout
+                            </a>
                         </div>
                     </div>
                 `;
                 document.body.appendChild(mobileDrawer);
+                document.body.style.overflow = 'hidden';
             } else {
-                const navContainer = document.getElementById('mobileDrawerNavContainer');
-                if (navContainer) navContainer.innerHTML = document.getElementById('sidebarNav').innerHTML;
-                mobileDrawer.classList.toggle('hidden');
+                const isHidden = mobileDrawer.classList.toggle('hidden');
+                if (!isHidden) {
+                    const navContainer = document.getElementById('mobileDrawerNavContainer');
+                    if (navContainer) navContainer.innerHTML = sidebar.innerHTML;
+                    document.body.style.overflow = 'hidden';
+                } else {
+                    document.body.style.overflow = '';
+                }
             }
         }
 
