@@ -71,6 +71,13 @@ export interface DBAttendanceLog {
   time: string;
   method: string;
   verified: boolean;
+  proof_url?: string;
+}
+
+export interface DBGameWord {
+  id: number;
+  word: string;
+  difficulty: "easy" | "medium" | "hard";
 }
 
 // ==========================================
@@ -351,31 +358,194 @@ export const SupabaseService = {
 
   async addAttendanceLog(log: Partial<DBAttendanceLog>): Promise<boolean> {
     if (!isSupabaseConfigured()) return false;
-    const { error } = await supabase.from("attendance_logs").insert([log]);
-    return !error;
+    const payload: any = {
+      name: log.name,
+      institution: log.institution,
+      time: log.time,
+      method: log.method,
+      verified: log.verified ?? true,
+    };
+    if (log.user_id) payload.user_id = log.user_id;
+    if (log.session_id) payload.session_id = log.session_id;
+    if (log.user_id_code || log.npm) payload.user_id_code = log.user_id_code || log.npm;
+    if (log.proof_url) payload.proof_url = log.proof_url;
+
+    const { error } = await supabase.from("attendance_logs").insert([payload]);
+    if (error) {
+      console.warn("Supabase addAttendanceLog error:", error.message);
+      return false;
+    }
+    return true;
   },
 
   async recordAttendance(log: Partial<DBAttendanceLog>): Promise<boolean> {
     return this.addAttendanceLog(log);
   },
 
+  async deleteAttendanceLog(id: number): Promise<boolean> {
+    if (!isSupabaseConfigured()) return false;
+    const { error } = await supabase.from("attendance_logs").delete().eq("id", id);
+    if (error) {
+      console.warn("Supabase deleteAttendanceLog error:", error.message);
+      return false;
+    }
+    return true;
+  },
+
+  async cancelAttendance(sessionId: number, userIdOrName: string | number): Promise<boolean> {
+    if (!isSupabaseConfigured()) return false;
+    let query = supabase.from("attendance_logs").delete().eq("session_id", sessionId);
+    if (typeof userIdOrName === "number") {
+      query = query.eq("user_id", userIdOrName);
+    } else {
+      query = query.or(`user_id_code.eq.${userIdOrName},name.eq.${userIdOrName}`);
+    }
+    const { error } = await query;
+    if (error) {
+      console.warn("Supabase cancelAttendance error:", error.message);
+      return false;
+    }
+    return true;
+  },
+
   // 6. Game Words
+  async getAllGameWords(): Promise<DBGameWord[]> {
+    if (!isSupabaseConfigured()) return [];
+    const { data, error } = await supabase
+      .from("game_words")
+      .select("*")
+      .order("id", { ascending: true });
+    if (error || !data) return [];
+    return data as DBGameWord[];
+  },
+
   async getGameWords(difficulty: string): Promise<string[]> {
     if (!isSupabaseConfigured()) return [];
     const { data, error } = await supabase
       .from("game_words")
       .select("word")
-      .eq("difficulty", difficulty);
+      .eq("difficulty", difficulty)
+      .order("id", { ascending: true });
     if (error || !data) return [];
     return data.map((d) => d.word);
   },
 
-  async addGameWord(word: string, difficulty: "easy" | "medium" | "hard"): Promise<boolean> {
+  async addGameWord(word: string, difficulty: "easy" | "medium" | "hard"): Promise<{ success: boolean; data?: DBGameWord; error?: string }> {
+    if (!isSupabaseConfigured()) return { success: false, error: "Database tidak terhubung" };
+    const cleanWord = word.toUpperCase().trim().replace(/[^A-Z]/g, "");
+    if (!cleanWord) return { success: false, error: "Kata tidak boleh kosong dan hanya boleh alfabet A-Z" };
+    
+    // Cek duplikasi
+    const { data: existing } = await supabase
+      .from("game_words")
+      .select("id")
+      .eq("word", cleanWord)
+      .eq("difficulty", difficulty)
+      .maybeSingle();
+
+    if (existing) {
+      return { success: false, error: `Kata "${cleanWord}" sudah ada dalam kategori ${difficulty}` };
+    }
+
+    const { data, error } = await supabase
+      .from("game_words")
+      .insert({ word: cleanWord, difficulty })
+      .select()
+      .single();
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+    return { success: true, data: data as DBGameWord };
+  },
+
+  async updateGameWord(id: number, word: string, difficulty: "easy" | "medium" | "hard"): Promise<{ success: boolean; error?: string }> {
+    if (!isSupabaseConfigured()) return { success: false, error: "Database tidak terhubung" };
+    const cleanWord = word.toUpperCase().trim().replace(/[^A-Z]/g, "");
+    if (!cleanWord) return { success: false, error: "Kata tidak boleh kosong dan hanya boleh alfabet A-Z" };
+
+    const { error } = await supabase
+      .from("game_words")
+      .update({ word: cleanWord, difficulty })
+      .eq("id", id);
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+    return { success: true };
+  },
+
+  async deleteGameWord(id: number): Promise<boolean> {
     if (!isSupabaseConfigured()) return false;
     const { error } = await supabase
       .from("game_words")
-      .insert({ word: word.toUpperCase().trim(), difficulty });
+      .delete()
+      .eq("id", id);
     return !error;
+  },
+
+  async seedDefaultGameWords(): Promise<{ success: boolean; count: number; error?: string }> {
+    if (!isSupabaseConfigured()) return { success: false, count: 0, error: "Database tidak terhubung" };
+    
+    const defaultWords = [
+      // Easy (3-4 huruf)
+      { word: "HAI", difficulty: "easy" },
+      { word: "IBU", difficulty: "easy" },
+      { word: "AYAH", difficulty: "easy" },
+      { word: "MAU", difficulty: "easy" },
+      { word: "TULI", difficulty: "easy" },
+      { word: "KITA", difficulty: "easy" },
+      { word: "BISA", difficulty: "easy" },
+      { word: "SUKA", difficulty: "easy" },
+      { word: "PAGI", difficulty: "easy" },
+      { word: "HARI", difficulty: "easy" },
+      { word: "KAMU", difficulty: "easy" },
+      { word: "SAYA", difficulty: "easy" },
+      { word: "BAIK", difficulty: "easy" },
+      { word: "APA", difficulty: "easy" },
+      // Medium (5-6 huruf)
+      { word: "TEMAN", difficulty: "medium" },
+      { word: "SENANG", difficulty: "medium" },
+      { word: "TERIMA", difficulty: "medium" },
+      { word: "KASIH", difficulty: "medium" },
+      { word: "BELAJAR", difficulty: "medium" },
+      { word: "SEKOLAH", difficulty: "medium" },
+      { word: "BISINDO", difficulty: "medium" },
+      { word: "ISYARAT", difficulty: "medium" },
+      { word: "RUMAH", difficulty: "medium" },
+      { word: "SEMANGAT", difficulty: "medium" },
+      { word: "KELUARGA", difficulty: "medium" },
+      // Hard (7+ huruf)
+      { word: "KOMUNIKASI", difficulty: "hard" },
+      { word: "PENDIDIKAN", difficulty: "hard" },
+      { word: "INKLUSIF", difficulty: "hard" },
+      { word: "KESETARAAN", difficulty: "hard" },
+      { word: "MASYARAKAT", difficulty: "hard" },
+      { word: "KOLABORASI", difficulty: "hard" },
+      { word: "PEMBELAJARAN", difficulty: "hard" },
+      { word: "PEMBERDAYAAN", difficulty: "hard" },
+    ];
+
+    // Cek kata yang sudah ada untuk menghindari duplikat
+    const { data: existing } = await supabase
+      .from("game_words")
+      .select("word, difficulty");
+
+    const existingSet = new Set((existing || []).map((e) => `${e.word}_${e.difficulty}`));
+    const toInsert = defaultWords.filter((w) => !existingSet.has(`${w.word}_${w.difficulty}`));
+
+    if (toInsert.length === 0) {
+      return { success: true, count: 0 };
+    }
+
+    const { error } = await supabase
+      .from("game_words")
+      .insert(toInsert);
+
+    if (error) {
+      return { success: false, count: 0, error: error.message };
+    }
+    return { success: true, count: toInsert.length };
   },
 };
 

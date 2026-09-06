@@ -58,6 +58,8 @@ export interface AttendanceItem {
   verified: boolean;
   sessionId?: number;
   session_id?: number;
+  proof_url?: string;
+  proofUrl?: string;
 }
 
 export interface ActiveZoomSession {
@@ -202,6 +204,7 @@ export interface DBAttendanceLog {
   time: string;
   method: string;
   verified: boolean;
+  proof_url?: string;
 }
 
 export interface SupportTicket {
@@ -246,4 +249,8 @@ export interface QuizSubmission {
   answers: QuizAnswerRecord[];
 }
 
-
+export interface DBGameWord {
+  id: number;
+  word: string;
+  difficulty: "easy" | "medium" | "hard";
+}

@@ -164,10 +164,11 @@ export async function DELETE(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const id = searchParams.get("id");
     const userIdParam = searchParams.get("userId");
+    const all = searchParams.get("all");
 
-    if (!id && !userIdParam) {
+    if (!id && !userIdParam && all !== "true") {
       return NextResponse.json(
-        { success: false, message: "Parameter id atau userId dibutuhkan untuk menghapus riwayat jawaban." },
+        { success: false, message: "Parameter id, userId, atau all=true dibutuhkan untuk menghapus riwayat jawaban." },
         { status: 400 }
       );
     }
@@ -175,7 +176,9 @@ export async function DELETE(req: NextRequest) {
     const currentList = await loadSubmissions();
     let updated = currentList;
 
-    if (id) {
+    if (all === "true") {
+      updated = [];
+    } else if (id) {
       updated = currentList.filter((s) => s.id !== id);
     } else if (userIdParam) {
       const uId = Number(userIdParam);

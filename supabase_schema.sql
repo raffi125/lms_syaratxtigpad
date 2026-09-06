@@ -77,6 +77,7 @@ CREATE TABLE IF NOT EXISTS public.attendance_logs (
     time TEXT NOT NULL DEFAULT 'Hari ini',
     method TEXT NOT NULL DEFAULT 'Kode Sesi',
     verified BOOLEAN DEFAULT TRUE,
+    proof_url TEXT DEFAULT '',
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -134,6 +135,9 @@ BEGIN
   END IF;
   IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'certificates' AND column_name = 'npm') THEN
     ALTER TABLE public.certificates RENAME COLUMN npm TO user_id_code;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'attendance_logs' AND column_name = 'proof_url') THEN
+    ALTER TABLE public.attendance_logs ADD COLUMN proof_url TEXT DEFAULT '';
   END IF;
 END $$;
 

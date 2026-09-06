@@ -51,6 +51,24 @@ export default function JawabanKuisPage() {
     }
   };
 
+  const clearAllSubmissions = async () => {
+    if (!confirm("Yakin ingin menghapus SEMUA riwayat jawaban kuis peserta dari cloud storage?")) return;
+    setLoading(true);
+    try {
+      const res = await fetch("/api/quiz-submissions?all=true", { method: "DELETE" });
+      const data = await res.json();
+      if (data.success) {
+        setSubmissions([]);
+        setSelected(null);
+        showToast("Semua riwayat jawaban kuis berhasil dibersihkan!", "info");
+      }
+    } catch {
+      showToast("Gagal membersihkan riwayat jawaban.", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const filtered = submissions.filter((s) => {
     const q = search.toLowerCase();
     const matchSearch =
@@ -91,13 +109,25 @@ export default function JawabanKuisPage() {
               Lihat detail jawaban per soal yang dikerjakan setiap peserta.
             </p>
           </div>
-          <button
-            onClick={fetchSubmissions}
-            className="px-4 py-2.5 rounded-2xl glass-card text-xs font-bold flex items-center gap-2 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all shadow-sm border border-slate-200 dark:border-slate-800"
-          >
-            <i className="fa-solid fa-arrows-rotate text-syarat"></i>
-            <span>Refresh</span>
-          </button>
+          <div className="flex items-center gap-2.5 flex-wrap">
+            {submissions.length > 0 && (
+              <button
+                onClick={clearAllSubmissions}
+                className="px-3.5 py-2.5 rounded-2xl bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 text-xs font-bold flex items-center gap-2 transition-all border border-red-500/20 shadow-sm"
+                title="Hapus semua riwayat jawaban kuis peserta"
+              >
+                <i className="fa-solid fa-trash-can"></i>
+                <span>Bersihkan Semua</span>
+              </button>
+            )}
+            <button
+              onClick={fetchSubmissions}
+              className="px-4 py-2.5 rounded-2xl glass-card text-xs font-bold flex items-center gap-2 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all shadow-sm border border-slate-200 dark:border-slate-800"
+            >
+              <i className="fa-solid fa-arrows-rotate text-syarat"></i>
+              <span>Refresh</span>
+            </button>
+          </div>
         </div>
 
         {/* Stats */}

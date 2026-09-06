@@ -16,12 +16,13 @@ export type StorageTargetFolder =
   | "quizzes"
   | "serti"
   | "image"
-  | "modul";
+  | "modul"
+  | "attendance";
 
 /**
  * Mapping kategori upload ke bucket resmi:
  * - serti : Berkas sertifikat (PDF / Gambar)
- * - image : Foto profil (avatars) dan foto gestur isyarat (quizzes)
+ * - image : Foto profil (avatars), kuis, dan bukti screenshot presensi Zoom (attendance)
  * - modul : Berkas materi pembelajaran (video MP4 / PDF bacaan)
  */
 export const resolveStorageBucketAndPath = (
@@ -45,6 +46,9 @@ export const resolveStorageBucketAndPath = (
   }
   if (folder === "quizzes") {
     return { bucket: "image", filePath: `quizzes/${fileName}` };
+  }
+  if (folder === "attendance") {
+    return { bucket: "image", filePath: `attendance/${fileName}` };
   }
   return { bucket: "image", filePath: fileName };
 };

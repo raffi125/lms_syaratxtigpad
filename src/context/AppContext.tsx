@@ -91,7 +91,13 @@ interface AppContextType {
   addModule: (module: Partial<ModuleItem>) => void;
   updateModule: (id: number, module: Partial<ModuleItem>) => void;
   deleteModule: (id: number) => void;
-  submitAttendance: (code: string) => boolean;
+  submitAttendance: (
+    code: string,
+    proofUrl?: string,
+    targetSession?: ActiveZoomSession | number
+  ) => Promise<boolean> | boolean;
+  deleteAttendanceLog: (id: number) => Promise<boolean>;
+  cancelAttendance: (sessionId: number) => Promise<boolean>;
   addZoomSession: (session: Partial<ActiveZoomSession>) => Promise<void>;
   updateZoomSession: (id: number, session: Partial<ActiveZoomSession>) => Promise<void>;
   deleteZoomSession: (id: number) => Promise<void>;
@@ -409,6 +415,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                     verified: l.verified,
                     sessionId: l.session_id,
                     session_id: l.session_id,
+                    proof_url: l.proof_url || "",
+                    proofUrl: l.proof_url || "",
                   };
                 })
               : [],
@@ -432,6 +440,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                     verified: l.verified,
                     sessionId: l.session_id,
                     session_id: l.session_id,
+                    proof_url: l.proof_url || "",
+                    proofUrl: l.proof_url || "",
                   };
                 })
               : [],
@@ -967,30 +977,55 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     showToast("Modul berhasil dihapus dari database!", "success");
   };
 
-  const submitAttendance = (code: string): boolean => {
-    if (!zoomData.activeSession) {
+  const submitAttendance = async (
+    code: string,
+    proofUrl?: string,
+    targetSession?: ActiveZoomSession | number
+  ): Promise<boolean> => {
+    let target = zoomData.activeSession;
+    if (typeof targetSession === "object" && targetSession) {
+      target = targetSession;
+    } else if (typeof targetSession === "number") {
+      target = zoomData.sessions?.find((s) => s.id === targetSession) || zoomData.activeSession;
+    }
+
+    if (!target) {
       showToast("Tidak ada sesi Zoom aktif saat ini!", "warning");
       return false;
     }
 
-    if (code.trim().toUpperCase() === zoomData.activeSession.presenceCode.toUpperCase()) {
-      const already = zoomData.attendanceLogs.some((l) => l.name === currentUser.name && l.verified);
+    if (code.trim().toUpperCase() === target.presenceCode.toUpperCase()) {
+      const already = zoomData.attendanceLogs.some(
+        (l) =>
+          (l.name.toLowerCase() === currentUser.name.toLowerCase() ||
+            (l.user_id && l.user_id === (currentUser.user_id || currentUser.npm))) &&
+          (l.sessionId === target?.id || l.session_id === target?.id) &&
+          l.verified
+      );
       if (already) {
         showToast("Anda sudah melakukan presensi pada sesi ini!", "info");
         return true;
       }
 
+      const now = new Date();
+      const timeStr = `Hari ini • ${now.getHours().toString().padStart(2, "0")}:${now
+        .getMinutes()
+        .toString()
+        .padStart(2, "0")} WIB`;
+
       const newLog: AttendanceItem = {
         id: Date.now(),
         name: currentUser.name,
-        user_id: currentUser.user_id,
-        npm: currentUser.npm,
+        user_id: currentUser.user_id || currentUser.npm,
+        npm: currentUser.user_id || currentUser.npm,
         institution: currentUser.institution || "Komunitas BISINDO",
-        time: "Hari ini • Baru saja",
-        method: "Kode Sesi",
+        time: timeStr,
+        method: proofUrl ? "Kode Sesi & SS Zoom" : "Kode Sesi",
         verified: true,
-        sessionId: zoomData.activeSession.id,
-        session_id: zoomData.activeSession.id,
+        sessionId: target.id,
+        session_id: target.id,
+        proof_url: proofUrl || "",
+        proofUrl: proofUrl || "",
       };
 
       setZoomData((prev) => ({
@@ -999,8 +1034,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       }));
 
       logActivity({
-        title: `Presensi Pertemuan Zoom: ${zoomData.activeSession.title || "Tatap Muka Daring"}`,
-        description: `Kode Sesi: ${code.toUpperCase()} • Terverifikasi Hadir`,
+        title: `Presensi Pertemuan Zoom: ${target.title || "Tatap Muka Daring"}`,
+        description: `Kode Sesi: ${code.toUpperCase()} • ${proofUrl ? "Bukti SS Zoom Terlampir" : "Terverifikasi Hadir"}`,
         category: "zoom",
         statusText: "Hadir",
         statusBadge: "blue",
@@ -1008,24 +1043,74 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       });
 
       if (isSupabaseConfigured()) {
-        SupabaseService.recordAttendance({
+        await SupabaseService.recordAttendance({
           user_id: currentUser.id,
-          session_id: zoomData.activeSession.id,
+          session_id: target.id,
           name: currentUser.name,
-          npm: currentUser.npm,
+          user_id_code: currentUser.user_id || currentUser.npm,
+          npm: currentUser.user_id || currentUser.npm,
           institution: currentUser.institution,
-          time: "Hari ini • Baru saja",
-          method: "Kode Sesi",
+          time: timeStr,
+          method: proofUrl ? "Kode Sesi & SS Zoom" : "Kode Sesi",
           verified: true,
+          proof_url: proofUrl || "",
         });
       }
 
-      showToast("Presensi berhasil terverifikasi!", "success");
+      showToast("Presensi & bukti screenshot Zoom berhasil diverifikasi!", "success");
       return true;
     } else {
       showToast("Kode presensi tidak sesuai!", "error");
       return false;
     }
+  };
+
+  const deleteAttendanceLog = async (id: number): Promise<boolean> => {
+    // Menghapus satu catatan presensi spesifik (Kewenangan Admin & Mentor)
+    setZoomData((prev) => ({
+      ...prev,
+      attendanceLogs: prev.attendanceLogs.filter((log) => log.id !== id),
+    }));
+
+    if (isSupabaseConfigured()) {
+      await SupabaseService.deleteAttendanceLog(id);
+    }
+
+    showToast("Catatan presensi berhasil dihapus oleh pengelola.", "info");
+    return true;
+  };
+
+  const cancelAttendance = async (sessionId: number): Promise<boolean> => {
+    // Membatalkan presensi peserta untuk sesi ini
+    const targetLog = zoomData.attendanceLogs.find(
+      (l) =>
+        (l.sessionId === sessionId || l.session_id === sessionId) &&
+        (l.name.toLowerCase() === currentUser.name.toLowerCase() ||
+          (l.user_id && l.user_id === (currentUser.user_id || currentUser.npm)))
+    );
+
+    setZoomData((prev) => ({
+      ...prev,
+      attendanceLogs: prev.attendanceLogs.filter(
+        (l) =>
+          !(
+            (l.sessionId === sessionId || l.session_id === sessionId) &&
+            (l.name.toLowerCase() === currentUser.name.toLowerCase() ||
+              (l.user_id && l.user_id === (currentUser.user_id || currentUser.npm)))
+          )
+      ),
+    }));
+
+    if (isSupabaseConfigured()) {
+      if (targetLog?.id) {
+        await SupabaseService.deleteAttendanceLog(targetLog.id);
+      } else {
+        await SupabaseService.cancelAttendance(sessionId, currentUser.id || currentUser.name);
+      }
+    }
+
+    showToast("Presensi Anda pada sesi ini berhasil dibatalkan.", "warning");
+    return true;
   };
 
   const addZoomSession = async (data: Partial<ActiveZoomSession>) => {
@@ -1535,6 +1620,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         updateModule,
         deleteModule,
         submitAttendance,
+        deleteAttendanceLog,
+        cancelAttendance,
         addZoomSession,
         updateZoomSession,
         deleteZoomSession,

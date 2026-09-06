@@ -43,7 +43,7 @@ export default function KuisPage() {
   // Form Fields
   const [newType, setNewType] = useState<"pilihan_ganda" | "essai">("pilihan_ganda");
   const [newQuestion, setNewQuestion] = useState("");
-  const [newMeeting, setNewMeeting] = useState("Umum");
+  const [newMeeting, setNewMeeting] = useState("");
   const [newDifficulty, setNewDifficulty] = useState<"mudah" | "sedang" | "sulit">("sedang");
   const [newPoints, setNewPoints] = useState<number>(10);
   const [newImageUrl, setNewImageUrl] = useState("");
@@ -57,17 +57,10 @@ export default function KuisPage() {
   const [bankFilterMeeting, setBankFilterMeeting] = useState("Semua");
   const [bankSearch, setBankSearch] = useState("");
 
-  // Preset constants
-  const MEETING_OPTIONS = [
-    { value: "Umum", label: "Umum / Semua Pertemuan" },
-    { value: "Pertemuan 1", label: "Pertemuan 1: Pengenalan BISINDO & Budaya Tuli" },
-    { value: "Pertemuan 2", label: "Pertemuan 2: Abjad Jari & Ejaan Isyarat" },
-    { value: "Pertemuan 3", label: "Pertemuan 3: Sapaan, Perkenalan & Angka" },
-    { value: "Pertemuan 4", label: "Pertemuan 4: Anggota Keluarga & Keseharian" },
-    { value: "Pertemuan 5", label: "Pertemuan 5: Kata Tanya, Emosi & Lingkungan" },
-    { value: "Pertemuan 6", label: "Pertemuan 6: Percakapan Tematik & Etika" },
-    { value: "Ujian Akhir", label: "Ujian Akhir Komprehensif" },
-  ];
+  // Dynamic distinct meetings/topics extracted from existing quizzes
+  const distinctMeetings = Array.from(
+    new Set(quizzes.map((q) => (q.meeting || "Umum").trim()).filter(Boolean))
+  ).sort();
 
   // Timer countdown
   useEffect(() => {
@@ -226,7 +219,7 @@ export default function KuisPage() {
     setEditingQuizId(null);
     setNewType("pilihan_ganda");
     setNewQuestion("");
-    setNewMeeting("Umum");
+    setNewMeeting("");
     setNewDifficulty("sedang");
     setNewPoints(10);
     setNewImageUrl("");
@@ -242,7 +235,7 @@ export default function KuisPage() {
     setEditingQuizId(q.id);
     setNewType(q.type || "pilihan_ganda");
     setNewQuestion(q.question);
-    setNewMeeting(q.meeting || "Umum");
+    setNewMeeting(q.meeting || "");
     setNewDifficulty(q.difficulty || "sedang");
     setNewPoints(q.points ?? 10);
     setNewImageUrl(q.imageUrl || "");
@@ -325,13 +318,14 @@ export default function KuisPage() {
     }
 
     const correctIdx = isEssay ? 0 : Math.min(newCorrectAnswer, validOptions.length - 1);
+    const meetingTitle = newMeeting.trim() || "Umum";
 
     const payload: Partial<QuizItem> = {
       question: newQuestion.trim(),
       options: validOptions,
       correctAnswer: correctIdx,
       explanation: newExplanation.trim(),
-      meeting: newMeeting,
+      meeting: meetingTitle,
       difficulty: newDifficulty,
       points: Number(newPoints) || 10,
       imageUrl: newImageUrl.trim(),
@@ -355,7 +349,7 @@ export default function KuisPage() {
       showToast("Soal kuis baru berhasil ditambahkan ke database!", "success");
       logActivity({
         title: "Menambahkan Soal Kuis Baru",
-        description: `Soal baru ditambahkan: "${newQuestion.trim().slice(0, 40)}..." (${newMeeting})`,
+        description: `Soal baru ditambahkan: "${newQuestion.trim().slice(0, 40)}..." (${meetingTitle})`,
         category: "kuis",
         statusText: "Tersimpan",
         statusBadge: "blue",
@@ -363,7 +357,7 @@ export default function KuisPage() {
       });
       addNotification({
         title: "Bank Soal Kuis Diperbarui",
-        message: `Tersedia butir soal baru (${newMeeting}) pada Kuis Evaluasi BISINDO.`,
+        message: `Tersedia butir soal baru (${meetingTitle}) pada Kuis Evaluasi BISINDO.`,
         type: "kuis",
         targetRole: "all",
         linkUrl: "/kuis",
@@ -418,7 +412,7 @@ export default function KuisPage() {
                     className="btn-duotone px-4 py-2.5 rounded-2xl text-xs font-bold flex items-center gap-2 shadow-lg hover:scale-105 transition-all"
                   >
                     <i className="fa-solid fa-plus-circle"></i>
-                    <span>+ Tambah Soal Kuis</span>
+                    <span>Tambah Soal Kuis</span>
                   </button>
                   {quizzes.length > 0 && (
                     <button
@@ -1180,22 +1174,19 @@ export default function KuisPage() {
                     </div>
                   </div>
 
-                  {/* Target Pertemuan */}
+                  {/* Judul / Topik Pertemuan Kuis (Input Manual seperti Modul) */}
                   <div>
-                    <label className="block font-bold mb-1 text-slate-600 dark:text-slate-300">
-                      Terkait Pertemuan
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                      Judul / Topik Pertemuan <span className="text-red-500">*</span>
                     </label>
-                    <select
+                    <input
+                      type="text"
+                      required
                       value={newMeeting}
                       onChange={(e) => setNewMeeting(e.target.value)}
-                      className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-semibold"
-                    >
-                      {MEETING_OPTIONS.map((m) => (
-                        <option key={m.value} value={m.value}>
-                          {m.label}
-                        </option>
-                      ))}
-                    </select>
+                      placeholder="Contoh: Modul 1 - Kosakata Dasar BISINDO..."
+                      className="w-full px-3 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-bold focus:ring-2 focus:ring-tigpad outline-none transition"
+                    />
                   </div>
 
                   {/* Bobot Poin Soal */}
@@ -1554,15 +1545,12 @@ export default function KuisPage() {
                 onChange={(e) => setBankFilterMeeting(e.target.value)}
                 className="px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-semibold"
               >
-                <option value="Semua">Semua Pertemuan</option>
-                <option value="Umum">Umum</option>
-                <option value="Pertemuan 1">Pertemuan 1</option>
-                <option value="Pertemuan 2">Pertemuan 2</option>
-                <option value="Pertemuan 3">Pertemuan 3</option>
-                <option value="Pertemuan 4">Pertemuan 4</option>
-                <option value="Pertemuan 5">Pertemuan 5</option>
-                <option value="Pertemuan 6">Pertemuan 6</option>
-                <option value="Ujian Akhir">Ujian Akhir</option>
+                <option value="Semua">Semua Pertemuan / Topik</option>
+                {distinctMeetings.map((m) => (
+                  <option key={m} value={m}>
+                    {m}
+                  </option>
+                ))}
               </select>
             </div>
 

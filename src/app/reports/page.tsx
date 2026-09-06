@@ -4,6 +4,7 @@ import React, { useState, useMemo } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import { useApp } from "@/context/AppContext";
 import { calculateAnalytics } from "@/lib/analytics";
+import { exportAttendanceToExcel } from "@/lib/excelExport";
 
 export default function ReportsPage() {
   const { users, modules, zoomData, certificates, showToast } = useApp();
@@ -55,6 +56,17 @@ export default function ReportsPage() {
     });
   }, [pesertaList, search, statusFilter, pertemuanFilter, analytics.kkm, analytics.totalPertemuan, certificates]);
 
+  const handleExportAttendanceExcel = () => {
+    if (zoomData.attendanceLogs.length === 0) {
+      showToast("Belum ada catatan presensi untuk diekspor ke Excel!", "warning");
+      return;
+    }
+    const ok = exportAttendanceToExcel(zoomData.attendanceLogs, zoomData.sessions || []);
+    if (ok) {
+      showToast(`Rekap presensi (${zoomData.attendanceLogs.length} data) berhasil diekspor ke Excel!`, "success");
+    }
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -76,6 +88,15 @@ export default function ReportsPage() {
           </div>
 
           <div className="flex items-center gap-2.5 flex-wrap">
+            <button
+              onClick={handleExportAttendanceExcel}
+              className="px-3.5 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-2 shadow-md hover:scale-105 transition-all"
+              title="Ekspor rekap data presensi seluruh sesi ke format Excel (.xlsx)"
+            >
+              <i className="fa-solid fa-file-excel text-sm"></i>
+              <span>Export Excel Presensi</span>
+            </button>
+
             <button
               onClick={() => setShowFormulaModal(true)}
               className="px-3.5 py-2.5 rounded-2xl glass-card text-xs font-bold flex items-center gap-2 hover:border-syarat text-slate-700 dark:text-slate-200 transition-all shadow-sm"
