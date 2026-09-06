@@ -168,6 +168,8 @@ export default function Navbar({ onToggleMobileSidebar }: NavbarProps) {
                             ? "fa-solid fa-headset text-blue-500"
                             : notif.type === "modul"
                             ? "fa-solid fa-book-open text-syarat"
+                            : notif.type === "kuis"
+                            ? "fa-solid fa-stopwatch-20 text-purple-500"
                             : notif.type === "warning"
                             ? "fa-solid fa-triangle-exclamation text-red-500"
                             : "fa-solid fa-bullhorn text-tigpad";
@@ -214,15 +216,25 @@ export default function Navbar({ onToggleMobileSidebar }: NavbarProps) {
                   )}
                 </div>
 
-                <div className="pt-2 border-t border-slate-200 dark:border-slate-800 text-center">
+                <div className="pt-2 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between gap-2">
                   <Link
                     href="/notifikasi"
                     onClick={() => setNotifOpen(false)}
-                    className="text-[11px] font-bold text-syarat dark:text-syarat-light hover:underline flex items-center justify-center gap-1.5"
+                    className="text-[11px] font-bold text-syarat dark:text-syarat-light hover:underline flex items-center gap-1.5"
                   >
-                    <span>Buka Kelola Notifikasi</span>
+                    <span>Buka Semua Notifikasi</span>
                     <i className="fa-solid fa-arrow-right text-[10px]"></i>
                   </Link>
+                  {(currentRole === "admin" || currentRole === "mentor") && (
+                    <Link
+                      href="/notifikasi"
+                      onClick={() => setNotifOpen(false)}
+                      className="px-2.5 py-1 rounded-xl bg-syarat/10 hover:bg-syarat/20 text-syarat dark:text-syarat-light text-[10px] font-bold flex items-center gap-1 transition-colors"
+                    >
+                      <i className="fa-solid fa-plus"></i>
+                      <span>Buat Baru</span>
+                    </Link>
+                  )}
                 </div>
               </div>
             )}

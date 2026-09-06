@@ -1,11 +1,111 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import DashboardLayout from "@/components/DashboardLayout";
 import { useApp } from "@/context/AppContext";
 import { SupabaseStorageService } from "@/lib/supabaseStorage";
 import { QuizItem, QuizAnswerRecord } from "@/types";
+
+interface PertemuanQuizCategory {
+  id: number;
+  categoryKey: string;
+  title: string;
+  shortTitle: string;
+  topic: string;
+  description: string;
+  badgeColor: string;
+  icon: string;
+}
+
+const PERTEMUAN_LIST: PertemuanQuizCategory[] = [
+  {
+    id: 1,
+    categoryKey: "Pertemuan 1",
+    title: "Pertemuan 1: Komunikasi, Inklusi & Budaya Tuli",
+    shortTitle: "Pertemuan 1",
+    topic: "Komunikasi, Inklusi & Budaya Tuli",
+    description: "Evaluasi pemahaman dasar identitas Tuli, sejarah bahasa isyarat, etika berinteraksi, dan pengantar inklusi.",
+    badgeColor: "bg-blue-500/10 text-blue-600 border-blue-200 dark:border-blue-800",
+    icon: "fa-solid fa-hands-asl-interpreting",
+  },
+  {
+    id: 2,
+    categoryKey: "Pertemuan 2",
+    title: "Pertemuan 2: Bahasa Isyarat & Pengenalan Abjad",
+    shortTitle: "Pertemuan 2",
+    topic: "Bahasa Isyarat & Pengenalan Abjad",
+    description: "Evaluasi penguasaan abjad jari A-Z BISINDO, angka 1-20, dan orientasi telapak tangan.",
+    badgeColor: "bg-emerald-500/10 text-emerald-600 border-emerald-200 dark:border-emerald-800",
+    icon: "fa-solid fa-spell-check",
+  },
+  {
+    id: 3,
+    categoryKey: "Pertemuan 3",
+    title: "Pertemuan 3: Perkenalan & Komunikasi Dasar",
+    shortTitle: "Pertemuan 3",
+    topic: "Perkenalan & Komunikasi Dasar",
+    description: "Evaluasi kalimat perkenalan diri, isyarat sapaan (halo, selamat pagi), nama isyarat, dan ekspresi wajah.",
+    badgeColor: "bg-amber-500/10 text-amber-600 border-amber-200 dark:border-amber-800",
+    icon: "fa-solid fa-handshake",
+  },
+  {
+    id: 4,
+    categoryKey: "Pertemuan 4",
+    title: "Pertemuan 4: Isyarat Keluarga, Rumah & Lingkungan",
+    shortTitle: "Pertemuan 4",
+    topic: "Isyarat Keluarga, Rumah & Lingkungan",
+    description: "Evaluasi kosakata anggota keluarga (ayah, ibu, saudara), benda di rumah, dan lingkungan sekitar.",
+    badgeColor: "bg-purple-500/10 text-purple-600 border-purple-200 dark:border-purple-800",
+    icon: "fa-solid fa-house-chimney-user",
+  },
+  {
+    id: 5,
+    categoryKey: "Pertemuan 5",
+    title: "Pertemuan 5: Kata Tanya, Kalimat Tanya & Emosi",
+    shortTitle: "Pertemuan 5",
+    topic: "Kata Tanya, Kalimat Tanya & Emosi",
+    description: "Evaluasi kata tanya (apa, siapa, di mana, kapan, kenapa, bagaimana), ekspresi alis/wajah, dan kosakata emosi.",
+    badgeColor: "bg-rose-500/10 text-rose-600 border-rose-200 dark:border-rose-800",
+    icon: "fa-solid fa-circle-question",
+  },
+  {
+    id: 6,
+    categoryKey: "Pertemuan 6",
+    title: "Pertemuan 6: Penerapan Percakapan & Interaksi Teman Tuli",
+    shortTitle: "Pertemuan 6",
+    topic: "Penerapan Percakapan & Interaksi Teman Tuli",
+    description: "Evaluasi simulasi dialog percakapan sehari-hari, etika visual, pemahaman cerita isyarat, dan persiapan evaluasi sertifikasi.",
+    badgeColor: "bg-cyan-500/10 text-cyan-600 border-cyan-200 dark:border-cyan-800",
+    icon: "fa-solid fa-comments",
+  },
+];
+
+// Helper to check if a question belongs to a specific category/pertemuan
+const matchQuizCategory = (q: QuizItem, categoryKey: string): boolean => {
+  const cat = (q.category || "").toLowerCase().trim();
+  const meet = (q.meeting || "").toLowerCase().trim();
+  const key = categoryKey.toLowerCase().trim();
+
+  if (cat === key || meet === key) return true;
+  if (cat.includes(key) || meet.includes(key)) return true;
+
+  // Support matching number e.g. "Pertemuan 1" matches "Modul 1" or "Pertemuan 01"
+  const matchNum = key.match(/\d+/);
+  if (matchNum) {
+    const num = matchNum[0];
+    const catNumMatch = cat.match(/\d+/);
+    const meetNumMatch = meet.match(/\d+/);
+    if ((cat.includes("pertemuan") || cat.includes("modul")) && catNumMatch && catNumMatch[0] === num) {
+      return true;
+    }
+    if ((meet.includes("pertemuan") || meet.includes("modul")) && meetNumMatch && meetNumMatch[0] === num) {
+      return true;
+    }
+  }
+
+  return false;
+};
 
 export default function KuisPage() {
   const {
@@ -18,7 +118,6 @@ export default function KuisPage() {
     updateProfile,
     showToast,
     logActivity,
-    addNotification,
   } = useApp();
 
   const isManager = currentRole === "mentor" || currentRole === "admin";
@@ -26,7 +125,7 @@ export default function KuisPage() {
   // Navigation / Quiz flow screens
   const [screen, setScreen] = useState<"list" | "start" | "active" | "completed">("list");
   const [answers, setAnswers] = useState<{ [key: number]: number }>({});
-  const [timeLeft, setTimeLeft] = useState(15 * 60); // 15 mins
+  const [timeLeft, setTimeLeft] = useState(15 * 60);
   const [finalScore, setFinalScore] = useState(currentUser.score || 0);
   const [earnedPoints, setEarnedPoints] = useState<number>(0);
   const [totalPossiblePoints, setTotalPossiblePoints] = useState<number>(100);
@@ -34,6 +133,98 @@ export default function KuisPage() {
   const [showReviewDetail, setShowReviewDetail] = useState(false);
   const [openHints, setOpenHints] = useState<{ [key: number]: boolean }>({});
   const [essayAnswers, setEssayAnswers] = useState<{ [key: number]: string }>({});
+
+  // Key for storing category lock statuses
+  const STORAGE_KEY_QUIZ_LOCKS = "kolab_quiz_locked_status";
+
+  // Lock status state (true = locked 🔒, false = open 🔓)
+  // Default: Pertemuan 1 open (false), Pertemuan 2-6 locked (true)
+  const [lockedCategories, setLockedCategories] = useState<{ [key: string]: boolean }>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY_QUIZ_LOCKS);
+        if (saved) {
+          return JSON.parse(saved);
+        }
+      } catch (e) {}
+    }
+    return {
+      "Pertemuan 1": false,
+      "Pertemuan 2": true,
+      "Pertemuan 3": true,
+      "Pertemuan 4": true,
+      "Pertemuan 5": true,
+      "Pertemuan 6": true,
+    };
+  });
+
+  // Toggle single category lock (Buka / Kunci)
+  const toggleCategoryLock = (categoryKey: string) => {
+    setLockedCategories((prev) => {
+      const isCurrentlyLocked = prev[categoryKey] ?? false;
+      const nextLocked = !isCurrentlyLocked;
+      const updated = { ...prev, [categoryKey]: nextLocked };
+
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.setItem(STORAGE_KEY_QUIZ_LOCKS, JSON.stringify(updated));
+        } catch (e) {}
+      }
+
+      if (nextLocked) {
+        showToast(`🔒 ${categoryKey} berhasil DIKUNCI. Peserta tidak dapat mengakses kuis ini.`, "warning");
+        logActivity({
+          title: `Mengunci ${categoryKey}`,
+          description: `Kuis ${categoryKey} dikunci oleh ${currentUser.name || "Mentor"}. Peserta tidak dapat mengakses lembar soal.`,
+          category: "kuis",
+          statusText: "Dikunci",
+          statusBadge: "amber",
+          icon: "fa-solid fa-lock text-amber-500",
+        });
+      } else {
+        showToast(`🔓 ${categoryKey} berhasil DIBUKA! Peserta kini dapat mengerjakan kuis.`, "success");
+        logActivity({
+          title: `Membuka Akses ${categoryKey}`,
+          description: `Akses kuis ${categoryKey} telah dibuka untuk peserta oleh ${currentUser.name || "Mentor"}.`,
+          category: "kuis",
+          statusText: "Terbuka",
+          statusBadge: "green",
+          icon: "fa-solid fa-lock-open text-green-500",
+        });
+      }
+
+      return updated;
+    });
+  };
+
+  // Batch toggle all categories lock/unlock
+  const setAllCategoriesLock = (lock: boolean) => {
+    const updated: { [key: string]: boolean } = {};
+    PERTEMUAN_LIST.forEach((p) => {
+      updated[p.categoryKey] = lock;
+    });
+    customCategories.forEach((c) => {
+      updated[c] = lock;
+    });
+    setLockedCategories(updated);
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem(STORAGE_KEY_QUIZ_LOCKS, JSON.stringify(updated));
+      } catch (e) {}
+    }
+    showToast(
+      lock ? "🔒 Seluruh kuis pertemuan berhasil DIKUNCI." : "🔓 Seluruh kuis pertemuan berhasil DIBUKA untuk seluruh peserta!",
+      lock ? "warning" : "success"
+    );
+  };
+
+  // Active Selected Quiz Category Flow
+  const [activeCategory, setActiveCategory] = useState<string>("Pertemuan 1");
+  const [activeQuizTitle, setActiveQuizTitle] = useState<string>("Kuis Evaluasi Pertemuan 1: Komunikasi, Inklusi & Budaya Tuli");
+  const [activeQuizSubtitle, setActiveQuizSubtitle] = useState<string>("Kurikulum Resmi BISINDO");
+
+  // Tab filter in Quiz List Screen ("all" | "Pertemuan 1" | ... | "Pertemuan 6")
+  const [selectedCategoryTab, setSelectedCategoryTab] = useState<string>("all");
 
   // Mentor / Admin Add & Edit Question Modal States
   const [createModalOpen, setCreateModalOpen] = useState(false);
@@ -43,6 +234,7 @@ export default function KuisPage() {
   // Form Fields
   const [newType, setNewType] = useState<"pilihan_ganda" | "essai">("pilihan_ganda");
   const [newQuestion, setNewQuestion] = useState("");
+  const [newCategory, setNewCategory] = useState("Pertemuan 1");
   const [newMeeting, setNewMeeting] = useState("");
   const [newDifficulty, setNewDifficulty] = useState<"mudah" | "sedang" | "sulit">("sedang");
   const [newPoints, setNewPoints] = useState<number>(10);
@@ -62,7 +254,28 @@ export default function KuisPage() {
     new Set(quizzes.map((q) => (q.meeting || "Umum").trim()).filter(Boolean))
   ).sort();
 
-  // Timer countdown
+  // Custom Categories outside Pertemuan 1-6
+  const customCategories = useMemo(() => {
+    const customSet = new Set<string>();
+    quizzes.forEach((q) => {
+      const isKnown = PERTEMUAN_LIST.some((p) => matchQuizCategory(q, p.categoryKey));
+      if (!isKnown) {
+        const name = (q.meeting || q.category || "").trim();
+        if (name && name !== "Umum" && name !== "Dasar & Budaya") {
+          customSet.add(name);
+        }
+      }
+    });
+    return Array.from(customSet);
+  }, [quizzes]);
+
+  // Dynamic Questions belonging to the currently active quiz category
+  const currentQuizQuestions = useMemo(() => {
+    const filtered = quizzes.filter((q) => matchQuizCategory(q, activeCategory));
+    return filtered.length > 0 ? filtered : (quizzes.length > 0 ? quizzes : []);
+  }, [quizzes, activeCategory]);
+
+  // Dynamic Timer countdown
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (screen === "active" && timeLeft > 0) {
@@ -85,6 +298,38 @@ export default function KuisPage() {
     return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
   };
 
+  // Launch a category-specific quiz with lock guard
+  const startQuizForCategory = (categoryKey: string, title?: string, subtitle?: string) => {
+    const isLocked = lockedCategories[categoryKey] ?? false;
+    if (isLocked && !isManager) {
+      showToast(`Kuis ${categoryKey} saat ini sedang dikunci oleh mentor pengajar. Silakan tunggu mentor membuka akses.`, "warning");
+      return;
+    }
+
+    setActiveCategory(categoryKey);
+    const targetQuestions = quizzes.filter((q) => matchQuizCategory(q, categoryKey));
+
+    if (targetQuestions.length === 0) {
+      showToast(`Belum ada butir soal untuk ${title || categoryKey}.`, "warning");
+      return;
+    }
+
+    const quizTitle = title || `Kuis Evaluasi ${categoryKey}`;
+    const quizSubtitle = subtitle || `Topik Pembelajaran ${categoryKey}`;
+
+    setActiveQuizTitle(quizTitle);
+    setActiveQuizSubtitle(quizSubtitle);
+    setAnswers({});
+    setEssayAnswers({});
+    setValidationError(false);
+    setOpenHints({});
+
+    // Dynamic timer: 2.5 minutes per question, min 5 mins, max 30 mins
+    const dynamicMinutes = Math.min(30, Math.max(5, Math.ceil(targetQuestions.length * 2.5)));
+    setTimeLeft(dynamicMinutes * 60);
+    setScreen("start");
+  };
+
   const handleSelectAnswer = (qId: number, optionIdx: number) => {
     setAnswers((prev) => ({ ...prev, [qId]: optionIdx }));
     setValidationError(false);
@@ -95,7 +340,7 @@ export default function KuisPage() {
     setValidationError(false);
   };
 
-  const answeredCount = quizzes.filter((q) => {
+  const answeredCount = currentQuizQuestions.filter((q) => {
     if (q.type === "essai") {
       return (essayAnswers[q.id] || "").trim().length > 0;
     }
@@ -103,7 +348,7 @@ export default function KuisPage() {
   }).length;
 
   const progressPercent =
-    quizzes.length > 0 ? Math.round((answeredCount / quizzes.length) * 100) : 0;
+    currentQuizQuestions.length > 0 ? Math.round((answeredCount / currentQuizQuestions.length) * 100) : 0;
 
   const toggleHint = (qId: number) => {
     setOpenHints((prev) => ({ ...prev, [qId]: !prev[qId] }));
@@ -111,9 +356,9 @@ export default function KuisPage() {
 
   // Submit Quiz Calculation
   const handleSubmitQuiz = async () => {
-    if (quizzes.length === 0) return;
+    if (currentQuizQuestions.length === 0) return;
 
-    if (answeredCount < quizzes.length) {
+    if (answeredCount < currentQuizQuestions.length) {
       setValidationError(true);
       return;
     }
@@ -122,7 +367,7 @@ export default function KuisPage() {
     let totalEarned = 0;
     let correctCount = 0;
 
-    quizzes.forEach((q) => {
+    currentQuizQuestions.forEach((q) => {
       const qPts = q.points && q.points > 0 ? q.points : 10;
       totalPossible += qPts;
       if (q.type === "essai") {
@@ -146,28 +391,19 @@ export default function KuisPage() {
     updateProfile({ score: calculated });
     setScreen("completed");
 
+    const quizLabel = activeCategory ? `Kuis ${activeCategory}` : "Kuis Evaluasi BISINDO";
+
     logActivity({
-      title: "Menyelesaikan Kuis Evaluasi",
-      description: `Ujian komprehensif BISINDO selesai dengan perolehan skor ${calculated}/100 (${correctCount}/${quizzes.length} soal tuntas, ${totalEarned}/${totalPossible} poin)`,
+      title: `Menyelesaikan ${quizLabel}`,
+      description: `${activeQuizTitle} selesai dengan perolehan skor ${calculated}/100 (${correctCount}/${currentQuizQuestions.length} soal tuntas, ${totalEarned}/${totalPossible} poin)`,
       category: "kuis",
       statusText: calculated >= 70 ? `Lulus (${calculated})` : `Remedial (${calculated})`,
       statusBadge: calculated >= 70 ? "green" : "amber",
       icon: "fa-solid fa-stopwatch-20 text-tigpad",
     });
 
-    if (calculated >= 70) {
-      addNotification({
-        title: "Selamat! Kuis Evaluasi Lulus",
-        message: `Anda berhasil lulus Kuis Evaluasi BISINDO dengan nilai ${calculated}/100. Nilai telah tercatat di profil.`,
-        type: "kuis",
-        targetRole: "all",
-        linkUrl: "/kuis",
-        sender: "Sistem LMS",
-      });
-    }
-
     // Save answer detail to cloud so admin/mentor can review
-    const answerRecords: QuizAnswerRecord[] = quizzes.map((q) => {
+    const answerRecords: QuizAnswerRecord[] = currentQuizQuestions.map((q) => {
       const isEssay = q.type === "essai";
       const userAnswerIdx = isEssay ? -1 : (answers[q.id] ?? -1);
       const essayText = (essayAnswers[q.id] || "").trim();
@@ -177,7 +413,7 @@ export default function KuisPage() {
       return {
         quizId: q.id,
         question: q.question,
-        meeting: q.meeting,
+        meeting: q.meeting || activeCategory || "Umum",
         options: q.options || [],
         userAnswerIndex: userAnswerIdx,
         userAnswerText: isEssay ? (essayText || "(tidak dijawab)") : (userAnswerIdx >= 0 ? q.options[userAnswerIdx] : "(tidak dijawab)"),
@@ -203,23 +439,28 @@ export default function KuisPage() {
         earnedPoints: totalEarned,
         totalPossiblePoints: totalPossible,
         passed: calculated >= 70,
+        quizTitle: activeQuizTitle,
+        category: activeCategory || "Umum",
         answers: answerRecords,
       }),
     }).catch(() => {}); // ponytail: fire-and-forget, no blocking the UX
 
     showToast(
-      `Ujian selesai! Nilai Anda: ${calculated}/100`,
+      `${quizLabel} selesai! Nilai Anda: ${calculated}/100`,
       calculated >= 70 ? "success" : "warning"
     );
   };
 
 
-  // Open Create Question Modal
-  const openCreateModal = () => {
+  // Open Create Question Modal (optionally preselect category)
+  const openCreateModal = (initialCategory?: string) => {
     setEditingQuizId(null);
     setNewType("pilihan_ganda");
     setNewQuestion("");
-    setNewMeeting("");
+    const cat = initialCategory || "Pertemuan 1";
+    const matchedPertemuan = PERTEMUAN_LIST.find((p) => p.categoryKey === cat);
+    setNewCategory(cat);
+    setNewMeeting(matchedPertemuan ? matchedPertemuan.title : cat);
     setNewDifficulty("sedang");
     setNewPoints(10);
     setNewImageUrl("");
@@ -235,7 +476,10 @@ export default function KuisPage() {
     setEditingQuizId(q.id);
     setNewType(q.type || "pilihan_ganda");
     setNewQuestion(q.question);
-    setNewMeeting(q.meeting || "");
+    const cat = q.category || q.meeting || "Pertemuan 1";
+    const matchedP = PERTEMUAN_LIST.find((p) => matchQuizCategory(q, p.categoryKey));
+    setNewCategory(matchedP ? matchedP.categoryKey : (cat.includes("Pertemuan") ? cat : "Pertemuan 1"));
+    setNewMeeting(q.meeting || (matchedP ? matchedP.title : cat));
     setNewDifficulty(q.difficulty || "sedang");
     setNewPoints(q.points ?? 10);
     setNewImageUrl(q.imageUrl || "");
@@ -318,13 +562,15 @@ export default function KuisPage() {
     }
 
     const correctIdx = isEssay ? 0 : Math.min(newCorrectAnswer, validOptions.length - 1);
-    const meetingTitle = newMeeting.trim() || "Umum";
+    const meetingTitle = newMeeting.trim() || newCategory.trim() || "Pertemuan 1";
+    const categoryTitle = newCategory.trim() || "Pertemuan 1";
 
     const payload: Partial<QuizItem> = {
       question: newQuestion.trim(),
       options: validOptions,
       correctAnswer: correctIdx,
       explanation: newExplanation.trim(),
+      category: categoryTitle,
       meeting: meetingTitle,
       difficulty: newDifficulty,
       points: Number(newPoints) || 10,
@@ -355,14 +601,6 @@ export default function KuisPage() {
         statusBadge: "blue",
         icon: "fa-solid fa-circle-question text-syarat",
       });
-      addNotification({
-        title: "Bank Soal Kuis Diperbarui",
-        message: `Tersedia butir soal baru (${meetingTitle}) pada Kuis Evaluasi BISINDO.`,
-        type: "kuis",
-        targetRole: "all",
-        linkUrl: "/kuis",
-        sender: currentUser.name || "Mentor / Admin",
-      });
     }
 
     setEditingQuizId(null);
@@ -373,10 +611,14 @@ export default function KuisPage() {
   const filteredBankQuizzes = quizzes.filter((q) => {
     const matchMeeting =
       bankFilterMeeting === "Semua" ||
-      (q.meeting || "Umum").toLowerCase() === bankFilterMeeting.toLowerCase();
+      matchQuizCategory(q, bankFilterMeeting) ||
+      (q.meeting || "Umum").toLowerCase() === bankFilterMeeting.toLowerCase() ||
+      (q.category || "").toLowerCase() === bankFilterMeeting.toLowerCase();
     const matchSearch =
       bankSearch.trim() === "" ||
       q.question.toLowerCase().includes(bankSearch.toLowerCase()) ||
+      (q.meeting || "").toLowerCase().includes(bankSearch.toLowerCase()) ||
+      (q.category || "").toLowerCase().includes(bankSearch.toLowerCase()) ||
       q.options.some((opt) => opt.toLowerCase().includes(bankSearch.toLowerCase()));
     return matchMeeting && matchSearch;
   });
@@ -407,8 +649,28 @@ export default function KuisPage() {
 
               {isManager && (
                 <div className="flex items-center gap-2 flex-wrap">
+                  <div className="flex items-center bg-white dark:bg-slate-900 p-1 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                    <button
+                      onClick={() => setAllCategoriesLock(false)}
+                      title="Buka akses semua kuis pertemuan untuk peserta"
+                      className="px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 transition-all"
+                    >
+                      <i className="fa-solid fa-lock-open"></i>
+                      <span>Buka Semua</span>
+                    </button>
+                    <div className="w-px h-4 bg-slate-200 dark:bg-slate-700 mx-0.5"></div>
+                    <button
+                      onClick={() => setAllCategoriesLock(true)}
+                      title="Kunci seluruh kuis pertemuan untuk peserta"
+                      className="px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 text-rose-500 dark:text-rose-400 hover:bg-rose-500/10 transition-all"
+                    >
+                      <i className="fa-solid fa-lock"></i>
+                      <span>Kunci Semua</span>
+                    </button>
+                  </div>
+
                   <button
-                    onClick={openCreateModal}
+                    onClick={() => openCreateModal()}
                     className="btn-duotone px-4 py-2.5 rounded-2xl text-xs font-bold flex items-center gap-2 shadow-lg hover:scale-105 transition-all"
                   >
                     <i className="fa-solid fa-plus-circle"></i>
@@ -497,7 +759,7 @@ export default function KuisPage() {
 
                 {isManager && (
                   <button
-                    onClick={openCreateModal}
+                    onClick={() => openCreateModal()}
                     className="btn-duotone px-6 py-3 rounded-2xl text-xs font-bold inline-flex items-center gap-2 shadow-xl hover:scale-105 transition-all"
                   >
                     <i className="fa-solid fa-plus-circle text-base"></i>
@@ -506,49 +768,340 @@ export default function KuisPage() {
                 )}
               </div>
             ) : (
-              /* Quiz Cards Grid */
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div className="glass-card p-6 rounded-3xl space-y-4 border-2 border-transparent hover:border-syarat transition-all flex flex-col justify-between group shadow-lg">
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="px-2.5 py-0.5 rounded-full bg-syarat/10 text-syarat dark:text-syarat-light text-[10px] font-bold">
-                        Komprehensif • Supabase Cloud
-                      </span>
-                      <span className="text-[10px] font-bold text-green-500 bg-green-500/10 px-2 py-0.5 rounded-md">
-                        Aktif
-                      </span>
-                    </div>
-                    <h3 className="font-extrabold text-base group-hover:text-syarat transition-colors">
-                      Ujian Kuis Evaluasi Komprehensif BISINDO
-                    </h3>
-                    <p className="text-xs text-slate-500 leading-relaxed">
-                      Uji penguasaan kosakata isyarat, ekspresi wajah, alfabet jari, dan pemahaman etika komunikasi teman Tuli dengan kurikulum terpadu.
-                    </p>
-                  </div>
+              /* Quiz Categories Bar & Grid */
+              <div className="space-y-6">
+                {/* Category Filter Tab Bar */}
+                <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+                  <button
+                    onClick={() => setSelectedCategoryTab("all")}
+                    className={`px-4 py-2 rounded-2xl text-xs font-bold whitespace-nowrap transition-all border ${
+                      selectedCategoryTab === "all"
+                        ? "bg-syarat text-white border-syarat shadow-md"
+                        : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:border-syarat"
+                    }`}
+                  >
+                    <i className="fa-solid fa-layer-group mr-1.5"></i>
+                    Semua Kuis ({quizzes.length} Soal)
+                  </button>
 
-                  <div className="space-y-3 pt-3 border-t border-slate-200 dark:border-slate-800">
-                    <div className="flex justify-between text-xs text-slate-500 font-semibold">
-                      <span>
-                        <i className="fa-solid fa-clipboard-question mr-1 text-tigpad"></i>{" "}
-                        {quizzes.length} Soal Ujian ({totalQuizPoints} Poin)
-                      </span>
-                      <span>
-                        <i className="fa-regular fa-clock mr-1 text-syarat"></i> 15 Menit
-                      </span>
-                    </div>
-                    <button
-                      onClick={() => {
-                        setAnswers({});
-                        setValidationError(false);
-                        setOpenHints({});
-                        setScreen("start");
-                      }}
-                      className="btn-duotone w-full py-2.5 rounded-2xl text-xs font-bold flex items-center justify-center gap-2 shadow-md"
-                    >
-                      <i className="fa-solid fa-play"></i>
-                      <span>Mulai Ujian Evaluasi</span>
-                    </button>
-                  </div>
+                  {PERTEMUAN_LIST.map((p) => {
+                    const count = quizzes.filter((q) => matchQuizCategory(q, p.categoryKey)).length;
+                    const isSelected = selectedCategoryTab === p.categoryKey;
+                    return (
+                      <button
+                        key={p.id}
+                        onClick={() => setSelectedCategoryTab(p.categoryKey)}
+                        className={`px-3.5 py-2 rounded-2xl text-xs font-bold whitespace-nowrap transition-all border flex items-center gap-1.5 ${
+                          isSelected
+                            ? "bg-syarat text-white border-syarat shadow-md"
+                            : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:border-syarat"
+                        }`}
+                      >
+                        <i className={p.icon}></i>
+                        <span>{p.shortTitle}</span>
+                        <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-extrabold ${
+                          isSelected ? "bg-white/20 text-white" : "bg-slate-100 dark:bg-slate-800 text-slate-500"
+                        }`}>
+                          {count}
+                        </span>
+                      </button>
+                    );
+                  })}
+
+                  {customCategories.map((cName) => {
+                    const count = quizzes.filter((q) => (q.meeting || q.category) === cName).length;
+                    const isSelected = selectedCategoryTab === cName;
+                    return (
+                      <button
+                        key={cName}
+                        onClick={() => setSelectedCategoryTab(cName)}
+                        className={`px-3.5 py-2 rounded-2xl text-xs font-bold whitespace-nowrap transition-all border flex items-center gap-1.5 ${
+                          isSelected
+                            ? "bg-purple-600 text-white border-purple-600 shadow-md"
+                            : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:border-purple-500"
+                        }`}
+                      >
+                        <i className="fa-solid fa-shapes"></i>
+                        <span>{cName}</span>
+                        <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-extrabold ${
+                          isSelected ? "bg-white/20 text-white" : "bg-slate-100 dark:bg-slate-800 text-slate-500"
+                        }`}>
+                          {count}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Quiz Cards Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {/* Pertemuan 1 to 6 Quiz Cards */}
+                  {PERTEMUAN_LIST.filter(
+                    (p) => selectedCategoryTab === "all" || selectedCategoryTab === p.categoryKey
+                  ).map((p) => {
+                    const pQuestions = quizzes.filter((q) => matchQuizCategory(q, p.categoryKey));
+                    const pPoints = pQuestions.reduce((sum, q) => sum + (q.points || 10), 0);
+                    const pDuration = Math.min(30, Math.max(5, Math.ceil(pQuestions.length * 2.5)));
+                    const hasQuestions = pQuestions.length > 0;
+                    const isLocked = lockedCategories[p.categoryKey] ?? false;
+
+                    return (
+                      <div
+                        key={p.id}
+                        className={`glass-card p-6 rounded-3xl space-y-4 border-2 transition-all flex flex-col justify-between group shadow-lg ${
+                          isLocked
+                            ? "border-rose-500/25 bg-rose-500/[0.02]"
+                            : "border-transparent hover:border-syarat"
+                        }`}
+                      >
+                        <div className="space-y-3">
+                          <div className="flex justify-between items-center gap-2 flex-wrap">
+                            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border flex items-center gap-1.5 ${p.badgeColor}`}>
+                              <i className={p.icon}></i>
+                              {p.shortTitle}
+                            </span>
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              {/* Status Lock/Unlock Badge */}
+                              {isLocked ? (
+                                <span className="text-[10px] font-bold text-rose-500 bg-rose-500/10 px-2 py-0.5 rounded-md flex items-center gap-1 border border-rose-500/20">
+                                  <i className="fa-solid fa-lock"></i> Terkunci
+                                </span>
+                              ) : (
+                                <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md flex items-center gap-1 border border-emerald-500/20">
+                                  <i className="fa-solid fa-lock-open"></i> Terbuka
+                                </span>
+                              )}
+
+                              {hasQuestions ? (
+                                <span className="text-[10px] font-bold text-syarat bg-syarat/10 px-2 py-0.5 rounded-md flex items-center gap-1 border border-syarat/20">
+                                  <i className="fa-solid fa-circle-check"></i> {pQuestions.length} Soal
+                                </span>
+                              ) : (
+                                <span className="text-[10px] font-bold text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md flex items-center gap-1 border border-slate-200 dark:border-slate-700">
+                                  <i className="fa-solid fa-hourglass-start"></i> Menunggu Soal
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          <h3 className="font-extrabold text-base group-hover:text-syarat transition-colors">
+                            {p.title}
+                          </h3>
+                          <p className="text-xs text-slate-500 leading-relaxed">
+                            {p.description}
+                          </p>
+
+                          {/* Notice for participants when locked */}
+                          {isLocked && !isManager && (
+                            <div className="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-[11px] flex items-center gap-2">
+                              <i className="fa-solid fa-lock text-rose-500"></i>
+                              <span>Kuis ini sedang dikunci oleh mentor pengajar.</span>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="space-y-2.5 pt-3 border-t border-slate-200 dark:border-slate-800">
+                          <div className="flex justify-between text-xs text-slate-500 font-semibold">
+                            <span>
+                              <i className="fa-solid fa-clipboard-question mr-1 text-tigpad"></i>{" "}
+                              {pQuestions.length} Soal ({pPoints} Poin)
+                            </span>
+                            <span>
+                              <i className="fa-regular fa-clock mr-1 text-syarat"></i> {pDuration} Menit
+                            </span>
+                          </div>
+
+                          {/* Mentor / Admin Mode Buka & Kunci Action Toggle */}
+                          {isManager && (
+                            <button
+                              onClick={() => toggleCategoryLock(p.categoryKey)}
+                              className={`w-full py-1.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 border ${
+                                isLocked
+                                  ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20"
+                                  : "bg-rose-500/10 text-rose-500 border-rose-500/30 hover:bg-rose-500/20"
+                              }`}
+                              title={isLocked ? "Buka kuis ini agar peserta dapat mengerjakan" : "Kunci kuis ini agar peserta tidak dapat mengakses"}
+                            >
+                              <i className={`fa-solid ${isLocked ? "fa-lock-open" : "fa-lock"}`}></i>
+                              <span>{isLocked ? "Buka Akses Peserta (Mode Buka)" : "Kunci Kuis Peserta (Mode Kunci)"}</span>
+                            </button>
+                          )}
+
+                          {/* Quiz Action Button */}
+                          {!hasQuestions ? (
+                            <button
+                              disabled
+                              className="w-full py-2.5 rounded-2xl text-xs font-bold flex items-center justify-center gap-2 bg-slate-100 dark:bg-slate-800/60 text-slate-400 cursor-not-allowed border border-slate-200 dark:border-slate-700"
+                            >
+                              <i className="fa-solid fa-hourglass-start"></i>
+                              <span>Soal Belum Tersedia</span>
+                            </button>
+                          ) : isLocked && !isManager ? (
+                            <button
+                              disabled
+                              className="w-full py-2.5 rounded-2xl text-xs font-bold flex items-center justify-center gap-2 bg-rose-500/10 text-rose-500 cursor-not-allowed border border-rose-500/30 shadow-none"
+                            >
+                              <i className="fa-solid fa-lock"></i>
+                              <span>Kuis Sedang Dikunci Mentor</span>
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => startQuizForCategory(p.categoryKey, p.title, p.description)}
+                              className="btn-duotone w-full py-2.5 rounded-2xl text-xs font-bold flex items-center justify-center gap-2 shadow-md hover:scale-[1.02] transition-all"
+                            >
+                              <i className="fa-solid fa-play"></i>
+                              <span>
+                                {isManager && isLocked
+                                  ? `Preview Kuis ${p.shortTitle} (Mentor)`
+                                  : `Mulai Kuis ${p.shortTitle}`}
+                              </span>
+                            </button>
+                          )}
+
+                          {isManager && (
+                            <button
+                              onClick={() => openCreateModal(p.categoryKey)}
+                              className="w-full py-1.5 rounded-xl text-xs font-bold text-syarat hover:bg-syarat/10 transition-colors flex items-center justify-center gap-1.5 border border-dashed border-syarat/30"
+                            >
+                              <i className="fa-solid fa-plus-circle"></i>
+                              <span>+ Tambah Soal {p.shortTitle}</span>
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                  {/* Custom Category Cards */}
+                  {customCategories.filter(
+                    (cName) => selectedCategoryTab === "all" || selectedCategoryTab === cName
+                  ).map((cName) => {
+                    const cQuestions = quizzes.filter((q) => (q.meeting || q.category) === cName);
+                    const cPoints = cQuestions.reduce((sum, q) => sum + (q.points || 10), 0);
+                    const cDuration = Math.min(30, Math.max(5, Math.ceil(cQuestions.length * 2.5)));
+                    const hasQuestions = cQuestions.length > 0;
+                    const isLocked = lockedCategories[cName] ?? false;
+
+                    return (
+                      <div
+                        key={cName}
+                        className={`glass-card p-6 rounded-3xl space-y-4 border-2 transition-all flex flex-col justify-between group shadow-lg ${
+                          isLocked
+                            ? "border-rose-500/25 bg-rose-500/[0.02]"
+                            : "border-purple-500/20 hover:border-purple-500"
+                        }`}
+                      >
+                        <div className="space-y-3">
+                          <div className="flex justify-between items-center gap-2 flex-wrap">
+                            <span className="px-2.5 py-0.5 rounded-full bg-purple-500/10 text-purple-600 border border-purple-200 dark:border-purple-800 text-[10px] font-bold flex items-center gap-1.5">
+                              <i className="fa-solid fa-shapes"></i>
+                              Kategori Kustom
+                            </span>
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              {/* Status Lock/Unlock Badge */}
+                              {isLocked ? (
+                                <span className="text-[10px] font-bold text-rose-500 bg-rose-500/10 px-2 py-0.5 rounded-md flex items-center gap-1 border border-rose-500/20">
+                                  <i className="fa-solid fa-lock"></i> Terkunci
+                                </span>
+                              ) : (
+                                <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md flex items-center gap-1 border border-emerald-500/20">
+                                  <i className="fa-solid fa-lock-open"></i> Terbuka
+                                </span>
+                              )}
+
+                              <span className="text-[10px] font-bold text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-md flex items-center gap-1 border border-emerald-500/20">
+                                <i className="fa-solid fa-circle-check"></i> {cQuestions.length} Soal
+                              </span>
+                            </div>
+                          </div>
+
+                          <h3 className="font-extrabold text-base group-hover:text-purple-600 transition-colors">
+                            {cName}
+                          </h3>
+                          <p className="text-xs text-slate-500 leading-relaxed">
+                            Bank soal evaluasi mandiri topik {cName} terpadu.
+                          </p>
+
+                          {/* Notice for participants when locked */}
+                          {isLocked && !isManager && (
+                            <div className="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-[11px] flex items-center gap-2">
+                              <i className="fa-solid fa-lock text-rose-500"></i>
+                              <span>Kuis ini sedang dikunci oleh mentor pengajar.</span>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="space-y-2.5 pt-3 border-t border-slate-200 dark:border-slate-800">
+                          <div className="flex justify-between text-xs text-slate-500 font-semibold">
+                            <span>
+                              <i className="fa-solid fa-clipboard-question mr-1 text-tigpad"></i>{" "}
+                              {cQuestions.length} Soal ({cPoints} Poin)
+                            </span>
+                            <span>
+                              <i className="fa-regular fa-clock mr-1 text-syarat"></i> {cDuration} Menit
+                            </span>
+                          </div>
+
+                          {/* Mentor / Admin Mode Buka & Kunci Action Toggle */}
+                          {isManager && (
+                            <button
+                              onClick={() => toggleCategoryLock(cName)}
+                              className={`w-full py-1.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 border ${
+                                isLocked
+                                  ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20"
+                                  : "bg-rose-500/10 text-rose-500 border-rose-500/30 hover:bg-rose-500/20"
+                              }`}
+                              title={isLocked ? "Buka kuis ini agar peserta dapat mengerjakan" : "Kunci kuis ini agar peserta tidak dapat mengakses"}
+                            >
+                              <i className={`fa-solid ${isLocked ? "fa-lock-open" : "fa-lock"}`}></i>
+                              <span>{isLocked ? "Buka Akses Peserta (Mode Buka)" : "Kunci Kuis Peserta (Mode Kunci)"}</span>
+                            </button>
+                          )}
+
+                          {/* Quiz Action Button */}
+                          {!hasQuestions ? (
+                            <button
+                              disabled
+                              className="w-full py-2.5 rounded-2xl text-xs font-bold flex items-center justify-center gap-2 bg-slate-100 dark:bg-slate-800/60 text-slate-400 cursor-not-allowed border border-slate-200 dark:border-slate-700"
+                            >
+                              <i className="fa-solid fa-hourglass-start"></i>
+                              <span>Soal Belum Tersedia</span>
+                            </button>
+                          ) : isLocked && !isManager ? (
+                            <button
+                              disabled
+                              className="w-full py-2.5 rounded-2xl text-xs font-bold flex items-center justify-center gap-2 bg-rose-500/10 text-rose-500 cursor-not-allowed border border-rose-500/30 shadow-none"
+                            >
+                              <i className="fa-solid fa-lock"></i>
+                              <span>Kuis Sedang Dikunci Mentor</span>
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => startQuizForCategory(cName, `Kuis Evaluasi: ${cName}`, `Topik ${cName}`)}
+                              className="btn-duotone w-full py-2.5 rounded-2xl text-xs font-bold flex items-center justify-center gap-2 shadow-md hover:scale-[1.02] transition-all"
+                            >
+                              <i className="fa-solid fa-play"></i>
+                              <span>
+                                {isManager && isLocked
+                                  ? `Preview Kuis ${cName} (Mentor)`
+                                  : `Mulai Kuis ${cName}`}
+                              </span>
+                            </button>
+                          )}
+
+                          {isManager && (
+                            <button
+                              onClick={() => openCreateModal(cName)}
+                              className="w-full py-1.5 rounded-xl text-xs font-bold text-purple-600 hover:bg-purple-500/10 transition-colors flex items-center justify-center gap-1.5 border border-dashed border-purple-500/30"
+                            >
+                              <i className="fa-solid fa-plus-circle"></i>
+                              <span>+ Tambah Soal Topik Ini</span>
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -567,11 +1120,16 @@ export default function KuisPage() {
                 Evaluasi Pembelajaran Resmi
               </span>
               <h1 className="text-2xl sm:text-3xl font-black">
-                Ujian Kuis Evaluasi Komprehensif BISINDO
+                {activeQuizTitle}
               </h1>
               <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-                Terdapat <strong>{quizzes.length} butir soal</strong> ({totalQuizPoints} poin maksimal) yang bersumber langsung dari bank soal resmi database cloud.
+                Terdapat <strong>{currentQuizQuestions.length} butir soal</strong> ({currentQuizQuestions.reduce((sum, q) => sum + (q.points || 10), 0)} poin maksimal) yang bersumber langsung dari bank soal resmi database cloud.
               </p>
+              {activeQuizSubtitle && (
+                <p className="text-xs text-slate-400 font-medium">
+                  {activeQuizSubtitle}
+                </p>
+              )}
             </div>
 
             {/* Instructions Box */}
@@ -583,13 +1141,13 @@ export default function KuisPage() {
                 <li className="flex items-start gap-2">
                   <i className="fa-solid fa-stopwatch text-tigpad mt-0.5"></i>
                   <span>
-                    <strong>Timer Otomatis:</strong> Durasi pengerjaan adalah 15 Menit. Jawaban akan tersimpan otomatis saat waktu habis.
+                    <strong>Timer Otomatis:</strong> Durasi pengerjaan adalah {Math.floor(timeLeft / 60)} Menit. Jawaban akan tersimpan otomatis saat waktu habis.
                   </span>
                 </li>
                 <li className="flex items-start gap-2">
                   <i className="fa-solid fa-award text-amber-500 mt-0.5"></i>
                   <span>
-                    <strong>Kelulusan Sertifikat:</strong> Dapatkan minimal nilai 70 poin untuk memenuhi syarat penerbitan sertifikat resmi BISINDO.
+                    <strong>Kelulusan Sertifikat:</strong> Dapatkan minimal nilai 70 poin untuk memenuhi syarat evaluasi kompetensi BISINDO.
                   </span>
                 </li>
                 <li className="flex items-start gap-2">
@@ -616,13 +1174,12 @@ export default function KuisPage() {
               </button>
               <button
                 onClick={() => {
-                  setTimeLeft(15 * 60);
                   setScreen("active");
                 }}
                 className="btn-duotone flex-1 py-3 rounded-2xl font-bold text-sm shadow-xl flex items-center justify-center gap-2"
               >
                 <i className="fa-solid fa-play"></i>
-                <span>Saya Siap • Mulai Ujian Sekarang</span>
+                <span>Saya Siap • Mulai Kuis Sekarang</span>
               </button>
             </div>
           </div>
@@ -641,10 +1198,20 @@ export default function KuisPage() {
                   <span className="px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold border border-emerald-500/30 flex items-center gap-1.5 shadow-sm">
                     <i className="fa-solid fa-shield-halved"></i> Mode Ujian Aktif
                   </span>
+                  {activeCategory && (
+                    <span className="px-2.5 py-1 rounded-full bg-tigpad/15 text-tigpad text-[10px] font-bold border border-tigpad/30">
+                      {activeCategory}
+                    </span>
+                  )}
                 </div>
                 <h1 className="text-xl font-black mt-1">
-                  Ujian Kuis Evaluasi Komprehensif BISINDO
+                  {activeQuizTitle}
                 </h1>
+                {activeQuizSubtitle && (
+                  <p className="text-xs text-slate-500 font-medium">
+                    {activeQuizSubtitle}
+                  </p>
+                )}
               </div>
 
               {/* Quiz Countdown Timer */}
@@ -668,7 +1235,7 @@ export default function KuisPage() {
                   <div className="flex justify-between text-xs font-bold">
                     <span>Progress Jawaban Terisi</span>
                     <span className="text-tigpad">
-                      {answeredCount} / {quizzes.length} Soal ({progressPercent}%)
+                      {answeredCount} / {currentQuizQuestions.length} Soal ({progressPercent}%)
                     </span>
                   </div>
                   <div className="w-full bg-slate-200 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden">
@@ -687,7 +1254,7 @@ export default function KuisPage() {
                 )}
 
                 <div className="space-y-8">
-                  {quizzes.map((q, qIndex) => {
+                  {currentQuizQuestions.map((q, qIndex) => {
                     const optionLabels = ["A", "B", "C", "D", "E"];
                     const questionPoints = q.points || 10;
                     const isHintOpen = openHints[q.id];
@@ -839,7 +1406,7 @@ export default function KuisPage() {
                     <span>Navigasi Butir Soal</span>
                   </h3>
                   <div className="grid grid-cols-4 gap-2">
-                    {quizzes.map((q, idx) => {
+                    {currentQuizQuestions.map((q, idx) => {
                       const isFilled = q.type === "essai"
                         ? (essayAnswers[q.id] || "").trim().length > 0
                         : answers[q.id] !== undefined;
@@ -866,7 +1433,7 @@ export default function KuisPage() {
                     </div>
                     <div className="flex justify-between">
                       <span>Belum dijawab:</span>
-                      <strong className="text-amber-500">{quizzes.length - answeredCount} soal</strong>
+                      <strong className="text-amber-500">{currentQuizQuestions.length - answeredCount} soal</strong>
                     </div>
                   </div>
 
@@ -895,7 +1462,7 @@ export default function KuisPage() {
                 <span className="px-3 py-1 rounded-full bg-green-500/15 text-green-600 dark:text-green-400 text-xs font-bold">
                   Ujian Kuis Selesai
                 </span>
-                <h2 className="text-2xl sm:text-3xl font-black">Hasil Evaluasi Kuis BISINDO</h2>
+                <h2 className="text-2xl sm:text-3xl font-black">Hasil Evaluasi: {activeQuizTitle}</h2>
                 <div className="text-5xl font-black text-syarat dark:text-syarat-light pt-2">
                   {finalScore} / 100
                 </div>
@@ -903,7 +1470,7 @@ export default function KuisPage() {
                   <span>Poin Diperoleh: <strong>{earnedPoints} / {totalPossiblePoints} Pts</strong></span>
                   <span>•</span>
                   <span>
-                    Benar: <strong>{quizzes.filter((q) => answers[q.id] === q.correctAnswer).length} / {quizzes.length} Soal</strong>
+                    Benar: <strong>{currentQuizQuestions.filter((q) => q.type === "essai" ? (essayAnswers[q.id] || "").trim().length > 0 : answers[q.id] === q.correctAnswer).length} / {currentQuizQuestions.length} Soal</strong>
                   </span>
                 </div>
                 <p className="text-xs text-slate-500 max-w-md mx-auto pt-2 leading-relaxed">
@@ -956,12 +1523,12 @@ export default function KuisPage() {
                     <span>Pembahasan Soal & Kunci Jawaban</span>
                   </h3>
                   <span className="text-xs text-slate-500 font-semibold">
-                    {quizzes.length} Butir Soal Dievaluasi
+                    {currentQuizQuestions.length} Butir Soal Dievaluasi
                   </span>
                 </div>
 
                 <div className="space-y-4">
-                  {quizzes.map((q, idx) => {
+                  {currentQuizQuestions.map((q, idx) => {
                     const isEssay = q.type === "essai";
                     const userAnswerIdx = answers[q.id];
                     const isCorrect = isEssay
@@ -1170,6 +1737,55 @@ export default function KuisPage() {
                       >
                         <i className="fa-solid fa-pen-fancy"></i>
                         <span>Soal Essai / Uraian</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Kategori Pertemuan Kuis (Pertemuan 1 - 6 atau Kustom) */}
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                      Kategori Pertemuan Kuis <span className="text-red-500">*</span>
+                    </label>
+                    <div className="flex flex-wrap gap-1.5 mb-1.5">
+                      {PERTEMUAN_LIST.map((p) => {
+                        const isSelected = newCategory === p.categoryKey;
+                        return (
+                          <button
+                            key={p.id}
+                            type="button"
+                            onClick={() => {
+                              setNewCategory(p.categoryKey);
+                              if (!newMeeting || PERTEMUAN_LIST.some((item) => item.title === newMeeting || item.categoryKey === newMeeting)) {
+                                setNewMeeting(p.title);
+                              }
+                            }}
+                            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-1.5 ${
+                              isSelected
+                                ? "bg-syarat text-white border-syarat shadow-sm"
+                                : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-syarat"
+                            }`}
+                          >
+                            <i className={p.icon}></i>
+                            <span>{p.shortTitle}</span>
+                          </button>
+                        );
+                      })}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setNewCategory("Kustom");
+                          if (PERTEMUAN_LIST.some((item) => item.title === newMeeting)) {
+                            setNewMeeting("");
+                          }
+                        }}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-1.5 ${
+                          newCategory === "Kustom"
+                            ? "bg-purple-600 text-white border-purple-700 shadow-sm"
+                            : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-purple-500"
+                        }`}
+                      >
+                        <i className="fa-solid fa-shapes"></i>
+                        <span>Kustom / Lainnya</span>
                       </button>
                     </div>
                   </div>
@@ -1545,12 +2161,19 @@ export default function KuisPage() {
                 onChange={(e) => setBankFilterMeeting(e.target.value)}
                 className="px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-semibold"
               >
-                <option value="Semua">Semua Pertemuan / Topik</option>
-                {distinctMeetings.map((m) => (
-                  <option key={m} value={m}>
-                    {m}
+                <option value="Semua">Semua Kategori & Pertemuan</option>
+                {PERTEMUAN_LIST.map((p) => (
+                  <option key={p.id} value={p.categoryKey}>
+                    {p.shortTitle}: {p.topic}
                   </option>
                 ))}
+                {distinctMeetings
+                  .filter((m) => !PERTEMUAN_LIST.some((p) => p.categoryKey.toLowerCase() === m.toLowerCase() || p.title.toLowerCase() === m.toLowerCase()))
+                  .map((m) => (
+                    <option key={m} value={m}>
+                      {m}
+                    </option>
+                  ))}
               </select>
             </div>
 

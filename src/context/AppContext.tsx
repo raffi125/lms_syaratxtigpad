@@ -71,6 +71,7 @@ interface AppContextType {
     linkUrl?: string;
     sender?: string;
   }) => void;
+  updateNotification: (id: number, notif: Partial<NotificationItem>) => void;
   markNotificationAsRead: (id: number) => void;
   markAllNotificationsAsRead: () => void;
   deleteNotification: (id: number) => void;
@@ -199,10 +200,30 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [quizzes, setQuizzes] = useState<QuizItem[]>([]);
   const [certificates, setCertificates] = useState<CertificateItem[]>(INITIAL_CERTIFICATES);
   const [zoomData, setZoomData] = useState<ZoomData>(INITIAL_ZOOM_DATA);
-  const [notifications, setNotifications] = useState<NotificationItem[]>(DEFAULT_NOTIFICATIONS);
+  const [notifications, setNotifications] = useState<NotificationItem[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem("kolab_lms_notifications");
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed)) return parsed;
+        }
+      } catch (e) {}
+    }
+    return DEFAULT_NOTIFICATIONS;
+  });
   const [activities, setActivities] = useState<LearningActivity[]>([]);
   const [toast, setToast] = useState<ToastState>({ show: false, message: "", type: "info" });
   const [isSupabaseActive, setIsSupabaseActive] = useState<boolean>(false);
+
+  // Sync notifications to localStorage
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem("kolab_lms_notifications", JSON.stringify(notifications));
+      } catch (e) {}
+    }
+  }, [notifications]);
 
 
   const getFormattedDate = () => {
@@ -274,7 +295,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setQuizzes(
         (dbQuizzes || []).map((q: DBQuiz) => {
           let text = q.explanation || "";
-          let category = "Dasar & Budaya";
+          let category = "Pertemuan 1";
           let meeting = "Pertemuan 1";
           let difficulty: "mudah" | "sedang" | "sulit" = "sedang";
           let points = 10;
@@ -286,8 +307,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             try {
               const parsed = JSON.parse(q.explanation);
               text = parsed.text || "";
-              category = parsed.category || category;
-              meeting = parsed.meeting || meeting;
+              category = parsed.category && parsed.category !== "Dasar & Budaya" ? parsed.category : (parsed.meeting || "Pertemuan 1");
+              meeting = parsed.meeting || parsed.category || "Pertemuan 1";
               difficulty = parsed.difficulty || difficulty;
               points = parsed.points ?? points;
               imageUrl = parsed.imageUrl || "";
@@ -605,6 +626,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     };
 
     setNotifications((prev) => [newItem, ...prev]);
+  };
+
+  const updateNotification = (id: number, updated: Partial<NotificationItem>) => {
+    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, ...updated } : n)));
+    showToast("Notifikasi berhasil diperbarui!", "success");
   };
 
   const markNotificationAsRead = (id: number) => {
@@ -927,15 +953,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     };
     setModules((prev) => [...prev, item]);
 
-    addNotification({
-      title: `Modul Pembelajaran Baru: ${item.title}`,
-      message: `Modul baru kategori ${item.category} telah ditambahkan ke kurikulum pembelajaran.`,
-      type: "modul",
-      targetRole: "all",
-      linkUrl: "/modul",
-      sender: item.mentor || "Admin LMS",
-    });
-
     if (isSupabaseConfigured()) {
       const created = await SupabaseService.addModule({
         title: item.title,
@@ -1134,15 +1151,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       sessions: [newSession, ...(prev.sessions || [])],
     }));
 
-    addNotification({
-      title: `Jadwal Baru Sesi Zoom: ${newSession.title}`,
-      message: `Sesi tatap muka daring baru telah dijadwalkan pada ${newSession.date}. Host: ${newSession.host}.`,
-      type: "zoom",
-      targetRole: "all",
-      linkUrl: "/zoom",
-      sender: newSession.host,
-    });
-
     if (isSupabaseConfigured()) {
       const created = await SupabaseService.addZoomSession({
         title: newSession.title,
@@ -1230,8 +1238,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const qType = quizData.type || "pilihan_ganda";
     const metaPayload = JSON.stringify({
       text: rawExplanation,
-      category: quizData.category || "Dasar & Budaya",
-      meeting: quizData.meeting || "Pertemuan 1",
+      category: quizData.category || quizData.meeting || "Pertemuan 1",
+      meeting: quizData.meeting || quizData.category || "Pertemuan 1",
       difficulty: quizData.difficulty || "sedang",
       points: quizData.points ?? 10,
       imageUrl: quizData.imageUrl || "",
@@ -1245,8 +1253,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       options: qType === "essai" ? [] : (quizData.options || ["Pilihan A", "Pilihan B", "Pilihan C", "Pilihan D"]),
       correctAnswer: quizData.correctAnswer ?? 0,
       explanation: rawExplanation,
-      category: quizData.category || "Dasar & Budaya",
-      meeting: quizData.meeting || "Pertemuan 1",
+      category: quizData.category || quizData.meeting || "Pertemuan 1",
+      meeting: quizData.meeting || quizData.category || "Pertemuan 1",
       difficulty: quizData.difficulty || "sedang",
       points: quizData.points ?? 10,
       imageUrl: quizData.imageUrl || "",
@@ -1271,8 +1279,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const updateQuiz = async (id: number, updated: Partial<QuizItem>) => {
     const existing = quizzes.find((q) => q.id === id);
-    const category = updated.category ?? existing?.category ?? "Dasar & Budaya";
-    const meeting = updated.meeting ?? existing?.meeting ?? "Pertemuan 1";
+    const category = updated.category ?? existing?.category ?? updated.meeting ?? existing?.meeting ?? "Pertemuan 1";
+    const meeting = updated.meeting ?? existing?.meeting ?? category;
     const difficulty = updated.difficulty ?? existing?.difficulty ?? "sedang";
     const points = updated.points ?? existing?.points ?? 10;
     const imageUrl = updated.imageUrl ?? existing?.imageUrl ?? "";
@@ -1364,29 +1372,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
     const target = certificates.find((c) => c.id === id) || users.find((u) => u.id === id);
     const targetName = target?.name || "Peserta";
-    const targetUserId = target?.user_id || target?.npm || "";
-    const targetId = target?.id || id;
-
-    // 1. Notifikasi Personal Langsung untuk Peserta Penerima
-    addNotification({
-      title: "🎉 Selamat! Sertifikat Resmi Anda Telah Diterbitkan",
-      message: `Halo ${targetName}, berkas sertifikat resmi kelulusan BISINDO Anda (${finalFileName}) telah berhasil diverifikasi dan diterbitkan oleh Tim Pengajar. Buka menu Sertifikat untuk melihat dan mengunduh berkas.`,
-      type: "sertifikat",
-      targetRole: "peserta",
-      userId: targetId,
-      linkUrl: "/sertifikat",
-      sender: "Tim Mentor BISINDO",
-    });
-
-    // 2. Notifikasi Pengumuman untuk Mentor & Admin
-    addNotification({
-      title: `Sertifikat Berhasil Diterbitkan: ${targetName}`,
-      message: `Berkas (${finalFileName}) untuk ${targetName} (User ID: ${targetUserId}) telah diterbitkan dan dikirim ke akun peserta.`,
-      type: "sertifikat",
-      targetRole: "mentor",
-      linkUrl: "/sertifikat",
-      sender: currentRole === "admin" ? "Administrator" : "Mentor",
-    });
 
     logActivity({
       title: `Sertifikat Resmi Diterbitkan: ${targetName}`,
@@ -1441,18 +1426,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
     const target = certificates.find((c) => c.id === id) || users.find((u) => u.id === id);
     const targetName = target?.name || "Peserta";
-    const targetId = target?.id || id;
-
-    // Notifikasi Personal untuk Peserta bahwa sertifikat dibatalkan
-    addNotification({
-      title: "Pemberitahuan: Status Sertifikat Dibatalkan",
-      message: `Halo ${targetName}, penerbitan sertifikat kelulusan Anda telah dibatalkan oleh mentor untuk evaluasi berkas kembali.`,
-      type: "warning",
-      targetRole: "peserta",
-      userId: targetId,
-      linkUrl: "/sertifikat",
-      sender: "Tim Mentor BISINDO",
-    });
 
     logActivity({
       title: `Sertifikat Dibatalkan: ${targetName}`,
@@ -1606,6 +1579,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         notifications,
         unreadNotifCount,
         addNotification,
+        updateNotification,
         markNotificationAsRead,
         markAllNotificationsAsRead,
         deleteNotification,
