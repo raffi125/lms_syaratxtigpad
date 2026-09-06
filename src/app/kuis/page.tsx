@@ -118,9 +118,29 @@ export default function KuisPage() {
     updateProfile,
     showToast,
     logActivity,
+    refreshFromSupabase,
   } = useApp();
 
   const isManager = currentRole === "mentor" || currentRole === "admin";
+
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  // Auto-sync bank soal dari cloud Supabase saat halaman dibuka
+  useEffect(() => {
+    refreshFromSupabase().catch(() => {});
+  }, []);
+
+  const handleManualSync = async () => {
+    setIsSyncing(true);
+    try {
+      await refreshFromSupabase();
+      showToast("Data soal kuis berhasil disinkronkan langsung dari cloud database!", "success");
+    } catch {
+      showToast("Gagal menyinkronkan data soal.", "error");
+    } finally {
+      setIsSyncing(false);
+    }
+  };
 
   // Navigation / Quiz flow screens
   const [screen, setScreen] = useState<"list" | "start" | "active" | "completed">("list");
@@ -367,15 +387,13 @@ export default function KuisPage() {
     let totalEarned = 0;
     let correctCount = 0;
 
+    const hasEssays = currentQuizQuestions.some((q) => q.type === "essai");
+
     currentQuizQuestions.forEach((q) => {
       const qPts = q.points && q.points > 0 ? q.points : 10;
       totalPossible += qPts;
       if (q.type === "essai") {
-        const text = (essayAnswers[q.id] || "").trim();
-        if (text.length > 0) {
-          totalEarned += qPts;
-          correctCount++;
-        }
+        // Soal essai dinilai manual oleh mentor di menu Jawaban Kuis Peserta
       } else {
         if (answers[q.id] === q.correctAnswer) {
           totalEarned += qPts;
@@ -395,19 +413,21 @@ export default function KuisPage() {
 
     logActivity({
       title: `Menyelesaikan ${quizLabel}`,
-      description: `${activeQuizTitle} selesai dengan perolehan skor ${calculated}/100 (${correctCount}/${currentQuizQuestions.length} soal tuntas, ${totalEarned}/${totalPossible} poin)`,
+      description: hasEssays
+        ? `${activeQuizTitle} selesai dikumpulkan (${currentQuizQuestions.length} butir soal, nilai PG sementara: ${calculated}/100). Menunggu penilaian jawaban essai oleh mentor.`
+        : `${activeQuizTitle} selesai dengan perolehan skor ${calculated}/100 (${correctCount}/${currentQuizQuestions.length} soal tuntas, ${totalEarned}/${totalPossible} poin)`,
       category: "kuis",
-      statusText: calculated >= 70 ? `Lulus (${calculated})` : `Remedial (${calculated})`,
-      statusBadge: calculated >= 70 ? "green" : "amber",
+      statusText: hasEssays ? "Menunggu Penilaian" : (calculated >= 70 ? `Lulus (${calculated})` : `Remedial (${calculated})`),
+      statusBadge: hasEssays ? "amber" : (calculated >= 70 ? "green" : "amber"),
       icon: "fa-solid fa-stopwatch-20 text-tigpad",
     });
 
-    // Save answer detail to cloud so admin/mentor can review
+    // Save answer detail to cloud so admin/mentor can review and grade
     const answerRecords: QuizAnswerRecord[] = currentQuizQuestions.map((q) => {
       const isEssay = q.type === "essai";
       const userAnswerIdx = isEssay ? -1 : (answers[q.id] ?? -1);
       const essayText = (essayAnswers[q.id] || "").trim();
-      const isCorrect = isEssay ? essayText.length > 0 : (userAnswerIdx === q.correctAnswer);
+      const isCorrect = isEssay ? false : (userAnswerIdx === q.correctAnswer);
       const qPts = q.points && q.points > 0 ? q.points : 10;
 
       return {
@@ -418,10 +438,12 @@ export default function KuisPage() {
         userAnswerIndex: userAnswerIdx,
         userAnswerText: isEssay ? (essayText || "(tidak dijawab)") : (userAnswerIdx >= 0 ? q.options[userAnswerIdx] : "(tidak dijawab)"),
         correctAnswerIndex: isEssay ? -1 : q.correctAnswer,
-        correctAnswerText: isEssay ? (q.explanation || "Jawaban panduan essai") : (q.options[q.correctAnswer] ?? ""),
+        correctAnswerText: isEssay ? "" : (q.options[q.correctAnswer] ?? ""),
         isCorrect,
         points: qPts,
-        explanation: q.explanation,
+        earnedPoints: isEssay ? 0 : (isCorrect ? qPts : 0),
+        isGraded: !isEssay,
+        explanation: isEssay ? "" : q.explanation,
         hint: q.hint || "",
         type: q.type || "pilihan_ganda",
       };
@@ -445,10 +467,17 @@ export default function KuisPage() {
       }),
     }).catch(() => {}); // ponytail: fire-and-forget, no blocking the UX
 
-    showToast(
-      `${quizLabel} selesai! Nilai Anda: ${calculated}/100`,
-      calculated >= 70 ? "success" : "warning"
-    );
+    if (hasEssays) {
+      showToast(
+        `${quizLabel} berhasil dikumpulkan! Soal essai akan dinilai manual oleh mentor.`,
+        "info"
+      );
+    } else {
+      showToast(
+        `${quizLabel} selesai! Nilai Anda: ${calculated}/100`,
+        calculated >= 70 ? "success" : "warning"
+      );
+    }
   };
 
 
@@ -569,7 +598,7 @@ export default function KuisPage() {
       question: newQuestion.trim(),
       options: validOptions,
       correctAnswer: correctIdx,
-      explanation: newExplanation.trim(),
+      explanation: isEssay ? "" : newExplanation.trim(),
       category: categoryTitle,
       meeting: meetingTitle,
       difficulty: newDifficulty,
@@ -685,6 +714,16 @@ export default function KuisPage() {
                       <span>Kelola Bank Soal ({quizzes.length})</span>
                     </button>
                   )}
+
+                  <button
+                    onClick={handleManualSync}
+                    disabled={isSyncing}
+                    className="px-3.5 py-2.5 rounded-2xl glass-card text-xs font-bold flex items-center gap-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all border border-slate-200 dark:border-slate-800 shadow-sm"
+                    title="Muat ulang soal terbaru langsung dari database Supabase cloud"
+                  >
+                    <i className={`fa-solid fa-arrows-rotate text-syarat ${isSyncing ? "fa-spin" : ""}`}></i>
+                    <span>{isSyncing ? "Menyinkronkan..." : "Sinkron DB"}</span>
+                  </button>
                 </div>
               )}
             </div>
@@ -1470,9 +1509,22 @@ export default function KuisPage() {
                   <span>Poin Diperoleh: <strong>{earnedPoints} / {totalPossiblePoints} Pts</strong></span>
                   <span>•</span>
                   <span>
-                    Benar: <strong>{currentQuizQuestions.filter((q) => q.type === "essai" ? (essayAnswers[q.id] || "").trim().length > 0 : answers[q.id] === q.correctAnswer).length} / {currentQuizQuestions.length} Soal</strong>
+                    Benar: <strong>{currentQuizQuestions.filter((q) => q.type !== "essai" && answers[q.id] === q.correctAnswer).length} / {currentQuizQuestions.filter((q) => q.type !== "essai").length || currentQuizQuestions.length} PG</strong>
                   </span>
                 </div>
+
+                {currentQuizQuestions.some((q) => q.type === "essai") && (
+                  <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-800 dark:text-amber-300 text-xs text-left flex items-start gap-3 max-w-lg mx-auto">
+                    <i className="fa-solid fa-clock text-amber-500 text-lg shrink-0 mt-0.5"></i>
+                    <div className="space-y-0.5">
+                      <p className="font-bold">Menunggu Penilaian Essai oleh Mentor</p>
+                      <p className="text-[11px] opacity-90 leading-relaxed">
+                        Nilai di atas merupakan nilai sementara dari soal pilihan ganda. Nilai akhir kuis akan diperbarui otomatis setelah mentor selesai mengoreksi dan menginput nilai essai Anda.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
                 <p className="text-xs text-slate-500 max-w-md mx-auto pt-2 leading-relaxed">
                   Status:{" "}
                   <strong className={finalScore >= 70 ? "text-green-500" : "text-amber-500"}>
@@ -1532,7 +1584,7 @@ export default function KuisPage() {
                     const isEssay = q.type === "essai";
                     const userAnswerIdx = answers[q.id];
                     const isCorrect = isEssay
-                      ? (essayAnswers[q.id] || "").trim().length > 0
+                      ? false
                       : userAnswerIdx === q.correctAnswer;
                     const optionLabels = ["A", "B", "C", "D", "E"];
 
@@ -1540,7 +1592,11 @@ export default function KuisPage() {
                       <div
                         key={q.id}
                         className={`glass-card p-5 sm:p-6 rounded-3xl space-y-4 border-2 ${
-                          isCorrect ? "border-emerald-500/30" : "border-rose-500/30"
+                          isEssay
+                            ? "border-purple-500/30 bg-purple-500/5"
+                            : isCorrect
+                            ? "border-emerald-500/30"
+                            : "border-rose-500/30"
                         }`}
                       >
                         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
@@ -1559,18 +1615,23 @@ export default function KuisPage() {
                               {q.meeting || "Umum"}
                             </span>
                           </div>
-                          <span
-                            className={`px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 ${
-                              isCorrect
-                                ? "bg-emerald-500/15 text-emerald-600"
-                                : "bg-rose-500/15 text-rose-600"
-                            }`}
-                          >
-                            <i className={`fa-solid ${isCorrect ? "fa-check" : "fa-xmark"}`}></i>
-                            {isEssay
-                              ? (isCorrect ? "Essai Terjawab" : "Belum Dijawab")
-                              : (isCorrect ? "Jawaban Benar" : "Jawaban Salah")}
-                          </span>
+                          {isEssay ? (
+                            <span className="px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 bg-amber-500/15 text-amber-600 dark:text-amber-400">
+                              <i className="fa-solid fa-clock"></i>
+                              Menunggu Penilaian Mentor
+                            </span>
+                          ) : (
+                            <span
+                              className={`px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 ${
+                                isCorrect
+                                  ? "bg-emerald-500/15 text-emerald-600"
+                                  : "bg-rose-500/15 text-rose-600"
+                              }`}
+                            >
+                              <i className={`fa-solid ${isCorrect ? "fa-check" : "fa-xmark"}`}></i>
+                              {isCorrect ? "Jawaban Benar" : "Jawaban Salah"}
+                            </span>
+                          )}
                         </div>
 
                         <h4 className="font-bold text-sm text-slate-800 dark:text-slate-100">
@@ -1593,17 +1654,15 @@ export default function KuisPage() {
                                 {essayAnswers[q.id]?.trim() || "(tidak ada jawaban)"}
                               </p>
                             </div>
-                            {q.explanation && (
-                              <div className="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/50 space-y-1">
-                                <div className="font-bold text-emerald-700 dark:text-emerald-300 uppercase text-[10px] flex items-center gap-1.5">
-                                  <i className="fa-solid fa-clipboard-check"></i>
-                                  <span>Panduan Kunci / Rubrik Acuan Jawaban:</span>
-                                </div>
-                                <p className="text-emerald-900 dark:text-emerald-100 leading-relaxed whitespace-pre-wrap">
-                                  {q.explanation}
-                                </p>
+                            <div className="p-3.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800/50 space-y-1 text-[11px] text-indigo-800 dark:text-indigo-300 flex items-start gap-2.5">
+                              <i className="fa-solid fa-user-pen text-indigo-500 mt-0.5 text-xs"></i>
+                              <div>
+                                <span className="font-bold block">Dinilai Manual oleh Mentor</span>
+                                <span className="opacity-90 leading-relaxed">
+                                  Soal uraian/essai ini tidak menggunakan kunci jawaban otomatis. Mentor/Admin akan membaca jawaban Anda dan menginput nilai secara manual di sistem.
+                                </span>
                               </div>
-                            )}
+                            </div>
                             {q.hint && (
                               <div className="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 text-[11px] text-amber-800 dark:text-amber-200 flex items-center gap-2">
                                 <i className="fa-solid fa-lightbulb text-amber-500"></i>
@@ -1982,23 +2041,20 @@ export default function KuisPage() {
                 )}
               </div>
 
-              {/* SECTION 4: PILIHAN JAWABAN DINAMIS (PILIHAN GANDA) ATAU RUBRIK ESSAI */}
+              {/* SECTION 4: PILIHAN JAWABAN DINAMIS (PILIHAN GANDA) ATAU INFO ESSAI */}
               {newType === "essai" ? (
-                <div className="p-4 rounded-2xl bg-purple-500/5 border border-purple-500/20 space-y-2">
-                  <div className="font-bold text-purple-700 dark:text-purple-300 flex items-center gap-1.5 text-xs">
-                    <i className="fa-solid fa-clipboard-check"></i>
-                    <span>Kunci / Rubrik Acuan Jawaban Essai (Untuk Penilaian)</span>
+                <div className="p-4 rounded-2xl bg-purple-500/10 border border-purple-500/25 space-y-2 text-xs">
+                  <div className="font-bold text-purple-700 dark:text-purple-300 flex items-center gap-2 text-xs">
+                    <i className="fa-solid fa-pen-nib"></i>
+                    <span>Tipe Soal: Uraian / Essai Terbuka</span>
                   </div>
-                  <p className="text-[11px] text-slate-500 leading-relaxed">
-                    Tuliskan standar atau poin-poin kunci jawaban yang benar. <strong className="text-purple-700 dark:text-purple-300">Catatan:</strong> Kunci ini dirahasiakan dari peserta selama ujian dan hanya ditampilkan pada laporan penilaian / review mentor setelah ujian dikumpulkan.
+                  <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
+                    Soal essai <strong>tidak memerlukan kunci jawaban</strong>. Peserta akan mengetik uraian jawaban pada lembar ujian. Setelah ujian dikumpulkan, Mentor/Admin dapat langsung menilai dan memasukkan skor poin (input nilai) pada menu <strong>Jawaban Kuis Peserta</strong>.
                   </p>
-                  <textarea
-                    rows={3}
-                    value={newExplanation}
-                    onChange={(e) => setNewExplanation(e.target.value)}
-                    placeholder="Contoh acuan: Peserta wajib menguraikan 3 aspek gestur BISINDO, yaitu bentuk tangan (handshape), lokasi (location), dan orientasi telapak tangan..."
-                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-semibold leading-relaxed"
-                  />
+                  <div className="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-purple-500/20 text-[11px] text-purple-700 dark:text-purple-300 flex items-center gap-2">
+                    <i className="fa-solid fa-info-circle"></i>
+                    <span>Poin maksimal soal ini ({newPoints} Pts) akan menjadi batas tertinggi nilai yang dapat diinput mentor.</span>
+                  </div>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -2135,12 +2191,24 @@ export default function KuisPage() {
                   Data soal bersumber langsung dari tabel Supabase cloud resmi. Anda dapat mengedit atau menghapus butir soal.
                 </p>
               </div>
-              <button
-                onClick={() => setManageModalOpen(false)}
-                className="p-1 text-slate-400 hover:text-red-500 transition-colors"
-              >
-                <i className="fa-solid fa-xmark text-lg"></i>
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleManualSync}
+                  disabled={isSyncing}
+                  className="px-3 py-1.5 rounded-xl glass-card text-xs font-bold flex items-center gap-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all border border-slate-200 dark:border-slate-800 shadow-sm"
+                  title="Sinkronkan data soal langsung dari Supabase"
+                >
+                  <i className={`fa-solid fa-arrows-rotate text-syarat ${isSyncing ? "fa-spin" : ""}`}></i>
+                  <span>{isSyncing ? "Menyinkronkan..." : "Sinkron DB"}</span>
+                </button>
+                <button
+                  onClick={() => setManageModalOpen(false)}
+                  className="p-1 text-slate-400 hover:text-red-500 transition-colors"
+                >
+                  <i className="fa-solid fa-xmark text-lg"></i>
+                </button>
+              </div>
             </div>
 
             {/* Filter & Search Bar */}
@@ -2287,11 +2355,11 @@ export default function KuisPage() {
                     {q.type === "essai" ? (
                       <div className="p-3 rounded-xl bg-purple-500/10 border border-purple-500/20 text-xs space-y-1">
                         <div className="font-bold text-purple-700 dark:text-purple-300 text-[10px] uppercase flex items-center gap-1.5">
-                          <i className="fa-solid fa-clipboard-check"></i>
-                          <span>Kunci / Rubrik Acuan Jawaban Essai:</span>
+                          <i className="fa-solid fa-pen-nib"></i>
+                          <span>Format Soal Essai (Uraian Terbuka):</span>
                         </div>
-                        <p className="text-slate-700 dark:text-slate-200 text-xs leading-relaxed whitespace-pre-wrap">
-                          {q.explanation || "(Belum ada rubrik acuan)"}
+                        <p className="text-slate-600 dark:text-slate-300 text-xs leading-relaxed">
+                          Soal ini dinilai secara manual oleh mentor di menu Jawaban Kuis Peserta tanpa kunci jawaban otomatis.
                         </p>
                       </div>
                     ) : (

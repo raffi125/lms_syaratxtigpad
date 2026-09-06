@@ -230,6 +230,11 @@ export interface QuizAnswerRecord {
   correctAnswerText: string;
   isCorrect: boolean;
   points: number;
+  earnedPoints?: number;
+  isGraded?: boolean;
+  mentorFeedback?: string;
+  gradedBy?: string;
+  gradedAt?: string;
   explanation?: string;
   hint?: string;
   type?: "pilihan_ganda" | "essai";
@@ -246,7 +251,10 @@ export interface QuizSubmission {
   totalPossiblePoints: number;
   passed: boolean;
   submittedAt: string;
+  quizTitle?: string;
+  category?: string;
   answers: QuizAnswerRecord[];
+  hasUngradedEssays?: boolean;
 }
 
 export interface DBGameWord {

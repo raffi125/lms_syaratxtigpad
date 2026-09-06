@@ -5,42 +5,144 @@ import DashboardLayout from "@/components/DashboardLayout";
 import { useApp } from "@/context/AppContext";
 import { SupabaseService } from "@/lib/supabaseService";
 import { DBGameWord } from "@/types";
+import { gameAudio } from "@/lib/gameAudio";
+import WordBankModal from "@/components/WordBankModal";
 
 type GameMode = "fingerspelling" | "rush" | "memory";
 
-interface WordItem {
-  word: string;
-  level: "easy" | "medium" | "hard";
-}
-
 export default function GamePage() {
-  const { currentRole, currentUser, showToast, logActivity } = useApp();
+  const { currentRole, currentUser, users, updateUser, showToast, logActivity } = useApp();
   const isManager = currentRole === "mentor" || currentRole === "admin";
 
   const [activeTab, setActiveTab] = useState<GameMode>("fingerspelling");
   const [soundEnabled, setSoundEnabled] = useState(true);
+  const [showLeaderboardModal, setShowLeaderboardModal] = useState(false);
+
+  // Word Bank Data from Supabase
   const [gameWords, setGameWords] = useState<{ [key: string]: string[] }>({
     easy: [],
     medium: [],
     hard: [],
   });
   const [isLoadingWords, setIsLoadingWords] = useState(true);
-
-  // Word Bank Management States (Khusus Mentor & Admin)
   const [wordBankModalOpen, setWordBankModalOpen] = useState(false);
   const [allWordItems, setAllWordItems] = useState<DBGameWord[]>([]);
-  const [isLoadingAllWords, setIsLoadingAllWords] = useState(false);
-  const [bankTab, setBankTab] = useState<"all" | "easy" | "medium" | "hard">("all");
-  const [bankSearch, setBankSearch] = useState("");
 
-  // Form Tambah / Edit Kata
-  const [editingWordId, setEditingWordId] = useState<number | null>(null);
-  const [inputWord, setInputWord] = useState("");
-  const [inputDifficulty, setInputDifficulty] = useState<"easy" | "medium" | "hard">("easy");
-  const [isSubmittingWord, setIsSubmittingWord] = useState(false);
-  const [isSeedingWords, setIsSeedingWords] = useState(false);
+  // Player Arcade XP & Gamification
+  const [playerXP, setPlayerXP] = useState<number>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("kolab_arcade_xp");
+      return saved ? Number(saved) : 280;
+    }
+    return 280;
+  });
 
-  // Load dynamic game words purely from Supabase
+  const addXP = (amount: number) => {
+    setPlayerXP((prev) => {
+      const next = prev + amount;
+      if (typeof window !== "undefined") {
+        localStorage.setItem("kolab_arcade_xp", String(next));
+      }
+      return next;
+    });
+  };
+
+  // Sinkronisasi skor pengguna ke database/profil secara real-time
+  const awardScoreToUser = (points: number) => {
+    addXP(points);
+    const updatedScore = (currentUser.score || 0) + points;
+    updateUser(currentUser.id, { score: updatedScore });
+  };
+
+  // =========================================================================
+  // SISTEM RANKING DINAMIS BERDASARKAN JUMLAH SELURUH PESERTA
+  // =========================================================================
+  const participantUsers = users.filter((u) => u.role === "peserta");
+  const participantList = [...participantUsers];
+  if (!participantList.some((u) => u.id === currentUser.id)) {
+    participantList.push(currentUser);
+  }
+
+  const totalParticipants = Math.max(participantList.length, 1);
+
+  // Urutkan seluruh peserta berdasarkan total skor (descending)
+  const sortedParticipants = [...participantList].sort((a, b) => {
+    const sA = a.id === currentUser.id ? Math.max(a.score || 0, currentUser.score || 0) : (a.score || 0);
+    const sB = b.id === currentUser.id ? Math.max(b.score || 0, currentUser.score || 0) : (b.score || 0);
+    return sB - sA;
+  });
+
+  const myRankIndex = sortedParticipants.findIndex((u) => u.id === currentUser.id);
+  const myRank = myRankIndex !== -1 ? myRankIndex + 1 : totalParticipants;
+  const betterThanPercent = Math.max(
+    0,
+    Math.min(100, Math.round(((totalParticipants - myRank) / totalParticipants) * 100))
+  );
+
+  // Penentuan Tier berdasarkan kuota & persentase dari total peserta
+  const getParticipantRankTier = (rankPos: number, total: number) => {
+    const pct = (rankPos / total) * 100;
+    if (rankPos === 1 || pct <= 10) {
+      return {
+        title: "Grandmaster BISINDO",
+        tierName: "Top 10%",
+        badge: "bg-gradient-to-r from-purple-600 via-pink-600 to-amber-500 text-white shadow-purple-500/20",
+        icon: "fa-solid fa-crown text-amber-300",
+        levelText: "Tier S (Juara Utama)",
+        ringColor: "border-purple-500 ring-purple-500/30",
+      };
+    }
+    if (rankPos <= 3 || pct <= 25) {
+      return {
+        title: "Master Isyarat",
+        tierName: "Top 25%",
+        badge: "bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-blue-500/20",
+        icon: "fa-solid fa-gem text-cyan-200",
+        levelText: "Tier A (Jajaran Elit)",
+        ringColor: "border-blue-500 ring-blue-500/30",
+      };
+    }
+    if (pct <= 50) {
+      return {
+        title: "Pejuang Tangkas",
+        tierName: "Top 50%",
+        badge: "bg-gradient-to-r from-emerald-600 to-teal-500 text-white shadow-emerald-500/20",
+        icon: "fa-solid fa-medal text-emerald-200",
+        levelText: "Tier B (Paruh Atas)",
+        ringColor: "border-emerald-500 ring-emerald-500/30",
+      };
+    }
+    if (pct <= 75) {
+      return {
+        title: "Penjelajah Kata",
+        tierName: "Top 75%",
+        badge: "bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-amber-500/20",
+        icon: "fa-solid fa-star text-amber-200",
+        levelText: "Tier C (Penjelajah)",
+        ringColor: "border-amber-500 ring-amber-500/30",
+      };
+    }
+    return {
+      title: "Pemula BISINDO",
+      tierName: "Peserta Aktif",
+      badge: "bg-slate-600 text-white",
+      icon: "fa-solid fa-seedling text-emerald-300",
+      levelText: "Tier D (Perintis)",
+      ringColor: "border-slate-500 ring-slate-500/30",
+    };
+  };
+
+  const currentRankTier = getParticipantRankTier(myRank, totalParticipants);
+
+  // Toggle Sound
+  const toggleSound = () => {
+    const next = !soundEnabled;
+    setSoundEnabled(next);
+    gameAudio.enabled = next;
+    if (next) gameAudio.playClick();
+  };
+
+  // Load Game Words from Supabase
   const reloadGameWords = async () => {
     setIsLoadingWords(true);
     try {
@@ -63,196 +165,49 @@ export default function GamePage() {
   };
 
   const fetchWordBank = async () => {
-    setIsLoadingAllWords(true);
     try {
       const words = await SupabaseService.getAllGameWords();
       setAllWordItems(words);
     } catch (e) {
       console.warn("Gagal memuat daftar kata:", e);
-    } finally {
-      setIsLoadingAllWords(false);
     }
   };
 
   useEffect(() => {
-    // Clear residual localStorage for game words to guarantee pure remote state
-    if (typeof window !== "undefined" && window.localStorage) {
-      try {
-        localStorage.removeItem("bisindoSpelling");
-        localStorage.removeItem("game_words");
-        localStorage.removeItem("DEFAULT_GAME_WORDS");
-      } catch (e) {
-        // ignore
-      }
-    }
-
     reloadGameWords();
     if (isManager) {
       fetchWordBank();
     }
   }, [isManager]);
 
-  const handleOpenWordBank = () => {
-    setWordBankModalOpen(true);
-    fetchWordBank();
-  };
+  const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
-  // Handler Simpan Kata (Tambah / Edit)
-  const handleSaveWord = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const clean = inputWord.toUpperCase().trim().replace(/[^A-Z]/g, "");
-    if (!clean) {
-      showToast("Kata harus berupa huruf A-Z tanpa angka, spasi, atau simbol!", "warning");
-      return;
-    }
-    if (clean.length < 2) {
-      showToast("Kata minimal harus terdiri dari 2 huruf!", "warning");
-      return;
-    }
-
-    setIsSubmittingWord(true);
-    try {
-      if (editingWordId !== null) {
-        // Update existing word
-        const res = await SupabaseService.updateGameWord(editingWordId, clean, inputDifficulty);
-        if (res.success) {
-          showToast(`Kata "${clean}" berhasil diperbarui!`, "success");
-          logActivity({
-            title: "Memperbarui Kata Game BISINDO",
-            description: `Mengubah kata #${editingWordId} menjadi "${clean}" (${inputDifficulty})`,
-            category: "game",
-            statusText: "Diperbarui",
-            statusBadge: "blue",
-            icon: "fa-solid fa-pen-to-square text-syarat",
-          });
-          setEditingWordId(null);
-          setInputWord("");
-          await fetchWordBank();
-          await reloadGameWords();
-        } else {
-          showToast(res.error || "Gagal memperbarui kata", "error");
-        }
-      } else {
-        // Add new word
-        const res = await SupabaseService.addGameWord(clean, inputDifficulty);
-        if (res.success) {
-          showToast(`Kata "${clean}" berhasil ditambahkan ke bank kata (${inputDifficulty})!`, "success");
-          logActivity({
-            title: "Menambahkan Kata Game BISINDO",
-            description: `Menambahkan kata "${clean}" ke tingkat kesulitan ${inputDifficulty}`,
-            category: "game",
-            statusText: "Ditambahkan",
-            statusBadge: "green",
-            icon: "fa-solid fa-plus text-syarat",
-          });
-          setInputWord("");
-          await fetchWordBank();
-          await reloadGameWords();
-        } else {
-          showToast(res.error || "Gagal menambahkan kata", "error");
-        }
-      }
-    } finally {
-      setIsSubmittingWord(false);
-    }
-  };
-
-  const handleStartEditWord = (item: DBGameWord) => {
-    setEditingWordId(item.id);
-    setInputWord(item.word);
-    setInputDifficulty(item.difficulty);
-  };
-
-  const handleCancelEditWord = () => {
-    setEditingWordId(null);
-    setInputWord("");
-  };
-
-  const handleDeleteWord = async (item: DBGameWord) => {
-    if (!confirm(`Yakin ingin menghapus kata "${item.word}" (${item.difficulty}) dari database?`)) {
-      return;
-    }
-    const ok = await SupabaseService.deleteGameWord(item.id);
-    if (ok) {
-      showToast(`Kata "${item.word}" berhasil dihapus dari database!`, "success");
-      logActivity({
-        title: "Menghapus Kata Game BISINDO",
-        description: `Menghapus kata "${item.word}" dari bank kata ${item.difficulty}`,
-        category: "game",
-        statusText: "Dihapus",
-        statusBadge: "amber",
-        icon: "fa-solid fa-trash-can text-red-500",
-      });
-      if (editingWordId === item.id) {
-        handleCancelEditWord();
-      }
-      await fetchWordBank();
-      await reloadGameWords();
-    } else {
-      showToast("Gagal menghapus kata dari database", "error");
-    }
-  };
-
-  const handleSeedDefaultWords = async () => {
-    if (!confirm("Muat daftar kosakata standar BISINDO ke database Supabase?\n\nKata-kata baru yang belum ada akan otomatis ditambahkan ke kategori Mudah, Sedang, dan Sulit.")) {
-      return;
-    }
-    setIsSeedingWords(true);
-    try {
-      const res = await SupabaseService.seedDefaultGameWords();
-      if (res.success) {
-        if (res.count > 0) {
-          showToast(`Berhasil menambahkan ${res.count} kosakata standar BISINDO ke database!`, "success");
-          logActivity({
-            title: "Memuat Kosakata Standar BISINDO",
-            description: `Menambahkan ${res.count} kata standar ke bank kata BisindoSpelling`,
-            category: "game",
-            statusText: `${res.count} Kata Baru`,
-            statusBadge: "green",
-            icon: "fa-solid fa-cloud-arrow-down text-syarat",
-          });
-        } else {
-          showToast("Semua kosakata standar BISINDO sudah ada di database.", "info");
-        }
-        await fetchWordBank();
-        await reloadGameWords();
-      } else {
-        showToast(res.error || "Gagal memuat kosakata standar", "error");
-      }
-    } finally {
-      setIsSeedingWords(false);
-    }
-  };
-
-  // Filtered Word Bank List
-  const filteredWordList = allWordItems.filter((item) => {
-    const matchTab = bankTab === "all" || item.difficulty === bankTab;
-    const matchSearch =
-      bankSearch.trim() === "" ||
-      item.word.toLowerCase().includes(bankSearch.toLowerCase().trim());
-    return matchTab && matchSearch;
-  });
-
-  const easyCount = allWordItems.filter((w) => w.difficulty === "easy").length;
-  const mediumCount = allWordItems.filter((w) => w.difficulty === "medium").length;
-  const hardCount = allWordItems.filter((w) => w.difficulty === "hard").length;
-
-  // =================== MODE 1: BISINDOSPELLING ===================
+  // =========================================================================
+  // MODE 1: BISINDO WORD QUEST (INTERAKTIF & KOTAK KATA)
+  // =========================================================================
   const [spellingState, setSpellingState] = useState<"menu" | "playing" | "gameover">("menu");
   const [selectedDifficulty, setSelectedDifficulty] = useState<"easy" | "medium" | "hard">("easy");
   const [currentWord, setCurrentWord] = useState("");
   const [currentLetterIdx, setCurrentLetterIdx] = useState(0);
+  const [isPlayingAnim, setIsPlayingAnim] = useState(true);
+  const [animSpeed, setAnimSpeed] = useState<"slow" | "normal" | "fast">("normal");
   const [userInput, setUserInput] = useState("");
+  const [revealedHints, setRevealedHints] = useState<number[]>([]);
   const [score, setScore] = useState(0);
   const [combo, setCombo] = useState(0);
   const [round, setRound] = useState(1);
-  const [roundTimer, setRoundTimer] = useState(25);
-  const [feedback, setFeedback] = useState<{ msg: string; success: boolean } | null>(null);
+  const [roundTimer, setRoundTimer] = useState(30);
+  const [feedback, setFeedback] = useState<{
+    msg: string;
+    success: boolean;
+    word?: string;
+  } | null>(null);
 
-  // High scores in state
   const [highScores, setHighScores] = useState({ easy: 450, medium: 520, hard: 680 });
 
-  // Timer for Mode 1
+  const speedDuration = animSpeed === "slow" ? 2200 : animSpeed === "normal" ? 1300 : 700;
+
+  // Mode 1: Timer
   useEffect(() => {
     let timer: NodeJS.Timeout;
     if (spellingState === "playing" && roundTimer > 0 && !feedback) {
@@ -269,38 +224,52 @@ export default function GamePage() {
     return () => clearInterval(timer);
   }, [spellingState, roundTimer, feedback]);
 
-  // Letter cycling animation for Mode 1
+  // Mode 1: Animasi Pergantian Huruf
   useEffect(() => {
     let animTimer: NodeJS.Timeout;
-    if (spellingState === "playing" && !feedback && currentWord && currentWord.length > 0) {
+    if (
+      spellingState === "playing" &&
+      !feedback &&
+      isPlayingAnim &&
+      currentWord &&
+      currentWord.length > 0
+    ) {
       animTimer = setInterval(() => {
         setCurrentLetterIdx((prev) => (prev + 1) % currentWord.length);
-      }, 1200);
+      }, speedDuration);
     }
     return () => clearInterval(animTimer);
-  }, [spellingState, currentWord, feedback]);
+  }, [spellingState, currentWord, feedback, isPlayingAnim, speedDuration]);
 
   const startSpellingGame = () => {
     const words = gameWords[selectedDifficulty] || [];
     if (!words || words.length === 0) {
-      showToast("Maaf Belum ada, segera dibuatin", "info");
+      showToast("Kosakata level ini belum ada, silakan tambahkan di Bank Kata.", "info");
       return;
     }
-    const firstWord = words[Math.floor(Math.random() * words.length)];
+    const firstWord = words[Math.floor(Math.random() * words.length)].toUpperCase().trim();
     setCurrentWord(firstWord);
     setCurrentLetterIdx(0);
+    setIsPlayingAnim(true);
     setUserInput("");
+    setRevealedHints([]);
     setScore(0);
     setCombo(0);
     setRound(1);
-    setRoundTimer(25);
+    setRoundTimer(selectedDifficulty === "easy" ? 35 : selectedDifficulty === "medium" ? 30 : 25);
     setFeedback(null);
     setSpellingState("playing");
+    gameAudio.playClick();
   };
 
   const handleSpellingTimeout = () => {
     setCombo(0);
-    setFeedback({ msg: `Waktu Habis! Jawaban yang benar: ${currentWord}`, success: false });
+    gameAudio.playWrong();
+    setFeedback({
+      msg: `Waktu Habis! Jawaban yang tepat: ${currentWord}`,
+      success: false,
+      word: currentWord,
+    });
   };
 
   const handleSpellingSubmit = (e?: React.FormEvent) => {
@@ -308,29 +277,91 @@ export default function GamePage() {
     if (!userInput.trim()) return;
 
     if (userInput.trim().toUpperCase() === currentWord) {
-      const addedScore = 100 + combo * 20;
+      const bonusCombo = combo * 25;
+      const addedScore = 100 + bonusCombo;
       const newScore = score + addedScore;
       const newCombo = combo + 1;
       setScore(newScore);
       setCombo(newCombo);
-      setFeedback({ msg: `Hebat! Benar! (+${addedScore} Poin)`, success: true });
+      awardScoreToUser(addedScore);
+
+      gameAudio.playCorrect();
+      gameAudio.playCombo(newCombo);
+
+      setFeedback({
+        msg: `Hebat Sekali! Jawaban Tepat: ${currentWord} (+${addedScore} Poin)`,
+        success: true,
+        word: currentWord,
+      });
     } else {
       setCombo(0);
-      setFeedback({ msg: `Kurang Tepat! Jawaban: ${currentWord}`, success: false });
+      gameAudio.playWrong();
+      setFeedback({
+        msg: `Kurang Tepat! Jawaban sebenarnya: ${currentWord}`,
+        success: false,
+        word: currentWord,
+      });
     }
   };
 
+  const handlePrevLetter = () => {
+    if (!currentWord) return;
+    setIsPlayingAnim(false);
+    setCurrentLetterIdx((prev) => (prev - 1 + currentWord.length) % currentWord.length);
+    gameAudio.playClick();
+  };
+
+  const handleNextLetter = () => {
+    if (!currentWord) return;
+    setIsPlayingAnim(false);
+    setCurrentLetterIdx((prev) => (prev + 1) % currentWord.length);
+    gameAudio.playClick();
+  };
+
+  const handleJumpToLetter = (idx: number) => {
+    setIsPlayingAnim(false);
+    setCurrentLetterIdx(idx);
+    gameAudio.playClick();
+  };
+
+  const handleUseHint = () => {
+    if (!currentWord) return;
+    const unrevealed: number[] = [];
+    currentWord.split("").forEach((_, idx) => {
+      if (!revealedHints.includes(idx)) {
+        unrevealed.push(idx);
+      }
+    });
+
+    if (unrevealed.length === 0) {
+      showToast("Semua huruf sudah terbuka!", "info");
+      return;
+    }
+
+    const chosenIdx = unrevealed[Math.floor(Math.random() * unrevealed.length)];
+    const newRevealed = [...revealedHints, chosenIdx];
+    setRevealedHints(newRevealed);
+
+    let chars = userInput.padEnd(currentWord.length, " ").split("");
+    chars[chosenIdx] = currentWord[chosenIdx];
+    setUserInput(chars.join("").trimEnd());
+
+    setScore((prev) => Math.max(0, prev - 15));
+    gameAudio.playClick();
+    showToast(`Bantuan dipakai (-15 Poin): Huruf ke-${chosenIdx + 1} adalah "${currentWord[chosenIdx]}"!`, "info");
+  };
+
   const handleSpellingNextRound = () => {
-    if (round >= 8) {
-      // Game over
+    if (round >= 6) {
       const curHigh = highScores[selectedDifficulty];
       if (score > curHigh) {
         setHighScores((prev) => ({ ...prev, [selectedDifficulty]: score }));
       }
       setSpellingState("gameover");
+      gameAudio.playFanfare();
       logActivity({
-        title: "Bermain Game BISINDO Spelling",
-        description: `Menyelesaikan mode tebak kata isyarat level ${selectedDifficulty} dengan perolehan skor ${score} poin`,
+        title: "Bermain Game BISINDO Word Quest",
+        description: `Menyelesaikan tebak ejaan isyarat level ${selectedDifficulty} skor ${score} poin`,
         category: "game",
         statusText: `${score} Poin`,
         statusBadge: "purple",
@@ -341,30 +372,39 @@ export default function GamePage() {
 
     const words = gameWords[selectedDifficulty] || [];
     if (!words || words.length === 0) {
-      showToast("Maaf Belum ada, segera dibuatin", "info");
       setSpellingState("menu");
       return;
     }
-    const nextWord = words[Math.floor(Math.random() * words.length)];
+
+    const nextWord = words[Math.floor(Math.random() * words.length)].toUpperCase().trim();
     setCurrentWord(nextWord);
     setCurrentLetterIdx(0);
+    setIsPlayingAnim(true);
     setUserInput("");
+    setRevealedHints([]);
     setRound((prev) => prev + 1);
-    setRoundTimer(25);
+    setRoundTimer(selectedDifficulty === "easy" ? 35 : selectedDifficulty === "medium" ? 30 : 25);
     setFeedback(null);
+    gameAudio.playClick();
   };
 
-  // =================== MODE 2: SIGN RUSH ===================
+  const activeLetterInSpelling = (currentWord && currentWord[currentLetterIdx]) || "A";
+
+  // =========================================================================
+  // MODE 2: SIGN RUSH 2.0 (REFLEKS KILAT DENGAN OPSI WAKTU & FEVER COMBO 🔥)
+  // =========================================================================
   const [rushRunning, setRushRunning] = useState(false);
+  const [rushGameOver, setRushGameOver] = useState(false);
+  const [rushSubMode, setRushSubMode] = useState<"guess_letter" | "guess_sign" | "mix">("guess_letter");
+  const rushDuration = 3; // Fixed 3 detik per soal!
+  const [rushCurrentType, setRushCurrentType] = useState<"guess_letter" | "guess_sign">("guess_letter");
   const [rushTargetLetter, setRushTargetLetter] = useState("A");
   const [rushOptions, setRushOptions] = useState<string[]>(["A", "B", "C", "D"]);
   const [rushScore, setRushScore] = useState(0);
   const [rushLives, setRushLives] = useState(3);
   const [rushRound, setRushRound] = useState(1);
-  const [rushTimer, setRushTimer] = useState(4);
-  const [rushGameOver, setRushGameOver] = useState(false);
-
-  const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+  const [rushTimer, setRushTimer] = useState(3);
+  const [rushStreak, setRushStreak] = useState(0);
 
   const nextRushQuestion = () => {
     const target = ALPHABET[Math.floor(Math.random() * ALPHABET.length)];
@@ -373,18 +413,44 @@ export default function GamePage() {
       .slice(0, 3);
     const opts = [target, ...otherLetters].sort(() => 0.5 - Math.random());
 
+    let type: "guess_letter" | "guess_sign" =
+      rushSubMode === "mix"
+        ? Math.random() > 0.5
+          ? "guess_letter"
+          : "guess_sign"
+        : rushSubMode;
+
     setRushTargetLetter(target);
     setRushOptions(opts);
-    setRushTimer(4);
+    setRushCurrentType(type);
+    setRushTimer(3);
   };
 
   const startSignRush = () => {
     setRushScore(0);
     setRushLives(3);
     setRushRound(1);
+    setRushStreak(0);
     setRushGameOver(false);
     setRushRunning(true);
     nextRushQuestion();
+    gameAudio.playClick();
+  };
+
+  // Tombol Nyerah Sign Rush
+  const handleSurrenderRush = () => {
+    setRushRunning(false);
+    setRushGameOver(true);
+    gameAudio.playWrong();
+    showToast(`Kamu menyerah di ronde #${rushRound}. Skor akhir: ${rushScore} Poin`, "info");
+    logActivity({
+      title: "Menyerah di Sign Rush",
+      description: `Menyerah di ronde #${rushRound} dengan perolehan skor ${rushScore} poin (Tantangan 3 Detik)`,
+      category: "game",
+      statusText: `${rushScore} Poin`,
+      statusBadge: "amber",
+      icon: "fa-solid fa-flag text-red-500",
+    });
   };
 
   useEffect(() => {
@@ -407,18 +473,31 @@ export default function GamePage() {
     if (!rushRunning || rushGameOver) return;
 
     if (letter === rushTargetLetter) {
-      setRushScore((prev) => prev + 50);
+      const multiplier = rushStreak >= 4 ? 3 : rushStreak >= 2 ? 2 : 1;
+      const pointsAdded = 60 * multiplier;
+
+      setRushScore((prev) => prev + pointsAdded);
+      const newStreak = rushStreak + 1;
+      setRushStreak(newStreak);
       setRushRound((prev) => prev + 1);
+      awardScoreToUser(pointsAdded);
+
+      gameAudio.playCorrect();
+      if (newStreak >= 2) gameAudio.playCombo(newStreak);
+
       nextRushQuestion();
     } else {
+      gameAudio.playWrong();
+      setRushStreak(0);
       const nextLives = rushLives - 1;
       setRushLives(nextLives);
       if (nextLives <= 0) {
         setRushGameOver(true);
         setRushRunning(false);
+        gameAudio.playFanfare();
         logActivity({
-          title: "Bermain Game Sign Rush",
-          description: `Bermain tebak cepat alfabet isyarat mencapai ronde ${rushRound} dengan skor ${rushScore} poin`,
+          title: "Bermain Sign Rush 2.0",
+          description: `Mencapai ronde #${rushRound} dengan perolehan skor ${rushScore} poin (Tantangan 3 Detik)`,
           category: "game",
           statusText: `${rushScore} Poin`,
           statusBadge: "amber",
@@ -431,7 +510,9 @@ export default function GamePage() {
     }
   };
 
-  // =================== MODE 3: MEMORY MATCH ===================
+  // =========================================================================
+  // MODE 3: MEMORY MATCH 3D (PASANGAN ISYARAT & ABJAD)
+  // =========================================================================
   interface MemoryCard {
     id: number;
     matchId: string;
@@ -445,7 +526,6 @@ export default function GamePage() {
   const [selectedCards, setSelectedCards] = useState<number[]>([]);
   const [memoryMoves, setMemoryMoves] = useState(0);
   const [memoryDifficulty, setMemoryDifficulty] = useState<"easy" | "medium" | "hard">("easy");
-  const [memoryCompleted, setMemoryCompleted] = useState(false);
 
   const initMemoryGame = (diff = memoryDifficulty) => {
     const pairCount = diff === "easy" ? 6 : diff === "medium" ? 8 : 10;
@@ -475,7 +555,7 @@ export default function GamePage() {
     setMemoryCards(cards);
     setSelectedCards([]);
     setMemoryMoves(0);
-    setMemoryCompleted(false);
+    gameAudio.playClick();
   };
 
   useEffect(() => {
@@ -489,6 +569,8 @@ export default function GamePage() {
     const card = memoryCards.find((c) => c.id === id);
     if (!card || card.flipped || card.matched) return;
 
+    gameAudio.playClick();
+
     const newCards = memoryCards.map((c) => (c.id === id ? { ...c, flipped: true } : c));
     setMemoryCards(newCards);
 
@@ -501,8 +583,8 @@ export default function GamePage() {
       const card2 = memoryCards.find((c) => c.id === newSelected[1])!;
 
       if (card1.matchId === card2.matchId) {
-        // Matched!
         setTimeout(() => {
+          gameAudio.playCorrect();
           setMemoryCards((prev) =>
             prev.map((c) =>
               c.matchId === card1.matchId ? { ...c, matched: true, flipped: true } : c
@@ -510,13 +592,13 @@ export default function GamePage() {
           );
           setSelectedCards([]);
 
-          // Check win
           const allMatched = memoryCards.every(
             (c) => c.matchId === card1.matchId || c.matched
           );
           if (allMatched) {
-            setMemoryCompleted(true);
-            showToast("Selamat! Semua kartu memori cocok!", "success");
+            awardScoreToUser(75);
+            gameAudio.playFanfare();
+            showToast("Hebat! Semua kartu berhasil dicocokkan! (+75 Poin)", "success");
             logActivity({
               title: "Menyelesaikan Memory Match Isyarat",
               description: `Menyelesaikan tebak pasangan kartu isyarat tingkat ${memoryDifficulty} dalam ${memoryMoves + 1} langkah`,
@@ -526,150 +608,233 @@ export default function GamePage() {
               icon: "fa-solid fa-brain text-syarat",
             });
           }
-        }, 500);
+        }, 400);
       } else {
-        // Flip back
         setTimeout(() => {
+          gameAudio.playWrong();
           setMemoryCards((prev) =>
             prev.map((c) =>
               c.id === card1.id || c.id === card2.id ? { ...c, flipped: false } : c
             )
           );
           setSelectedCards([]);
-        }, 900);
+        }, 850);
       }
     }
   };
 
-  const activeLetterInSpelling = (currentWord && currentWord[currentLetterIdx]) || "A";
-
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        {/* Game Arcade Hub Header & Mode Selector */}
-        <div className="glass-card p-5 sm:p-6 rounded-3xl space-y-4">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="px-3 py-1 rounded-full bg-purple-500/15 text-purple-600 dark:text-purple-400 text-xs font-bold border border-purple-500/30 inline-flex items-center gap-1.5 shadow-sm">
-                  <i className="fa-solid fa-gamepad"></i> BISINDO Arcade Hub
-                </span>
+        {/* ========================================================================= */}
+        {/* HUB ARCADE HEADER: SISTEM RANK BERDASARKAN JUMLAH PESERTA & XP             */}
+        {/* ========================================================================= */}
+        <div className="glass-card p-5 sm:p-6 rounded-3xl space-y-4 border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden">
+          {/* Subtle decorative glow */}
+          <div className="absolute top-0 right-0 -mt-8 -mr-8 w-44 h-44 bg-gradient-to-bl from-syarat/10 via-tigpad/10 to-transparent rounded-full blur-2xl pointer-events-none"></div>
+
+          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+            <div className="flex items-center gap-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-syarat via-blue-600 to-tigpad text-white flex items-center justify-center text-xl shadow-lg flex-shrink-0">
+                <i className="fa-solid fa-gamepad"></i>
               </div>
-              <h1 className="text-xl sm:text-2xl font-black tracking-tight mt-1">
-                Pusat Game Edukasi BISINDO
-              </h1>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                Pilih mode permainan interaktif di bawah untuk mengasah penguasaan bahasa isyarat Anda.
-              </p>
+              <div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="px-2.5 py-0.5 rounded-full bg-tigpad/15 text-tigpad text-[10px] font-extrabold uppercase tracking-wide">
+                    Arcade Edukasi BISINDO
+                  </span>
+                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black flex items-center gap-1 shadow-sm ${currentRankTier.badge}`}>
+                    <i className={currentRankTier.icon}></i>
+                    <span>{currentRankTier.title} ({currentRankTier.tierName})</span>
+                  </span>
+                </div>
+                <h1 className="text-xl sm:text-2xl font-black tracking-tight text-slate-800 dark:text-white mt-0.5">
+                  Taman Bermain & Latihan Isyarat
+                </h1>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Uji ketangkasan membaca gerakan isyarat BISINDO dan raih peringkat tertinggi di antara seluruh peserta!
+                </p>
+              </div>
             </div>
 
-            {/* Audio Master Control */}
-            <div className="flex items-center gap-2">
+            {/* Quick Action Buttons */}
+            <div className="flex items-center gap-2 flex-wrap self-stretch lg:self-center justify-end">
+              {/* Tombol Buka Modal Klasemen Peserta */}
               <button
-                onClick={() => setSoundEnabled(!soundEnabled)}
-                className="px-3.5 py-2 rounded-2xl glass-card text-xs font-bold flex items-center gap-2 text-slate-700 dark:text-slate-200 hover:border-tigpad transition-all shadow-sm"
+                type="button"
+                onClick={() => {
+                  setShowLeaderboardModal(true);
+                  gameAudio.playClick();
+                }}
+                className="px-3.5 py-2 rounded-2xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-700 dark:text-amber-300 text-xs font-bold flex items-center gap-1.5 transition-all border border-amber-500/30 shadow-sm"
+                title="Lihat papan peringkat dan posisi kamu di antara seluruh peserta"
               >
-                <i
-                  className={`fa-solid ${
-                    soundEnabled ? "fa-volume-high text-tigpad" : "fa-volume-xmark text-slate-400"
-                  }`}
-                ></i>
-                <span>Suara: {soundEnabled ? "On" : "Off"}</span>
+                <i className="fa-solid fa-trophy text-amber-500"></i>
+                <span>Klasemen Peserta ({totalParticipants})</span>
               </button>
+
+              {/* Tombol Kelola Bank Kata untuk Mentor/Admin */}
+              {isManager && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setWordBankModalOpen(true);
+                    fetchWordBank();
+                    gameAudio.playClick();
+                  }}
+                  className="px-3.5 py-2 rounded-2xl bg-purple-500/15 hover:bg-purple-500/25 text-purple-700 dark:text-purple-300 text-xs font-bold flex items-center gap-1.5 transition-all border border-purple-500/30 shadow-sm"
+                  title="Kelola kosakata kuis spelling"
+                >
+                  <i className="fa-solid fa-book-bookmark text-purple-500"></i>
+                  <span>Bank Kata</span>
+                </button>
+              )}
+
+              {/* Sound Effect Toggle */}
+              <button
+                type="button"
+                onClick={toggleSound}
+                className={`p-2.5 rounded-2xl border text-xs font-bold transition-all ${
+                  soundEnabled
+                    ? "bg-amber-500/15 border-amber-500/30 text-amber-600 dark:text-amber-400"
+                    : "bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-400"
+                }`}
+                title={soundEnabled ? "Suara Aktif (Klik untuk Mute)" : "Suara Muted (Klik untuk Bunyi)"}
+              >
+                <i className={`fa-solid ${soundEnabled ? "fa-volume-high" : "fa-volume-xmark"}`}></i>
+              </button>
+
+              {/* XP Badge */}
+              <div className="px-3 py-1.5 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-black text-amber-500 flex items-center gap-1.5 shadow-inner">
+                <i className="fa-solid fa-bolt text-amber-500"></i>
+                <span>{playerXP} XP</span>
+              </div>
             </div>
           </div>
 
-          {/* Game Mode Switcher Tabs */}
-          <div className="flex flex-wrap gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
+          {/* STANDING BAR: PERINGKAT DARI JUMLAH PESERTA */}
+          <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="flex items-center gap-3 w-full sm:w-auto">
+              <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center font-black text-sm flex-shrink-0">
+                #{myRank}
+              </div>
+              <div>
+                <div className="text-xs font-black text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
+                  <span>Peringkat ke-<strong>{myRank}</strong> dari <strong>{totalParticipants} Peserta</strong></span>
+                  <span className="text-[10px] text-slate-400 font-normal">({currentRankTier.levelText})</span>
+                </div>
+                <div className="text-[11px] text-slate-500">
+                  {betterThanPercent > 0 ? (
+                    <>Performa kamu lebih unggul dari <span className="font-bold text-emerald-600 dark:text-emerald-400">{betterThanPercent}%</span> seluruh peserta pelatihan!</>
+                  ) : (
+                    <>Raih poin di permainan untuk melesat naik di klasemen peserta!</>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Standing Progress Bar */}
+            <div className="w-full sm:w-48 flex flex-col gap-1 items-end">
+              <div className="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+                <div
+                  className="bg-gradient-to-r from-syarat to-tigpad h-full rounded-full transition-all duration-500"
+                  style={{ width: `${Math.max(5, 100 - (myRank / totalParticipants) * 100)}%` }}
+                ></div>
+              </div>
+              <span className="text-[10px] font-bold text-slate-400">
+                Skor Akun: {currentUser.score || 0} Poin
+              </span>
+            </div>
+          </div>
+
+          {/* GAME MODE TABS (3 MODE SERU) */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
             <button
-              onClick={() => setActiveTab("fingerspelling")}
-              className={`px-4 py-2.5 rounded-2xl font-extrabold text-xs flex items-center gap-2 transition-all ${
+              onClick={() => {
+                setActiveTab("fingerspelling");
+                gameAudio.playClick();
+              }}
+              className={`p-3 rounded-2xl font-bold text-xs flex items-center justify-center gap-2 transition-all ${
                 activeTab === "fingerspelling"
-                  ? "bg-gradient-to-r from-syarat to-tigpad text-white shadow-md"
+                  ? "bg-gradient-to-r from-syarat to-blue-600 text-white shadow-md scale-[1.01]"
                   : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200"
               }`}
             >
-              <i className="fa-solid fa-hands-asl-interpreting"></i>
-              <span>1. BisindoSpelling Ejaan</span>
+              <i className="fa-solid fa-spell-check text-sm"></i>
+              <span>1. Word Quest (Tebak Ejaan)</span>
             </button>
+
             <button
-              onClick={() => setActiveTab("rush")}
-              className={`px-4 py-2.5 rounded-2xl font-bold text-xs flex items-center gap-2 transition-all ${
+              onClick={() => {
+                setActiveTab("rush");
+                gameAudio.playClick();
+              }}
+              className={`p-3 rounded-2xl font-bold text-xs flex items-center justify-center gap-2 transition-all ${
                 activeTab === "rush"
-                  ? "bg-gradient-to-r from-syarat to-tigpad text-white shadow-md"
+                  ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md scale-[1.01]"
                   : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200"
               }`}
             >
-              <i className="fa-solid fa-bolt text-amber-500"></i>
-              <span>2. Sign Rush (Refleks)</span>
+              <i className="fa-solid fa-bolt text-sm"></i>
+              <span>2. Sign Rush 2.0 (Refleks Kilat)</span>
             </button>
+
             <button
-              onClick={() => setActiveTab("memory")}
-              className={`px-4 py-2.5 rounded-2xl font-bold text-xs flex items-center gap-2 transition-all ${
+              onClick={() => {
+                setActiveTab("memory");
+                gameAudio.playClick();
+              }}
+              className={`p-3 rounded-2xl font-bold text-xs flex items-center justify-center gap-2 transition-all ${
                 activeTab === "memory"
-                  ? "bg-gradient-to-r from-syarat to-tigpad text-white shadow-md"
+                  ? "bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md scale-[1.01]"
                   : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200"
               }`}
             >
-              <i className="fa-solid fa-clone text-emerald-500"></i>
-              <span>3. Memory Match (Kartu)</span>
+              <i className="fa-solid fa-clone text-sm"></i>
+              <span>3. Memory Match 3D</span>
             </button>
           </div>
         </div>
 
-        {/* ================= MODE 1: BISINDOSPELLING CHALLENGE ================= */}
+        {/* ========================================================================= */}
+        {/* MODE 1: BISINDO WORD QUEST (TEBAK KATA INTERAKTIF)                        */}
+        {/* ========================================================================= */}
         {activeTab === "fingerspelling" && (
-          <section className="glass-card p-5 sm:p-8 rounded-3xl space-y-6">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-200 dark:border-slate-800 pb-3">
+          <section className="glass-card p-5 sm:p-7 rounded-3xl space-y-6 border border-slate-200 dark:border-slate-800 shadow-sm">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-100 dark:border-slate-800 pb-3">
               <div>
                 <h2 className="text-lg font-black text-slate-800 dark:text-white flex items-center gap-2">
-                  <i className="fa-solid fa-hands-asl-interpreting text-syarat dark:text-syarat-light"></i>
-                  <span>BisindoSpelling Word Challenge</span>
+                  <i className="fa-solid fa-spell-check text-syarat"></i>
+                  <span>Bisindo Word Quest</span>
                 </h2>
                 <p className="text-xs text-slate-500">
-                  Perhatikan animasi abjad BISINDO di kanvas, lalu ketik kata yang kamu lihat sebelum waktu habis.
+                  Perhatikan gerakan abjad tangan, kendalikan animasi sesuai tempo, dan susun kata yang benar!
                 </p>
               </div>
 
-              <div className="flex items-center gap-2.5 flex-wrap">
-                {isManager && (
-                  <button
-                    type="button"
-                    onClick={handleOpenWordBank}
-                    className="px-3.5 py-2 rounded-2xl bg-gradient-to-r from-syarat to-tigpad hover:opacity-95 text-white text-xs font-bold flex items-center gap-2 shadow-md hover:scale-105 transition-all"
-                    title="Kelola Bank Kata Latihan BisindoSpelling (Tambah/Ubah/Hapus/Seed)"
-                  >
-                    <i className="fa-solid fa-book-bookmark text-sm"></i>
-                    <span>Kelola Bank Kata</span>
-                    <span className="px-1.5 py-0.5 rounded-full bg-white/25 text-[10px] font-black">
-                      {allWordItems.length > 0 ? allWordItems.length : (gameWords.easy.length + gameWords.medium.length + gameWords.hard.length)}
-                    </span>
-                  </button>
-                )}
-
-                <div className="text-right hidden sm:block">
-                  <span className="text-[10px] text-slate-400 font-bold uppercase">
-                    Skor Tertinggi Ejaan
-                  </span>
-                  <div className="text-sm font-black text-syarat dark:text-syarat-light">
-                    {highScores[selectedDifficulty]} Poin
-                  </div>
-                </div>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] text-slate-400 font-bold uppercase">Skor Tertinggi:</span>
+                <span className="px-2.5 py-1 rounded-xl bg-syarat/10 text-syarat font-black text-xs">
+                  {highScores[selectedDifficulty]} Poin
+                </span>
               </div>
             </div>
 
             {spellingState === "menu" && (
               <div className="space-y-6 text-center max-w-lg mx-auto py-4">
                 <div>
-                  <h3 className="font-black text-xl mb-1">Pilih Tingkat Kesulitan</h3>
+                  <h3 className="font-black text-xl mb-1">Pilih Tingkat Kesulitan Kata</h3>
                   <p className="text-xs text-slate-500">
-                    Pilih kategori kata untuk memulai putaran permainan:
+                    Pilih kategori panjang kata untuk memulai putaran tantangan:
                   </p>
                 </div>
 
                 <div className="level-select">
                   <button
-                    onClick={() => setSelectedDifficulty("easy")}
+                    onClick={() => {
+                      setSelectedDifficulty("easy");
+                      gameAudio.playClick();
+                    }}
                     className={`level-card ${selectedDifficulty === "easy" ? "selected" : ""}`}
                   >
                     <span className="level-name">Mudah</span>
@@ -677,16 +842,17 @@ export default function GamePage() {
                       {isLoadingWords
                         ? "Memuat data..."
                         : (gameWords.easy?.length ?? 0) > 0
-                        ? `${gameWords.easy.length} kata tersedia`
-                        : "Maaf Belum ada, segera dibuatin"}
+                        ? `${gameWords.easy.length} kata (3-4 huruf)`
+                        : "Belum ada kata"}
                     </span>
-                    <span className="level-highscore">
-                      Skor tertinggi: {highScores.easy}
-                    </span>
+                    <span className="level-highscore">Skor tertinggi: {highScores.easy}</span>
                   </button>
 
                   <button
-                    onClick={() => setSelectedDifficulty("medium")}
+                    onClick={() => {
+                      setSelectedDifficulty("medium");
+                      gameAudio.playClick();
+                    }}
                     className={`level-card ${selectedDifficulty === "medium" ? "selected" : ""}`}
                   >
                     <span className="level-name">Sedang</span>
@@ -694,16 +860,17 @@ export default function GamePage() {
                       {isLoadingWords
                         ? "Memuat data..."
                         : (gameWords.medium?.length ?? 0) > 0
-                        ? `${gameWords.medium.length} kata tersedia`
-                        : "Maaf Belum ada, segera dibuatin"}
+                        ? `${gameWords.medium.length} kata (5-6 huruf)`
+                        : "Belum ada kata"}
                     </span>
-                    <span className="level-highscore">
-                      Skor tertinggi: {highScores.medium}
-                    </span>
+                    <span className="level-highscore">Skor tertinggi: {highScores.medium}</span>
                   </button>
 
                   <button
-                    onClick={() => setSelectedDifficulty("hard")}
+                    onClick={() => {
+                      setSelectedDifficulty("hard");
+                      gameAudio.playClick();
+                    }}
                     className={`level-card ${selectedDifficulty === "hard" ? "selected" : ""}`}
                   >
                     <span className="level-name">Sulit</span>
@@ -711,84 +878,34 @@ export default function GamePage() {
                       {isLoadingWords
                         ? "Memuat data..."
                         : (gameWords.hard?.length ?? 0) > 0
-                        ? `${gameWords.hard.length} kata tersedia`
-                        : "Maaf Belum ada, segera dibuatin"}
+                        ? `${gameWords.hard.length} kata (7+ huruf)`
+                        : "Belum ada kata"}
                     </span>
-                    <span className="level-highscore">
-                      Skor tertinggi: {highScores.hard}
-                    </span>
+                    <span className="level-highscore">Skor tertinggi: {highScores.hard}</span>
                   </button>
                 </div>
 
-                {/* Status jika sedang memuat atau jika data kata kosong */}
-                {isLoadingWords ? (
-                  <div className="py-4 flex items-center justify-center gap-2 text-slate-500 text-xs">
-                    <span className="loading loading-spinner loading-sm text-syarat"></span>
-                    <span>Menghubungkan ke Supabase...</span>
-                  </div>
-                ) : (gameWords[selectedDifficulty]?.length ?? 0) === 0 ? (
-                  <div className="p-5 rounded-2xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200/80 dark:border-amber-800/40 text-center space-y-2.5 max-w-md mx-auto">
-                    <div className="flex items-center justify-center gap-2 text-amber-600 dark:text-amber-400 font-bold text-sm sm:text-base">
-                      <i className="fa-regular fa-face-smile text-lg"></i>
-                      <span>Maaf Belum ada, segera dibuatin</span>
-                    </div>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
-                      {isManager
-                        ? `Sebagai Mentor/Admin, Anda dapat menambahkan kata pada tingkat ${selectedDifficulty === "easy" ? "Mudah" : selectedDifficulty === "medium" ? "Sedang" : "Sulit"} atau memuat kosakata standar BISINDO.`
-                        : `Kosakata untuk tingkat ${selectedDifficulty === "easy" ? "Mudah" : selectedDifficulty === "medium" ? "Sedang" : "Sulit"} belum tersedia di server.`}
-                    </p>
-                    {isManager && (
-                      <div className="flex items-center justify-center gap-2 pt-1 flex-wrap">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setInputDifficulty(selectedDifficulty);
-                            handleOpenWordBank();
-                          }}
-                          className="px-3.5 py-1.5 rounded-xl bg-syarat text-white text-xs font-bold flex items-center gap-1.5 shadow hover:scale-105 transition-all"
-                        >
-                          <i className="fa-solid fa-plus"></i>
-                          <span>Tambah Kata</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={handleSeedDefaultWords}
-                          disabled={isSeedingWords}
-                          className="px-3.5 py-1.5 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-bold flex items-center gap-1.5 hover:bg-slate-300 transition-all"
-                        >
-                          <i className={`fa-solid ${isSeedingWords ? "fa-spinner fa-spin text-syarat" : "fa-cloud-arrow-down text-syarat"}`}></i>
-                          <span>Isi Kosakata Standar</span>
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                ) : null}
-
-                {/* Tombol Mulai */}
                 {!isLoadingWords && (gameWords[selectedDifficulty]?.length ?? 0) === 0 ? (
-                  <button
-                    disabled
-                    className="px-8 py-3.5 rounded-2xl font-extrabold text-sm bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed inline-flex items-center gap-2"
-                  >
-                    <i className="fa-solid fa-ban"></i>
-                    <span>{isManager ? "Isi Bank Kata Terlebih Dahulu" : "Maaf Belum ada, segera dibuatin"}</span>
-                  </button>
+                  <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 text-xs text-amber-700 dark:text-amber-300">
+                    Kosakata tingkat {selectedDifficulty} masih kosong di database.
+                    {isManager && " Silakan buka 'Bank Kata' di atas untuk menambah atau mengisi kosakata standar."}
+                  </div>
                 ) : (
                   <button
                     onClick={startSpellingGame}
                     disabled={isLoadingWords}
-                    className="btn-duotone px-8 py-3.5 rounded-2xl font-extrabold text-sm shadow-xl hover:scale-105 transition-all inline-flex items-center gap-2 disabled:opacity-50"
+                    className="btn-duotone px-8 py-3.5 rounded-2xl font-extrabold text-sm shadow-xl hover:scale-105 transition-all inline-flex items-center gap-2"
                   >
                     <i className="fa-solid fa-play"></i>
-                    <span>Mulai Bermain Ejaan</span>
+                    <span>Mulai Main Word Quest</span>
                   </button>
                 )}
               </div>
             )}
 
             {spellingState === "playing" && (
-              <div className="space-y-4">
-                {/* HUD */}
+              <div className="space-y-5">
+                {/* HUD Panel */}
                 <div className="hud">
                   <div className="hud-stat">
                     <span className="hud-label">Skor</span>
@@ -800,86 +917,232 @@ export default function GamePage() {
                   </div>
                   <div className="hud-stat">
                     <span className="hud-label">Ronde</span>
-                    <span className="hud-value">{round}/8</span>
+                    <span className="hud-value">{round}/6</span>
                   </div>
                   <div className="hud-stat">
                     <span className="hud-label">Waktu</span>
-                    <span className="hud-value text-tigpad">{roundTimer}s</span>
+                    <span className={`hud-value ${roundTimer <= 5 ? "timer-warning" : ""}`}>
+                      {roundTimer}s
+                    </span>
                   </div>
                 </div>
 
-                {/* Progress bar */}
-                <div className="progress-bar-track">
-                  <div
-                    className="progress-bar-fill"
-                    style={{
-                      width: `${
-                        currentWord.length > 0
-                          ? ((currentLetterIdx + 1) / currentWord.length) * 100
-                          : 0
-                      }%`,
-                    }}
-                  ></div>
+                {/* ANIMATION CONTROLLER TOOLBAR */}
+                <div className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={handlePrevLetter}
+                      className="p-2 rounded-xl glass-card hover:bg-slate-200 text-xs font-bold transition"
+                      title="Huruf sebelumnya"
+                    >
+                      <i className="fa-solid fa-backward-step"></i>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsPlayingAnim(!isPlayingAnim);
+                        gameAudio.playClick();
+                      }}
+                      className="px-3 py-2 rounded-xl btn-duotone text-xs font-bold flex items-center gap-1.5 shadow"
+                    >
+                      <i className={`fa-solid ${isPlayingAnim ? "fa-pause" : "fa-play"}`}></i>
+                      <span>{isPlayingAnim ? "Jeda Animasi" : "Putar Animasi"}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleNextLetter}
+                      className="p-2 rounded-xl glass-card hover:bg-slate-200 text-xs font-bold transition"
+                      title="Huruf selanjutnya"
+                    >
+                      <i className="fa-solid fa-forward-step"></i>
+                    </button>
+                  </div>
+
+                  {/* Pengatur Kecepatan Animasi */}
+                  <div className="flex items-center gap-1 text-xs">
+                    <span className="text-slate-400 font-bold mr-1 text-[11px]">Tempo:</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAnimSpeed("slow");
+                        gameAudio.playClick();
+                      }}
+                      className={`px-2.5 py-1 rounded-xl font-bold transition ${
+                        animSpeed === "slow" ? "bg-syarat text-white shadow" : "bg-slate-200 dark:bg-slate-800 text-slate-500"
+                      }`}
+                    >
+                      🐢 Lambat
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAnimSpeed("normal");
+                        gameAudio.playClick();
+                      }}
+                      className={`px-2.5 py-1 rounded-xl font-bold transition ${
+                        animSpeed === "normal" ? "bg-syarat text-white shadow" : "bg-slate-200 dark:bg-slate-800 text-slate-500"
+                      }`}
+                    >
+                      🚶 Normal
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAnimSpeed("fast");
+                        gameAudio.playClick();
+                      }}
+                      className={`px-2.5 py-1 rounded-xl font-bold transition ${
+                        animSpeed === "fast" ? "bg-syarat text-white shadow" : "bg-slate-200 dark:bg-slate-800 text-slate-500"
+                      }`}
+                    >
+                      ⚡ Kilat
+                    </button>
+                  </div>
+
+                  {/* Bantuan Bocoran Huruf */}
+                  <button
+                    type="button"
+                    onClick={handleUseHint}
+                    className="px-3 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-700 dark:text-amber-300 font-bold text-xs flex items-center gap-1.5 transition border border-amber-500/30"
+                    title="Buka 1 huruf bocoran (-15 poin)"
+                  >
+                    <i className="fa-solid fa-wand-magic-sparkles text-amber-500"></i>
+                    <span>Bocoran 1 Huruf (-15p)</span>
+                  </button>
                 </div>
 
-                {/* Stage */}
-                <div className="stage">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={`/assets/sprites/${activeLetterInSpelling}.webp`}
-                    alt={`Peraga ${activeLetterInSpelling}`}
-                    className="max-h-56 sm:max-h-64 object-contain rounded-2xl shadow-xl transition-all"
-                  />
-                  <div className="stage-caption mt-2">
-                    Huruf ke-{currentWord.length > 0 ? currentLetterIdx + 1 : 0} dari {currentWord.length}
+                {/* STAGE TAMPILAN PERAGA ISYARAT */}
+                <div className="p-5 rounded-3xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-4">
+                  <div className="relative flex flex-col items-center justify-center min-h-[220px]">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={`/assets/sprites/${activeLetterInSpelling}.webp`}
+                      alt={`Isyarat ${activeLetterInSpelling}`}
+                      className="max-h-52 sm:max-h-60 object-contain rounded-2xl drop-shadow-2xl transition-all duration-200"
+                    />
+
+                    <div className="mt-3 flex items-center gap-2">
+                      <span className="px-3 py-1 rounded-full bg-syarat/10 text-syarat font-extrabold text-xs">
+                        Huruf ke-{currentLetterIdx + 1} dari {currentWord.length}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* TIMELINE DOTS */}
+                  <div className="flex items-center justify-center gap-2 pt-1 flex-wrap">
+                    {currentWord.split("").map((_, idx) => {
+                      const isActive = idx === currentLetterIdx;
+                      const isRevealed = revealedHints.includes(idx);
+                      return (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => handleJumpToLetter(idx)}
+                          className={`w-8 h-8 rounded-xl font-black text-xs transition-all flex items-center justify-center ${
+                            isActive
+                              ? "bg-syarat text-white ring-2 ring-syarat shadow-md scale-110"
+                              : isRevealed
+                              ? "bg-amber-500/20 text-amber-700 border border-amber-500/40"
+                              : "bg-white dark:bg-slate-800 text-slate-500 border border-slate-200 dark:border-slate-700 hover:border-slate-400"
+                          }`}
+                          title={`Lihat huruf ke-${idx + 1}`}
+                        >
+                          {idx + 1}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
-                {/* Form or feedback */}
+                {/* KOTAK KATA INTERAKTIF (LETTER SLOTS) */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-xs font-bold text-slate-500 px-1">
+                    <span>Kotak Kata ({currentWord.length} Huruf):</span>
+                    <span className="text-[11px] font-normal text-slate-400">
+                      Ketik langsung lewat keyboard atau tombol huruf di bawah
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-center gap-2 sm:gap-3 flex-wrap py-2">
+                    {currentWord.split("").map((correctChar, idx) => {
+                      const userChar = userInput[idx] || "";
+                      const isCurrentActive = idx === currentLetterIdx;
+                      const isHinted = revealedHints.includes(idx);
+
+                      return (
+                        <div
+                          key={idx}
+                          onClick={() => handleJumpToLetter(idx)}
+                          className={`w-12 h-14 sm:w-14 sm:h-16 rounded-2xl flex flex-col items-center justify-center font-black text-xl sm:text-2xl cursor-pointer transition-all ${
+                            isCurrentActive
+                              ? "border-2 border-syarat bg-syarat/10 ring-2 ring-syarat/30 shadow-md scale-105 text-syarat"
+                              : userChar
+                              ? "border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 shadow-sm"
+                              : "border-2 border-dashed border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 text-slate-400"
+                          }`}
+                        >
+                          <span>{userChar || (isHinted ? correctChar : "_")}</span>
+                          {isHinted && (
+                            <span className="text-[9px] text-amber-500 font-bold mt-[-2px]">★</span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* FORM INPUT TEKS / SUBMIT */}
                 {!feedback ? (
-                  <form onSubmit={handleSpellingSubmit} className="answer-form flex-col sm:flex-row gap-2">
+                  <form onSubmit={handleSpellingSubmit} className="flex gap-2">
                     <input
                       type="text"
                       value={userInput}
-                      onChange={(e) => setUserInput(e.target.value.toUpperCase())}
-                      placeholder="Ketik kata BISINDO yang kamu lihat..."
-                      className="answer-input uppercase flex-1"
+                      onChange={(e) => setUserInput(e.target.value.toUpperCase().replace(/[^A-Z]/g, ""))}
+                      placeholder={`Ketik kata ${currentWord.length} huruf yang kamu amati...`}
+                      maxLength={currentWord.length}
+                      className="answer-input uppercase flex-1 text-center font-black tracking-widest text-lg"
                       autoFocus
                     />
                     <button
                       type="submit"
-                      className="btn-duotone px-6 py-3 rounded-2xl font-extrabold text-xs flex items-center justify-center gap-2 shadow-lg"
+                      className="btn-duotone px-6 py-3 rounded-2xl font-black text-xs flex items-center justify-center gap-2 shadow-lg"
                     >
                       <span>Kirim Jawaban</span>
                       <i className="fa-solid fa-paper-plane text-xs"></i>
                     </button>
                   </form>
                 ) : (
-                  <div className="feedback-panel">
-                    <p
-                      className={`feedback-message ${
-                        feedback.success ? "text-green-600" : "text-red-500"
-                      }`}
-                    >
-                      {feedback.msg}
-                    </p>
-                    <button
-                      onClick={handleSpellingNextRound}
-                      className="btn-duotone px-5 py-2.5 rounded-xl text-xs font-bold"
-                    >
-                      Lanjut ▶
-                    </button>
+                  <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-3 animate-slide-up">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className={`font-black text-sm ${feedback.success ? "text-emerald-600" : "text-red-500"}`}>
+                        <i className={`fa-solid ${feedback.success ? "fa-circle-check" : "fa-circle-xmark"} mr-1.5`}></i>
+                        {feedback.msg}
+                      </p>
+                      <button
+                        onClick={handleSpellingNextRound}
+                        className="btn-duotone px-5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow"
+                      >
+                        <span>Lanjut Ronde Berikutnya</span>
+                        <i className="fa-solid fa-arrow-right"></i>
+                      </button>
+                    </div>
                   </div>
                 )}
 
-                {/* Virtual Keyboard */}
-                <div className="pt-2">
+                {/* VIRTUAL KEYBOARD DENGAN SUARA KLIK */}
+                <div className="pt-1">
                   <div className="grid grid-cols-7 sm:grid-cols-9 md:grid-cols-13 gap-1.5">
                     {ALPHABET.map((char) => (
                       <button
                         key={char}
                         type="button"
-                        onClick={() => setUserInput((prev) => prev + char)}
+                        onClick={() => {
+                          if (userInput.length < currentWord.length) {
+                            setUserInput((prev) => prev + char);
+                            gameAudio.playClick();
+                          }
+                        }}
                         className="vkey"
                       >
                         {char}
@@ -887,7 +1150,10 @@ export default function GamePage() {
                     ))}
                     <button
                       type="button"
-                      onClick={() => setUserInput((prev) => prev.slice(0, -1))}
+                      onClick={() => {
+                        setUserInput((prev) => prev.slice(0, -1));
+                        gameAudio.playClick();
+                      }}
                       className="vkey col-span-2 text-xs"
                     >
                       ⌫ Hapus
@@ -902,9 +1168,9 @@ export default function GamePage() {
                 <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-syarat to-tigpad text-white flex items-center justify-center text-3xl font-bold mx-auto shadow-lg">
                   🎉
                 </div>
-                <h3 className="text-2xl font-black">Permainan Selesai!</h3>
+                <h3 className="text-2xl font-black">Word Quest Selesai!</h3>
                 <div className="p-4 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
-                  <div className="text-xs text-slate-400 font-bold uppercase">Skor Akhir</div>
+                  <div className="text-xs text-slate-400 font-bold uppercase">Skor Total Diperoleh</div>
                   <div className="text-4xl font-black text-syarat dark:text-syarat-light mt-1">
                     {score}
                   </div>
@@ -920,7 +1186,7 @@ export default function GamePage() {
                     onClick={() => setSpellingState("menu")}
                     className="px-4 py-3 rounded-xl glass-card text-xs font-bold"
                   >
-                    Menu Utama
+                    Pilih Level
                   </button>
                 </div>
               </div>
@@ -928,112 +1194,238 @@ export default function GamePage() {
           </section>
         )}
 
-        {/* ================= MODE 2: SIGN RUSH ================= */}
+        {/* ========================================================================= */}
+        {/* MODE 2: SIGN RUSH 2.0 (REFLEKS KILAT + PILIHAN WAKTU & FEVER STREAK 🔥)  */}
+        {/* ========================================================================= */}
         {activeTab === "rush" && (
-          <section className="glass-card p-5 sm:p-8 rounded-3xl space-y-6">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
+          <section className="glass-card p-5 sm:p-7 rounded-3xl space-y-6 border border-slate-200 dark:border-slate-800 shadow-sm">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-100 dark:border-slate-800 pb-3">
               <div>
                 <span className="px-3 py-1 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 text-xs font-bold border border-amber-500/30 inline-flex items-center gap-1.5 shadow-sm">
-                  <i className="fa-solid fa-bolt"></i> Mode Refleks Cepat
+                  <i className="fa-solid fa-bolt"></i> Mode Refleks Cepat & Streak Api
                 </span>
-                <h2 className="text-xl font-black tracking-tight mt-1">
-                  Sign Rush: Tebak Isyarat Kilat
+                <h2 className="text-xl font-black tracking-tight mt-1 text-slate-800 dark:text-white">
+                  Sign Rush 2.0: Tebak Kilat Isyarat
                 </h2>
                 <p className="text-xs text-slate-500">
-                  Tebak huruf isyarat BISINDO secepat mungkin dalam batas waktu 4 detik per soal!
+                  Uji kecepatan refleks visualmu! Jawab secepatnya sebelum batas waktu habis dan picu FEVER MODE 🔥.
                 </p>
               </div>
+
+              {/* Sub-Mode Selector */}
+              {!rushRunning && (
+                <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-2xl border border-slate-200 dark:border-slate-700 text-xs font-bold">
+                  <button
+                    type="button"
+                    onClick={() => setRushSubMode("guess_letter")}
+                    className={`px-3 py-1.5 rounded-xl transition ${
+                      rushSubMode === "guess_letter" ? "bg-amber-500 text-white shadow" : "text-slate-500"
+                    }`}
+                  >
+                    🔤 Tebak Huruf
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setRushSubMode("guess_sign")}
+                    className={`px-3 py-1.5 rounded-xl transition ${
+                      rushSubMode === "guess_sign" ? "bg-amber-500 text-white shadow" : "text-slate-500"
+                    }`}
+                  >
+                    🖐️ Tebak Isyarat
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setRushSubMode("mix")}
+                    className={`px-3 py-1.5 rounded-xl transition ${
+                      rushSubMode === "mix" ? "bg-amber-500 text-white shadow" : "text-slate-500"
+                    }`}
+                  >
+                    🎲 Campuran
+                  </button>
+                </div>
+              )}
             </div>
 
             {!rushRunning && !rushGameOver && (
-              <div className="text-center py-8 space-y-4">
-                <div className="w-16 h-16 rounded-2xl bg-amber-500/15 text-amber-500 flex items-center justify-center text-3xl mx-auto">
+              <div className="text-center py-6 space-y-5 max-w-lg mx-auto">
+                <div className="w-16 h-16 rounded-2xl bg-amber-500/20 text-amber-500 flex items-center justify-center text-3xl mx-auto shadow-inner">
                   <i className="fa-solid fa-bolt"></i>
                 </div>
-                <h3 className="font-extrabold text-xl">Uji Kecepatan Refleks Isyarat</h3>
-                <p className="text-xs text-slate-500 max-w-sm mx-auto">
-                  Anda memiliki 3 nyawa. Waktu setiap soal adalah 4 detik. Pilih huruf yang benar!
-                </p>
+                <div>
+                  <h3 className="font-extrabold text-xl">Tantangan Refleks Isyarat 3 Detik! ⚡</h3>
+                  <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
+                    Uji refleks visualmu secepat kilat! Kamu hanya punya <strong>3 detik per soal</strong> dan 3 nyawa (❤️ ❤️ ❤️). Raih streak combo untuk memicu <strong>FEVER MODE 🔥</strong>!
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/40 text-xs text-amber-800 dark:text-amber-300 flex items-center justify-center gap-2">
+                  <i className="fa-solid fa-circle-info text-amber-500"></i>
+                  <span>Merasa kewalahan di tengah jalan? Tenang, tersedia tombol <strong>Nyerah</strong> sewaktu-waktu!</span>
+                </div>
+
                 <button
                   onClick={startSignRush}
-                  className="btn-duotone px-8 py-3.5 rounded-2xl font-extrabold text-xs shadow-xl inline-flex items-center gap-2"
+                  className="btn-duotone px-8 py-3.5 rounded-2xl font-extrabold text-xs shadow-xl inline-flex items-center gap-2 hover:scale-105 transition"
                 >
                   <i className="fa-solid fa-play"></i>
-                  <span>Mulai Sign Rush</span>
+                  <span>Mulai Sign Rush (3 Detik per Soal)</span>
                 </button>
               </div>
             )}
 
             {rushRunning && !rushGameOver && (
-              <div className="space-y-6">
-                <div className="grid grid-cols-3 gap-3">
-                  <div className="glass-card p-3 rounded-2xl flex items-center justify-between">
+              <div className="space-y-5">
+                {/* Stats Header */}
+                <div className="grid grid-cols-4 gap-2.5">
+                  <div className="glass-card p-3 rounded-2xl flex flex-col items-center justify-center">
                     <span className="text-[10px] font-bold text-slate-400 uppercase">Nyawa</span>
-                    <div className="flex items-center gap-1 text-sm text-red-500">
+                    <div className="flex items-center gap-1 text-sm text-red-500 mt-0.5">
                       {Array.from({ length: 3 }).map((_, i) => (
                         <i
                           key={i}
-                          className={`fa-solid fa-heart ${i < rushLives ? "" : "opacity-20"}`}
+                          className={`fa-solid fa-heart ${i < rushLives ? "text-red-500" : "text-slate-300 dark:text-slate-700"}`}
                         ></i>
                       ))}
                     </div>
                   </div>
-                  <div className="glass-card p-3 rounded-2xl flex items-center justify-between">
+
+                  <div className="glass-card p-3 rounded-2xl flex flex-col items-center justify-center">
                     <span className="text-[10px] font-bold text-slate-400 uppercase">Skor</span>
-                    <span className="font-black text-base text-syarat dark:text-syarat-light">
+                    <span className="font-black text-base text-amber-500">
                       {rushScore}
                     </span>
                   </div>
-                  <div className="glass-card p-3 rounded-2xl flex items-center justify-between">
+
+                  <div className="glass-card p-3 rounded-2xl flex flex-col items-center justify-center">
                     <span className="text-[10px] font-bold text-slate-400 uppercase">Ronde</span>
-                    <span className="font-bold text-xs text-slate-600 dark:text-slate-300">
+                    <span className="font-bold text-xs text-slate-700 dark:text-slate-200">
                       #{rushRound}
+                    </span>
+                  </div>
+
+                  <div className={`glass-card p-3 rounded-2xl flex flex-col items-center justify-center ${
+                    rushStreak >= 3 ? "bg-amber-500/20 border-amber-500/40 animate-pulse" : ""
+                  }`}>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase">Streak</span>
+                    <span className="font-black text-xs text-orange-500 flex items-center gap-1">
+                      {rushStreak >= 3 ? "🔥" : ""} {rushStreak}x
                     </span>
                   </div>
                 </div>
 
-                <div className="w-full bg-slate-200 dark:bg-slate-800 h-3 rounded-full overflow-hidden shadow-inner">
-                  <div
-                    className="bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 h-full transition-all duration-300"
-                    style={{ width: `${(rushTimer / 4) * 100}%` }}
-                  ></div>
-                </div>
+                {/* FEVER MODE BANNER */}
+                {rushStreak >= 3 && (
+                  <div className="p-2.5 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 text-white font-black text-xs text-center shadow-lg flex items-center justify-center gap-2">
+                    <i className="fa-solid fa-fire text-amber-200 animate-bounce"></i>
+                    <span>FEVER MODE AKTIF! Poin ×{rushStreak >= 5 ? "3" : "2"} Berlipat Ganda!</span>
+                    <i className="fa-solid fa-fire text-amber-200 animate-bounce"></i>
+                  </div>
+                )}
 
-                <div className="flex flex-col items-center justify-center p-6 rounded-3xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 min-h-[220px]">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={`/assets/sprites/${rushTargetLetter}.webp`}
-                    alt="Tebak Isyarat"
-                    className="w-44 h-44 object-contain rounded-2xl drop-shadow-xl"
-                  />
-                  <div className="text-[11px] font-extrabold text-slate-500 mt-2">
-                    Pilih huruf yang sesuai:
+                {/* ANIMATED COUNTDOWN TIMER BAR */}
+                <div className="space-y-1">
+                  <div className="flex justify-between items-center text-xs font-bold px-1">
+                    <span className="text-slate-400 text-[11px]">Sisa Waktu Berpikir:</span>
+                    <span className={`px-2 py-0.5 rounded-lg font-black text-[11px] ${
+                      rushTimer <= 1
+                        ? "bg-red-500 text-white animate-pulse"
+                        : "text-amber-600 dark:text-amber-400"
+                    }`}>
+                      ⏱️ {rushTimer}s / 3s
+                    </span>
+                  </div>
+                  <div className="w-full bg-slate-200 dark:bg-slate-800 h-3 rounded-full overflow-hidden shadow-inner">
+                    <div
+                      className={`h-full transition-all duration-300 ${
+                        rushTimer <= 1
+                          ? "bg-red-500 animate-pulse"
+                          : rushTimer <= 2
+                          ? "bg-amber-500"
+                          : "bg-gradient-to-r from-emerald-500 via-amber-500 to-orange-500"
+                      }`}
+                      style={{ width: `${(rushTimer / 3) * 100}%` }}
+                    ></div>
                   </div>
                 </div>
 
+                {/* TARGET TAMPILAN SOAL */}
+                <div className="flex flex-col items-center justify-center p-6 rounded-3xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 min-h-[220px]">
+                  {rushCurrentType === "guess_letter" ? (
+                    <>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={`/assets/sprites/${rushTargetLetter}.webp`}
+                        alt="Tebak Isyarat"
+                        className="w-40 h-40 object-contain drop-shadow-xl"
+                      />
+                      <span className="text-xs font-black text-slate-500 mt-2">
+                        Pilih huruf abjad yang sesuai dengan isyarat tangan di atas:
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <div className="w-32 h-32 rounded-3xl bg-white dark:bg-slate-950 border-2 border-syarat flex items-center justify-center text-6xl font-black text-syarat shadow-inner">
+                        {rushTargetLetter}
+                      </div>
+                      <span className="text-xs font-black text-slate-500 mt-3">
+                        Pilih foto peraga isyarat yang benar untuk huruf &quot;{rushTargetLetter}&quot;:
+                      </span>
+                    </>
+                  )}
+                </div>
+
+                {/* PILIHAN JAWABAN (4 KARTU) */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  {rushOptions.map((letter) => (
-                    <button
-                      key={letter}
-                      onClick={() => handleRushAnswer(letter)}
-                      className="p-4 rounded-2xl glass-card border font-black text-xl text-center hover:border-tigpad hover:bg-tigpad hover:text-white transition-all shadow-md active:scale-95"
-                    >
-                      {letter}
-                    </button>
-                  ))}
+                  {rushOptions.map((letter) => {
+                    return rushCurrentType === "guess_letter" ? (
+                      <button
+                        key={letter}
+                        onClick={() => handleRushAnswer(letter)}
+                        className="p-4 rounded-2xl glass-card border border-slate-200 dark:border-slate-700 font-black text-2xl text-center hover:border-amber-500 hover:bg-amber-500 hover:text-white transition-all shadow-md active:scale-95 text-slate-800 dark:text-slate-100"
+                      >
+                        {letter}
+                      </button>
+                    ) : (
+                      <button
+                        key={letter}
+                        onClick={() => handleRushAnswer(letter)}
+                        className="p-3 rounded-2xl glass-card border border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center hover:border-amber-500 hover:bg-amber-500/10 transition-all shadow-md active:scale-95"
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={`/assets/sprites/${letter}.webp`}
+                          alt={`Opsi ${letter}`}
+                          className="w-20 h-20 object-contain drop-shadow"
+                        />
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* TOMBOL NYERAH */}
+                <div className="flex justify-center pt-2">
+                  <button
+                    type="button"
+                    onClick={handleSurrenderRush}
+                    className="px-5 py-2.5 rounded-2xl bg-red-500/15 hover:bg-red-500/25 text-red-600 dark:text-red-400 border border-red-500/30 font-bold text-xs flex items-center gap-2 transition active:scale-95 shadow-sm"
+                    title="Menyerah dan akhiri permainan Sign Rush"
+                  >
+                    <i className="fa-solid fa-flag"></i>
+                    <span>🏳️ Nyerah (Akhiri Permainan)</span>
+                  </button>
                 </div>
               </div>
             )}
 
             {rushGameOver && (
               <div className="p-8 rounded-3xl text-center space-y-4 max-w-sm mx-auto">
-                <div className="w-16 h-16 rounded-2xl bg-amber-500/20 text-amber-500 text-3xl font-black flex items-center justify-center mx-auto">
+                <div className="w-16 h-16 rounded-2xl bg-amber-500/20 text-amber-500 text-3xl font-black flex items-center justify-center mx-auto shadow-inner">
                   <i className="fa-solid fa-trophy"></i>
                 </div>
                 <h3 className="text-2xl font-black">Sign Rush Selesai!</h3>
                 <div className="p-4 rounded-2xl bg-slate-100 dark:bg-slate-900 border">
-                  <div className="text-[10px] text-slate-400 font-bold uppercase">Skor Akhir</div>
-                  <div className="text-3xl font-black text-amber-500 mt-1">{rushScore}</div>
+                  <div className="text-[10px] text-slate-400 font-bold uppercase">Skor Akhir Diraih</div>
+                  <div className="text-3xl font-black text-amber-500 mt-1">{rushScore} Poin</div>
                 </div>
                 <button
                   onClick={startSignRush}
@@ -1046,70 +1438,66 @@ export default function GamePage() {
           </section>
         )}
 
-        {/* ================= MODE 3: MEMORY MATCH ================= */}
+        {/* ========================================================================= */}
+        {/* MODE 3: MEMORY MATCH 3D (PASANGAN ISYARAT)                                */}
+        {/* ========================================================================= */}
         {activeTab === "memory" && (
-          <section className="glass-card p-5 sm:p-8 rounded-3xl space-y-6">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
+          <section className="glass-card p-5 sm:p-7 rounded-3xl space-y-6 border border-slate-200 dark:border-slate-800 shadow-sm">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-100 dark:border-slate-800 pb-3">
               <div>
                 <span className="px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 text-xs font-bold border border-emerald-500/30 inline-flex items-center gap-1.5 shadow-sm">
                   <i className="fa-solid fa-clone"></i> Mode Kartu Memori 3D
                 </span>
-                <h2 className="text-xl font-black tracking-tight mt-1">
+                <h2 className="text-xl font-black tracking-tight mt-1 text-slate-800 dark:text-white">
                   Memory Match: Pasangan Isyarat
                 </h2>
                 <p className="text-xs text-slate-500">
-                  Buka dan cocokkan kartu foto peraga tangan BISINDO dengan huruf abjad yang tepat.
+                  Buka dan cocokkan kartu foto peraga tangan BISINDO dengan abjad yang tepat.
                 </p>
               </div>
 
-              <div className="flex items-center gap-1.5 bg-slate-200/80 dark:bg-slate-900/80 p-1 rounded-2xl border border-slate-300 dark:border-slate-800 text-xs font-bold">
+              <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 p-1 rounded-2xl border border-slate-200 dark:border-slate-700 text-xs font-bold">
                 <button
                   onClick={() => {
                     setMemoryDifficulty("easy");
                     initMemoryGame("easy");
                   }}
-                  className={`px-3 py-1.5 rounded-xl transition-all ${
-                    memoryDifficulty === "easy"
-                      ? "bg-emerald-600 text-white shadow"
-                      : "text-slate-600 dark:text-slate-400"
+                  className={`px-3 py-1.5 rounded-xl transition ${
+                    memoryDifficulty === "easy" ? "bg-emerald-600 text-white shadow" : "text-slate-500"
                   }`}
                 >
-                  Mudah (6)
+                  Mudah (6 Pasang)
                 </button>
                 <button
                   onClick={() => {
                     setMemoryDifficulty("medium");
                     initMemoryGame("medium");
                   }}
-                  className={`px-3 py-1.5 rounded-xl transition-all ${
-                    memoryDifficulty === "medium"
-                      ? "bg-emerald-600 text-white shadow"
-                      : "text-slate-600 dark:text-slate-400"
+                  className={`px-3 py-1.5 rounded-xl transition ${
+                    memoryDifficulty === "medium" ? "bg-emerald-600 text-white shadow" : "text-slate-500"
                   }`}
                 >
-                  Sedang (8)
+                  Sedang (8 Pasang)
                 </button>
                 <button
                   onClick={() => {
                     setMemoryDifficulty("hard");
                     initMemoryGame("hard");
                   }}
-                  className={`px-3 py-1.5 rounded-xl transition-all ${
-                    memoryDifficulty === "hard"
-                      ? "bg-emerald-600 text-white shadow"
-                      : "text-slate-600 dark:text-slate-400"
+                  className={`px-3 py-1.5 rounded-xl transition ${
+                    memoryDifficulty === "hard" ? "bg-emerald-600 text-white shadow" : "text-slate-500"
                   }`}
                 >
-                  Sulit (10)
+                  Sulit (10 Pasang)
                 </button>
               </div>
             </div>
 
-            <div className="flex justify-between items-center text-xs font-bold text-slate-500">
-              <span>Langkah (Moves): {memoryMoves}</span>
+            <div className="flex justify-between items-center text-xs font-bold text-slate-500 px-1">
+              <span>Jumlah Percobaan: <strong>{memoryMoves} Langkah</strong></span>
               <button
                 onClick={() => initMemoryGame()}
-                className="px-3 py-1.5 rounded-xl glass-card hover:bg-slate-200 text-slate-700 dark:text-slate-300"
+                className="px-3 py-1.5 rounded-xl glass-card border hover:bg-slate-100 dark:hover:bg-slate-800 transition"
               >
                 ↻ Acak Ulang
               </button>
@@ -1130,8 +1518,8 @@ export default function GamePage() {
                         isRevealed ? "flipped" : ""
                       } ${card.matched ? "matched" : ""}`}
                     >
-                      <div className="flip-card-front rounded-2xl flex items-center justify-center text-2xl font-black shadow-md">
-                        ?
+                      <div className="flip-card-front rounded-2xl flex items-center justify-center text-2xl font-black shadow-md bg-gradient-to-tr from-emerald-600 to-teal-700 text-white">
+                        <i className="fa-solid fa-hands text-xl opacity-75"></i>
                       </div>
                       <div className="flip-card-back rounded-2xl flex items-center justify-center p-2 shadow-md">
                         {card.type === "image" ? (
@@ -1142,7 +1530,7 @@ export default function GamePage() {
                             className="w-full h-full object-contain"
                           />
                         ) : (
-                          <span className="text-3xl font-black text-syarat dark:text-syarat-light">
+                          <span className="text-3xl font-black text-emerald-600 dark:text-emerald-400">
                             {card.value}
                           </span>
                         )}
@@ -1157,379 +1545,148 @@ export default function GamePage() {
       </div>
 
       {/* ========================================================================= */}
-      {/* MODAL KELOLA BANK KATA BISINDOSPELLING (MENTOR / ADMIN)                  */}
+      {/* MODAL KLASEMEN PESERTA (BERDASARKAN JUMLAH SELURUH PESERTA)                */}
       {/* ========================================================================= */}
-      {wordBankModalOpen && isManager && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
-          <div
-            className="fixed inset-0 bg-slate-950/75 backdrop-blur-sm transition-opacity"
-            onClick={() => setWordBankModalOpen(false)}
-          ></div>
-
-          <div className="glass-card p-5 sm:p-6 rounded-3xl max-w-4xl w-full max-h-[90vh] flex flex-col relative z-10 animate-slide-up border border-slate-200 dark:border-slate-800 shadow-2xl space-y-4">
-            {/* Modal Header */}
-            <div className="flex justify-between items-start border-b border-slate-200 dark:border-slate-800 pb-3">
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="px-2.5 py-0.5 rounded-full bg-purple-500/15 text-purple-600 dark:text-purple-400 text-[11px] font-bold border border-purple-500/30">
-                    <i className="fa-solid fa-shield-halved mr-1"></i> Khusus Mentor & Admin
-                  </span>
-                  <span className="text-xs text-slate-400">
-                    Total: {allWordItems.length} Kata Tersimpan
-                  </span>
+      {showLeaderboardModal && (
+        <div className="modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="glass-card rounded-3xl max-w-xl w-full max-h-[85vh] flex flex-col overflow-hidden shadow-2xl border border-slate-200 dark:border-slate-800 animate-slide-up">
+            {/* Header Modal */}
+            <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-gradient-to-r from-amber-500/10 via-syarat/10 to-transparent">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center text-lg">
+                  <i className="fa-solid fa-trophy"></i>
                 </div>
-                <h3 className="font-black text-lg sm:text-xl text-slate-800 dark:text-white flex items-center gap-2">
-                  <i className="fa-solid fa-book-bookmark text-syarat"></i>
-                  <span>Kelola Bank Kata BisindoSpelling</span>
-                </h3>
-                <p className="text-xs text-slate-500">
-                  Tambah, ubah, atau hapus kosakata latihan ejaan abjad jari BISINDO langsung dari database Supabase.
-                </p>
+                <div>
+                  <h3 className="text-base font-black text-slate-800 dark:text-white">
+                    Papan Peringkat Peserta
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    Total {totalParticipants} peserta aktif terdaftar dalam sistem
+                  </p>
+                </div>
               </div>
-
               <button
                 type="button"
-                onClick={() => setWordBankModalOpen(false)}
-                className="p-2 rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-500/10 transition-colors"
-                title="Tutup Modal"
+                onClick={() => setShowLeaderboardModal(false)}
+                className="w-8 h-8 rounded-xl glass-card flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-white transition"
               >
-                <i className="fa-solid fa-xmark text-lg"></i>
+                <i className="fa-solid fa-xmark"></i>
               </button>
             </div>
 
-            {/* Modal Body (Scrollable) */}
-            <div className="overflow-y-auto flex-1 space-y-5 pr-1 text-xs">
-              {/* Form Tambah / Edit Kata */}
-              <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-3 shadow-sm">
-                <div className="flex justify-between items-center">
-                  <h4 className="font-bold text-slate-800 dark:text-white flex items-center gap-2 text-xs">
-                    <i className={`fa-solid ${editingWordId !== null ? "fa-pen-to-square text-amber-500" : "fa-circle-plus text-syarat"}`}></i>
-                    <span>{editingWordId !== null ? `Edit Kata #${editingWordId}` : "Tambah Kosakata Baru"}</span>
-                  </h4>
-                  {editingWordId !== null && (
-                    <button
-                      type="button"
-                      onClick={handleCancelEditWord}
-                      className="text-[11px] text-slate-400 hover:text-red-500 font-semibold"
-                    >
-                      ✕ Batal Edit
-                    </button>
-                  )}
-                </div>
-
-                <form onSubmit={handleSaveWord} className="space-y-3">
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div className="sm:col-span-2 space-y-1">
-                      <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300">
-                        Kata BISINDO (Huruf A-Z) <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={inputWord}
-                        onChange={(e) => setInputWord(e.target.value.toUpperCase().replace(/[^A-Z]/g, ""))}
-                        placeholder="Contoh: BISINDO, SEKOLAH, IBU..."
-                        maxLength={15}
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-xs font-mono font-black uppercase tracking-wider focus:ring-2 focus:ring-syarat outline-none transition"
-                      />
-                      <span className="text-[10px] text-slate-400">
-                        Hanya alfabet A-Z tanpa spasi atau simbol. Maks. 15 huruf.
+            {/* Kartu Posisi User Saat Ini */}
+            <div className="p-4 bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-syarat to-blue-600 text-white font-black flex items-center justify-center shadow-md">
+                    #{myRank}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs font-black text-slate-800 dark:text-white">
+                        {currentUser.name} (Kamu)
+                      </span>
+                      <span className={`px-2 py-0.2 rounded-full text-[9px] font-black ${currentRankTier.badge}`}>
+                        {currentRankTier.tierName}
                       </span>
                     </div>
-
-                    <div className="space-y-1">
-                      <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300">
-                        Tingkat Kesulitan <span className="text-red-500">*</span>
-                      </label>
-                      <select
-                        value={inputDifficulty}
-                        onChange={(e) => setInputDifficulty(e.target.value as "easy" | "medium" | "hard")}
-                        className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-xs font-bold focus:ring-2 focus:ring-syarat outline-none transition"
-                      >
-                        <option value="easy">Mudah (3-4 Huruf)</option>
-                        <option value="medium">Sedang (5-6 Huruf)</option>
-                        <option value="hard">Sulit (7+ Huruf)</option>
-                      </select>
-                      <span className="text-[10px] text-slate-400">
-                        Kategori ronde di game BisindoSpelling
-                      </span>
-                    </div>
+                    <span className="text-[11px] text-slate-500">
+                      Peringkat #{myRank} dari {totalParticipants} peserta ({betterThanPercent}% lebih unggul)
+                    </span>
                   </div>
-
-                  {/* Real-time Sign Gesture Sprite Preview */}
-                  {inputWord.trim().length > 0 && (
-                    <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 space-y-2">
-                      <div className="flex items-center justify-between text-[11px]">
-                        <span className="font-bold text-slate-600 dark:text-slate-300">
-                          Pratinjau Gestur Abjad Jari ({inputWord.length} Huruf):
-                        </span>
-                        <span className="font-mono text-syarat font-black tracking-widest">
-                          {inputWord.split("").join(" ")}
-                        </span>
-                      </div>
-                      <div className="flex flex-wrap gap-2 items-center">
-                        {inputWord.split("").map((char, idx) => (
-                          <div
-                            key={`${char}-${idx}`}
-                            className="flex flex-col items-center bg-white dark:bg-slate-900 px-2 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm"
-                          >
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img
-                              src={`/assets/sprites/${char}.webp`}
-                              alt={char}
-                              className="w-9 h-9 object-contain rounded"
-                              onError={(e) => {
-                                (e.target as HTMLImageElement).style.display = "none";
-                              }}
-                            />
-                            <span className="text-[11px] font-black text-slate-800 dark:text-slate-100 mt-1">
-                              {char}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="flex justify-end items-center gap-2 pt-1">
-                    {editingWordId !== null && (
-                      <button
-                        type="button"
-                        onClick={handleCancelEditWord}
-                        className="px-3.5 py-2 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 text-slate-700 dark:text-slate-300 font-bold transition-colors"
-                      >
-                        Batal
-                      </button>
-                    )}
-                    <button
-                      type="submit"
-                      disabled={isSubmittingWord || !inputWord.trim()}
-                      className="px-4 py-2 rounded-xl bg-gradient-to-r from-syarat to-tigpad hover:opacity-90 disabled:opacity-50 text-white font-bold flex items-center gap-1.5 shadow-md transition-all"
-                    >
-                      {isSubmittingWord ? (
-                        <>
-                          <span className="loading loading-spinner loading-xs"></span>
-                          <span>Menyimpan...</span>
-                        </>
-                      ) : editingWordId !== null ? (
-                        <>
-                          <i className="fa-solid fa-check"></i>
-                          <span>Simpan Perubahan</span>
-                        </>
-                      ) : (
-                        <>
-                          <i className="fa-solid fa-plus"></i>
-                          <span>Tambahkan Kata</span>
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </form>
-              </div>
-
-              {/* Filter Bar & Seeding Button */}
-              <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-2.5 pt-1">
-                {/* Tabs */}
-                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
-                  <button
-                    type="button"
-                    onClick={() => setBankTab("all")}
-                    className={`px-3 py-1.5 rounded-xl font-bold text-[11px] whitespace-nowrap transition-all ${
-                      bankTab === "all"
-                        ? "bg-slate-800 dark:bg-slate-100 text-white dark:text-slate-900 shadow-sm"
-                        : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200"
-                    }`}
-                  >
-                    Semua ({allWordItems.length})
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setBankTab("easy")}
-                    className={`px-3 py-1.5 rounded-xl font-bold text-[11px] whitespace-nowrap transition-all ${
-                      bankTab === "easy"
-                        ? "bg-emerald-600 text-white shadow-sm"
-                        : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200"
-                    }`}
-                  >
-                    Mudah ({easyCount})
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setBankTab("medium")}
-                    className={`px-3 py-1.5 rounded-xl font-bold text-[11px] whitespace-nowrap transition-all ${
-                      bankTab === "medium"
-                        ? "bg-blue-600 text-white shadow-sm"
-                        : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200"
-                    }`}
-                  >
-                    Sedang ({mediumCount})
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setBankTab("hard")}
-                    className={`px-3 py-1.5 rounded-xl font-bold text-[11px] whitespace-nowrap transition-all ${
-                      bankTab === "hard"
-                        ? "bg-purple-600 text-white shadow-sm"
-                        : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200"
-                    }`}
-                  >
-                    Sulit ({hardCount})
-                  </button>
                 </div>
-
-                {/* Search & Seed */}
-                <div className="flex items-center gap-2">
-                  <div className="relative flex-1 sm:w-48">
-                    <i className="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                    <input
-                      type="text"
-                      value={bankSearch}
-                      onChange={(e) => setBankSearch(e.target.value)}
-                      placeholder="Cari kata..."
-                      className="w-full pl-8 pr-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-syarat"
-                    />
-                  </div>
-                  <button
-                    type="button"
-                    onClick={handleSeedDefaultWords}
-                    disabled={isSeedingWords}
-                    className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-[11px] flex items-center gap-1.5 whitespace-nowrap transition-all border border-slate-200 dark:border-slate-700"
-                    title="Isi bank kata otomatis dengan kosakata standar BISINDO"
-                  >
-                    <i className={`fa-solid ${isSeedingWords ? "fa-spinner fa-spin text-syarat" : "fa-cloud-arrow-down text-syarat"}`}></i>
-                    <span>{isSeedingWords ? "Memuat..." : "Isi Kosakata Standar"}</span>
-                  </button>
+                <div className="text-right">
+                  <span className="text-xs font-black text-amber-500 block">
+                    {currentUser.score || 0} Poin
+                  </span>
+                  <span className="text-[10px] text-slate-400 font-bold uppercase">
+                    Skor Akun
+                  </span>
                 </div>
-              </div>
-
-              {/* Daftar Kata Table */}
-              <div className="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
-                {isLoadingAllWords ? (
-                  <div className="py-12 text-center text-slate-400 space-y-2">
-                    <span className="loading loading-spinner loading-md text-syarat"></span>
-                    <p>Memuat bank kosakata dari Supabase...</p>
-                  </div>
-                ) : filteredWordList.length === 0 ? (
-                  <div className="py-12 text-center text-slate-400 space-y-2">
-                    <i className="fa-solid fa-folder-open text-3xl"></i>
-                    <p className="font-bold">Belum ada kata yang sesuai kriteria.</p>
-                    <p className="text-[11px] text-slate-500">
-                      Tambahkan kata baru di atas atau klik &quot;Isi Kosakata Standar&quot;.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left text-xs">
-                      <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-500 font-bold border-b border-slate-200 dark:border-slate-800">
-                        <tr>
-                          <th className="p-3 w-12 text-center">No</th>
-                          <th className="p-3">Kata (BISINDO)</th>
-                          <th className="p-3">Pratinjau Isyarat</th>
-                          <th className="p-3 text-center">Level</th>
-                          <th className="p-3 text-center w-28">Aksi</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                        {filteredWordList.map((item, idx) => {
-                          const letters = item.word.split("");
-                          return (
-                            <tr
-                              key={item.id}
-                              className={`hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors ${
-                                editingWordId === item.id ? "bg-amber-500/10" : ""
-                              }`}
-                            >
-                              <td className="p-3 text-center font-mono text-slate-400 text-[11px]">
-                                {idx + 1}
-                              </td>
-                              <td className="p-3 font-mono font-black text-slate-800 dark:text-white tracking-wider text-sm">
-                                <span>{item.word}</span>
-                                <span className="ml-2 text-[10px] font-sans font-semibold text-slate-400">
-                                  ({letters.length} huruf)
-                                </span>
-                              </td>
-                              <td className="p-3">
-                                <div className="flex items-center gap-1">
-                                  {letters.slice(0, 6).map((c, cIdx) => (
-                                    /* eslint-disable-next-line @next/next/no-img-element */
-                                    <img
-                                      key={`${c}-${cIdx}`}
-                                      src={`/assets/sprites/${c}.webp`}
-                                      alt={c}
-                                      className="w-5 h-5 object-contain rounded bg-slate-100 dark:bg-slate-800 p-0.5 border border-slate-200 dark:border-slate-700"
-                                      onError={(e) => {
-                                        (e.target as HTMLImageElement).style.display = "none";
-                                      }}
-                                      title={c}
-                                    />
-                                  ))}
-                                  {letters.length > 6 && (
-                                    <span className="text-[10px] text-slate-400 font-bold ml-0.5">
-                                      +{letters.length - 6}
-                                    </span>
-                                  )}
-                                </div>
-                              </td>
-                              <td className="p-3 text-center">
-                                {item.difficulty === "easy" ? (
-                                  <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 font-bold text-[10px]">
-                                    Mudah
-                                  </span>
-                                ) : item.difficulty === "medium" ? (
-                                  <span className="px-2.5 py-0.5 rounded-full bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/30 font-bold text-[10px]">
-                                    Sedang
-                                  </span>
-                                ) : (
-                                  <span className="px-2.5 py-0.5 rounded-full bg-purple-500/15 text-purple-600 dark:text-purple-400 border border-purple-500/30 font-bold text-[10px]">
-                                    Sulit
-                                  </span>
-                                )}
-                              </td>
-                              <td className="p-3 text-center">
-                                <div className="flex items-center justify-center gap-1">
-                                  <button
-                                    type="button"
-                                    onClick={() => handleStartEditWord(item)}
-                                    className="p-1.5 rounded-lg bg-syarat/10 hover:bg-syarat/20 text-syarat dark:text-syarat-light transition-colors"
-                                    title="Ubah kata ini"
-                                  >
-                                    <i className="fa-solid fa-pen-to-square"></i>
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => handleDeleteWord(item)}
-                                    className="p-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 transition-colors"
-                                    title="Hapus kata ini dari database"
-                                  >
-                                    <i className="fa-solid fa-trash-can"></i>
-                                  </button>
-                                </div>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
               </div>
             </div>
 
-            {/* Modal Footer */}
-            <div className="flex justify-between items-center border-t border-slate-200 dark:border-slate-800 pt-3 text-xs">
-              <span className="text-slate-400 text-[11px]">
-                Menampilkan {filteredWordList.length} dari {allWordItems.length} kata
-              </span>
-              <button
-                type="button"
-                onClick={() => setWordBankModalOpen(false)}
-                className="px-4 py-2 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 text-slate-700 dark:text-slate-200 font-bold transition-colors"
-              >
-                Tutup
-              </button>
+            {/* Daftar Klasemen Peserta */}
+            <div className="p-4 overflow-y-auto flex-1 space-y-2 divide-y divide-slate-100 dark:divide-slate-800/60">
+              {sortedParticipants.map((u, index) => {
+                const isMe = u.id === currentUser.id;
+                const pos = index + 1;
+                const userScore = isMe ? (currentUser.score || 0) : (u.score || 0);
+                const tier = getParticipantRankTier(pos, totalParticipants);
+
+                return (
+                  <div
+                    key={u.id || index}
+                    className={`flex items-center justify-between p-3 rounded-2xl transition ${
+                      isMe
+                        ? "bg-syarat/10 border border-syarat/30"
+                        : "hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 flex items-center justify-center font-black text-sm">
+                        {pos === 1 ? (
+                          <span className="text-lg" title="Juara 1">🥇</span>
+                        ) : pos === 2 ? (
+                          <span className="text-lg" title="Juara 2">🥈</span>
+                        ) : pos === 3 ? (
+                          <span className="text-lg" title="Juara 3">🥉</span>
+                        ) : (
+                          <span className="text-slate-400">#{pos}</span>
+                        )}
+                      </div>
+
+                      <div className="w-9 h-9 rounded-xl bg-slate-200 dark:bg-slate-700 flex items-center justify-center font-black text-xs text-slate-600 dark:text-slate-300">
+                        {u.name ? u.name.charAt(0).toUpperCase() : "P"}
+                      </div>
+
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <span className={`text-xs font-bold ${isMe ? "text-syarat dark:text-syarat-light font-black" : "text-slate-800 dark:text-slate-200"}`}>
+                            {u.name} {isMe && "(Kamu)"}
+                          </span>
+                          <span className={`px-1.5 py-0.5 rounded-full text-[9px] font-bold ${tier.badge}`}>
+                            {tier.tierName}
+                          </span>
+                        </div>
+                        <span className="text-[10px] text-slate-400">
+                          {u.institution || "Peserta Pelatihan BISINDO"}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="text-right">
+                      <span className="text-xs font-black text-amber-500 block">
+                        {userScore}
+                      </span>
+                      <span className="text-[9px] text-slate-400 font-bold uppercase">Poin</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Footer Modal */}
+            <div className="p-4 border-t border-slate-100 dark:border-slate-800 text-center bg-slate-50 dark:bg-slate-900">
+              <p className="text-[11px] text-slate-500">
+                Peringkat diperbarui secara otomatis setiap kamu menyelesaikan ronde permainan!
+              </p>
             </div>
           </div>
         </div>
+      )}
+
+      {/* Modal Kelola Bank Kata untuk Mentor/Admin */}
+      {isManager && (
+        <WordBankModal
+          isOpen={wordBankModalOpen}
+          onClose={() => setWordBankModalOpen(false)}
+          allWordItems={allWordItems}
+          fetchWordBank={fetchWordBank}
+          reloadGameWords={reloadGameWords}
+          showToast={showToast}
+          logActivity={logActivity}
+        />
       )}
     </DashboardLayout>
   );

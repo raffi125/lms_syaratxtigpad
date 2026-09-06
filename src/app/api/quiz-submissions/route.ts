@@ -124,6 +124,8 @@ export async function POST(req: NextRequest) {
       minute: "2-digit",
     });
 
+    const hasUngradedEssays = answers.some((a: any) => a.type === "essai" && !a.isGraded);
+
     const newSubmission: QuizSubmission = {
       id: `SUB-${Date.now()}-${Math.floor(100 + Math.random() * 900)}`,
       userId: Number(userId),
@@ -136,6 +138,7 @@ export async function POST(req: NextRequest) {
       passed: Boolean(passed),
       submittedAt: `${formattedDate} WIB`,
       answers,
+      hasUngradedEssays,
     };
 
     const currentList = await loadSubmissions();
@@ -154,6 +157,119 @@ export async function POST(req: NextRequest) {
     console.error("[API /api/quiz-submissions POST Error]:", error);
     return NextResponse.json(
       { success: false, message: error.message || "Gagal menyimpan jawaban kuis." },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PATCH(req: NextRequest) {
+  try {
+    const body = await req.json();
+    const { submissionId, quizId, earnedPoints, mentorFeedback, gradedBy } = body;
+
+    if (!submissionId || quizId === undefined) {
+      return NextResponse.json(
+        { success: false, message: "submissionId dan quizId wajib disertakan." },
+        { status: 400 }
+      );
+    }
+
+    const currentList = await loadSubmissions();
+    const subIndex = currentList.findIndex((s) => s.id === submissionId);
+    if (subIndex === -1) {
+      return NextResponse.json(
+        { success: false, message: "Data submission kuis tidak ditemukan." },
+        { status: 404 }
+      );
+    }
+
+    const targetSub = currentList[subIndex];
+    const now = new Date();
+    const formattedDate = now.toLocaleDateString("id-ID", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+    // Update answer record
+    const updatedAnswers = targetSub.answers.map((ans) => {
+      if (ans.quizId === Number(quizId) || String(ans.quizId) === String(quizId)) {
+        const maxPoints = ans.points && ans.points > 0 ? ans.points : 10;
+        const pointsGiven = Math.max(0, Math.min(Number(earnedPoints) || 0, maxPoints));
+        return {
+          ...ans,
+          earnedPoints: pointsGiven,
+          isCorrect: pointsGiven > 0,
+          isGraded: true,
+          mentorFeedback: mentorFeedback !== undefined ? String(mentorFeedback).trim() : (ans.mentorFeedback || ""),
+          gradedBy: String(gradedBy || "Mentor"),
+          gradedAt: `${formattedDate} WIB`,
+        };
+      }
+      return ans;
+    });
+
+    // Recalculate totals
+    let totalEarned = 0;
+    let totalPossible = 0;
+    let hasUngraded = false;
+
+    updatedAnswers.forEach((ans) => {
+      const qPts = ans.points && ans.points > 0 ? ans.points : 10;
+      totalPossible += qPts;
+      if (ans.type === "essai") {
+        if (ans.isGraded) {
+          totalEarned += ans.earnedPoints ?? 0;
+        } else {
+          hasUngraded = true;
+        }
+      } else {
+        if (ans.isCorrect) {
+          totalEarned += qPts;
+        }
+      }
+    });
+
+    const newScore = totalPossible > 0 ? Math.round((totalEarned / totalPossible) * 100) : 0;
+    const isPassed = newScore >= 70;
+
+    const updatedSub: QuizSubmission = {
+      ...targetSub,
+      answers: updatedAnswers,
+      earnedPoints: totalEarned,
+      totalPossiblePoints: totalPossible,
+      score: newScore,
+      passed: isPassed,
+      hasUngradedEssays: hasUngraded,
+    };
+
+    const updatedList = [...currentList];
+    updatedList[subIndex] = updatedSub;
+    await saveSubmissions(updatedList);
+
+    // Update user score in Supabase if configured
+    if (isSupabaseConfigured() && targetSub.userId) {
+      try {
+        await supabaseAdmin
+          .from("users")
+          .update({ score: newScore })
+          .eq("id", targetSub.userId);
+      } catch (e) {
+        console.warn("[quiz-submissions PATCH] Failed to update user score in DB:", e);
+      }
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: `Nilai essai berhasil disimpan! Skor akhir peserta: ${newScore}/100.`,
+      data: updatedSub,
+    });
+  } catch (error: any) {
+    console.error("[API /api/quiz-submissions PATCH Error]:", error);
+    return NextResponse.json(
+      { success: false, message: error.message || "Gagal menyimpan nilai essai." },
       { status: 500 }
     );
   }

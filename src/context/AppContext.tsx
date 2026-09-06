@@ -703,6 +703,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         sessionStorage.setItem("currentUserId", String(INITIAL_ADMIN.id));
         sessionStorage.setItem("currentRole", "admin");
       }
+      refreshFromSupabase().catch(() => {});
       showToast("Selamat datang, Administrator!", "success");
       return true;
     }
@@ -723,6 +724,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         sessionStorage.setItem("currentUserId", String(INITIAL_MENTOR.id));
         sessionStorage.setItem("currentRole", "mentor");
       }
+      refreshFromSupabase().catch(() => {});
       showToast("Selamat datang, Mentor!", "success");
       return true;
     }
@@ -783,6 +785,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         sessionStorage.setItem("currentUserId", String(found.id));
         sessionStorage.setItem("currentRole", found.role);
       }
+      refreshFromSupabase().catch(() => {});
       showToast(`Selamat datang kembali, ${found.name}!`, "success");
       return true;
     }

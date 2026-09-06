@@ -1,0 +1,233 @@
+﻿export interface AlphabetMnemonic {
+  letter: string;
+  title: string;
+  handshape: string;
+  mnemonic: string;
+  exampleWord: string;
+  category: "Genggam" | "Tunjuk" | "Dua Jari" | "Terbuka" | "Spesial";
+}
+
+export const BISINDO_ALPHABET_DATA: AlphabetMnemonic[] = [
+  {
+    letter: "A",
+    title: "Kepalan Jempol Acung",
+    handshape: "Tangan mengepal erat dengan ibu jari tegak menempel di samping jari telunjuk.",
+    mnemonic: "Ingat 'A' = Acungan Jempol! Kepal tangan dan acungkan jempol ke samping.",
+    exampleWord: "AYAH, APEL, AIR",
+    category: "Genggam",
+  },
+  {
+    letter: "B",
+    title: "Dinding Empat Jari",
+    handshape: "Empat jari berdiri tegak lurus rapat ke atas, ibu jari terlipat di depan telapak tangan.",
+    mnemonic: "Ingat 'B' = Balok / Benteng! 4 jari berdiri tegak rapat membentuk dinding datar.",
+    exampleWord: "BISA, BAIK, BUKU",
+    category: "Terbuka",
+  },
+  {
+    letter: "C",
+    title: "Lengkung Bulan Sabit",
+    handshape: "Seluruh jari dan ibu jari melengkung ke depan membentuk busur huruf C terbuka.",
+    mnemonic: "Ingat 'C' = Cangkir / Crescent! Bentuk tangan melengkung persis seperti huruf C.",
+    exampleWord: "CARI, CINTA, CUCI",
+    category: "Spesial",
+  },
+  {
+    letter: "D",
+    title: "Satu Telunjuk Menusuk",
+    handshape: "Jari telunjuk tegak lurus ke atas, jari tengah, manis, kelingking melengkung bertemu ibu jari membentuk lingkaran.",
+    mnemonic: "Ingat 'D' = Dinding lingkaran dengan tiang! Telunjuk tegak menjadi garis lurus huruf D.",
+    exampleWord: "DUDUK, DUA, DENGAR",
+    category: "Tunjuk",
+  },
+  {
+    letter: "E",
+    title: "Cakar Menekuk",
+    handshape: "Semua jari melengkung menekuk ke bawah sehingga ujung-ujung kuku menempel di atas ibu jari.",
+    mnemonic: "Ingat 'E' = Enam cakar menekuk ke jempol! Bentuknya rapat dan melengkung ke bawah.",
+    exampleWord: "ES, ELANG, EKOR",
+    category: "Genggam",
+  },
+  {
+    letter: "F",
+    title: "Lingkaran Tiga Tiang",
+    handshape: "Ujung telunjuk dan ibu jari bersentuhan membentuk lingkaran kecil (tanda OK), tiga jari lainnya tegak terentang ke atas.",
+    mnemonic: "Ingat 'F' = Fine / Tiga cabang! Jempol & telunjuk bulat, 3 jari sisa berdiri bebas.",
+    exampleWord: "FOTO, FILM, FAHAM",
+    category: "Spesial",
+  },
+  {
+    letter: "G",
+    title: "Capit Mendatar",
+    handshape: "Telunjuk dan ibu jari dijulurkan mendatar sejajar ke samping, jari lainnya ditekuk mengepal.",
+    mnemonic: "Ingat 'G' = Garis horizontal / Capit kepiting mendatar ke samping.",
+    exampleWord: "GURU, GELAS, GIGI",
+    category: "Tunjuk",
+  },
+  {
+    letter: "H",
+    title: "Dua Jari Mendatar",
+    handshape: "Telunjuk dan jari tengah dirapatkan mendatar ke samping, jempol melipat jari lainnya.",
+    mnemonic: "Ingat 'H' = Horizontal berpasangan! 2 jari telunjuk dan tengah menunjuk ke arah samping.",
+    exampleWord: "HARI, HATI, HIJAU",
+    category: "Dua Jari",
+  },
+  {
+    letter: "I",
+    title: "Kelingking Mungil",
+    handshape: "Jari kelingking tegak lurus ke atas, empat jari lainnya mengepal rapat.",
+    mnemonic: "Ingat 'I' = Titik I ramping! Kelingking berdiri sendiri seperti garis tegak huruf I.",
+    exampleWord: "IBU, IKAN, INGIN",
+    category: "Tunjuk",
+  },
+  {
+    letter: "J",
+    title: "Kail Pancing Kelingking",
+    handshape: "Posisi kelingking seperti huruf I, lalu digerakkan meliuk membentuk kail pancing huruf J di udara.",
+    mnemonic: "Ingat 'J' = Joran pancing! Kelingking membuat goresan melengkung huruf J.",
+    exampleWord: "JAM, JALAN, JAUH",
+    category: "Spesial",
+  },
+  {
+    letter: "K",
+    title: "Cabang Menjulur",
+    handshape: "Telunjuk tegak, jari tengah sedikit maju miring, ibu jari menyangga di sela-sela keduanya.",
+    mnemonic: "Ingat 'K' = Kaki cabang! Dua jari membentuk cabang dengan jempol di tengah.",
+    exampleWord: "KAMU, KITA, KASIH",
+    category: "Dua Jari",
+  },
+  {
+    letter: "L",
+    title: "Sudut Siku-Siku",
+    handshape: "Telunjuk tegak ke atas dan ibu jari merentang ke samping membentuk sudut siku-siku 90°.",
+    mnemonic: "Ingat 'L' = Letter L sempurna! Telunjuk dan jempol membentuk sudut siku L.",
+    exampleWord: "LIHAT, LARI, LAMPU",
+    category: "Spesial",
+  },
+  {
+    letter: "M",
+    title: "Tiga Kaki Berjajar",
+    handshape: "Tiga jari (telunjuk, tengah, manis) dilipat menutupi ibu jari yang terselip di bawahnya.",
+    mnemonic: "Ingat 'M' = Tiga puncak kaki huruf M! Tiga jari dilipat menutupi jempol.",
+    exampleWord: "MAKAN, MAU, MALAM",
+    category: "Genggam",
+  },
+  {
+    letter: "N",
+    title: "Dua Kaki Berjajar",
+    handshape: "Dua jari (telunjuk dan jari tengah) dilipat menutupi ibu jari yang terselip di bawahnya.",
+    mnemonic: "Ingat 'N' = Dua puncak kaki huruf N! Dua jari melengkung di atas jempol.",
+    exampleWord: "NAMA, NAIK, NYAMAN",
+    category: "Genggam",
+  },
+  {
+    letter: "O",
+    title: "Lingkaran Donat",
+    handshape: "Semua ujung jari melengkung bertemu dengan ujung ibu jari membentuk bulatan penuh O.",
+    mnemonic: "Ingat 'O' = Donat bulat! Semua jari melingkar membentuk bulatan huruf O.",
+    exampleWord: "OBAT, ORANG, OMBAK",
+    category: "Spesial",
+  },
+  {
+    letter: "P",
+    title: "Cabang K Terbalik Menunduk",
+    handshape: "Bentuk tangan sama seperti huruf K, namun diarahkan menunduk menunjuk ke bawah.",
+    mnemonic: "Ingat 'P' = Posisi K terbalik ke bawah! Tangkai huruf P mengarah ke bawah.",
+    exampleWord: "PAGI, PINTU, PUTIH",
+    category: "Dua Jari",
+  },
+  {
+    letter: "Q",
+    title: "Capit G Menunduk",
+    handshape: "Bentuk capit telunjuk dan jempol seperti huruf G, tetapi diarahkan menunduk ke lantai.",
+    mnemonic: "Ingat 'Q' = Capit G yang menunduk ke bawah seperti ekor huruf Q.",
+    exampleWord: "QURAN, QUIZ, QORI",
+    category: "Tunjuk",
+  },
+  {
+    letter: "R",
+    title: "Jari Silang Keberuntungan",
+    handshape: "Jari tengah disilangkan melilit di belakang atau di depan jari telunjuk yang tegak rapat.",
+    mnemonic: "Ingat 'R' = Rapat menyilang (Fingers crossed)! Dua jari saling menyilang.",
+    exampleWord: "RUMAH, RAMAH, RAJIN",
+    category: "Dua Jari",
+  },
+  {
+    letter: "S",
+    title: "Tinju Batu Solid",
+    handshape: "Tangan mengepal rapat menjadi tinju, dengan ibu jari melintang menyilang di depan jari-jari.",
+    mnemonic: "Ingat 'S' = Solid / Kepalan batu! Jempol menyilang di depan tinju yang kuat.",
+    exampleWord: "SAYA, SUKA, SENANG",
+    category: "Genggam",
+  },
+  {
+    letter: "T",
+    title: "Jempol Selip Tengah",
+    handshape: "Ibu jari diselipkan muncul di antara jari telunjuk dan jari tengah yang mengepal.",
+    mnemonic: "Ingat 'T' = Terselip di tengah! Ujung jempol menyembul di antara jari 1 dan 2.",
+    exampleWord: "TULI, TEMAN, TIDUR",
+    category: "Genggam",
+  },
+  {
+    letter: "U",
+    title: "Dua Tiang Kembar Rapat",
+    handshape: "Jari telunjuk dan jari tengah berdiri tegak lurus dan dirapatkan berdampingan ke atas.",
+    mnemonic: "Ingat 'U' = Dua tiang pipa tegak rapat! Telunjuk dan jari tengah bersatu ke atas.",
+    exampleWord: "UDARA, ULAR, UNTUK",
+    category: "Dua Jari",
+  },
+  {
+    letter: "V",
+    title: "Tanda Peace / Kemenangan",
+    handshape: "Jari telunjuk dan jari tengah berdiri tegak terpisah membentuk huruf V (tanda peace).",
+    mnemonic: "Ingat 'V' = Victory / Tanda Peace! Dua jari terbuka membentuk huruf V.",
+    exampleWord: "VIDEO, VIRAL, VAS",
+    category: "Dua Jari",
+  },
+  {
+    letter: "W",
+    title: "Tiga Tiang Terbuka",
+    handshape: "Tiga jari (telunjuk, tengah, manis) berdiri tegak dan terentang lebar membentuk huruf W.",
+    mnemonic: "Ingat 'W' = Tiga cabang trisula huruf W! Tiga jari berdiri terbuka.",
+    exampleWord: "WAKTU, WARNA, WAJAH",
+    category: "Terbuka",
+  },
+  {
+    letter: "X",
+    title: "Kait Telunjuk Bajak Laut",
+    handshape: "Jari telunjuk ditekuk melengkung membentuk kait / cakar, jari lainnya mengepal.",
+    mnemonic: "Ingat 'X' = Kait cakar bajak laut Captain Hook! Telunjuk melengkung seperti kait.",
+    exampleWord: "XRAY, XILOFON",
+    category: "Tunjuk",
+  },
+  {
+    letter: "Y",
+    title: "Sayap Shaka / Hang Loose",
+    handshape: "Ibu jari dan kelingking merentang terbuka ke samping, tiga jari tengah ditekuk mengepal.",
+    mnemonic: "Ingat 'Y' = Gaya telepon / Hang loose! Jempol dan kelingking menjulur ke dua sisi.",
+    exampleWord: "YANG, YAKIN, YOGYA",
+    category: "Spesial",
+  },
+  {
+    letter: "Z",
+    title: "Goresan Kilat Zorro",
+    handshape: "Jari telunjuk tegak lalu menggores bentuk huruf Z di udara dengan gerakan lincah.",
+    mnemonic: "Ingat 'Z' = Zorro! Telunjuk menggoreskan garis zig-zag Z di udara.",
+    exampleWord: "ZONA, ZEBRA, ZIARAH",
+    category: "Tunjuk",
+  },
+];
+
+export const getAlphabetInfo = (letter: string): AlphabetMnemonic => {
+  const upper = (letter || "A").toUpperCase();
+  return (
+    BISINDO_ALPHABET_DATA.find((item) => item.letter === upper) || {
+      letter: upper,
+      title: `Huruf ${upper}`,
+      handshape: "Bentuk isyarat tangan BISINDO",
+      mnemonic: `Perhatikan posisi jari untuk huruf ${upper}`,
+      exampleWord: upper,
+      category: "Spesial",
+    }
+  );
+};
