@@ -5,6 +5,7 @@ import DashboardLayout from "@/components/DashboardLayout";
 import { useApp } from "@/context/AppContext";
 import { SupabaseStorageService } from "@/lib/supabaseStorage";
 import { exportAttendanceToExcel } from "@/lib/excelExport";
+import { compressImage } from "@/lib/imageCompress";
 
 export default function ZoomPage() {
   const {
@@ -101,7 +102,7 @@ export default function ZoomPage() {
   const hasAttendedSession = Boolean(userSessionLog) || isPesertaConfirmed;
 
   // Handler pemilihan berkas screenshot Zoom
-  const handleFileSelect = (file: File) => {
+  const handleFileSelect = async (file: File) => {
     setProofError(null);
     if (!file.type.startsWith("image/")) {
       const msg = "Format file bukti harus berupa gambar (PNG, JPG, JPEG, WEBP).";
@@ -109,18 +110,27 @@ export default function ZoomPage() {
       showToast(msg, "error");
       return;
     }
-    if (file.size > 5 * 1024 * 1024) {
-      const msg = "Ukuran screenshot maksimal 5MB.";
+    if (file.size > 10 * 1024 * 1024) {
+      const msg = "Ukuran screenshot maksimal 10MB.";
       setProofError(msg);
       showToast(msg, "warning");
       return;
     }
-    setProofFile(file);
+
+    // Kompresi otomatis gambar di sisi browser agar ringan dan cepat diunggah
+    let targetFile = file;
+    try {
+      targetFile = await compressImage(file, 1280, 0.8);
+    } catch {
+      targetFile = file;
+    }
+
+    setProofFile(targetFile);
     const reader = new FileReader();
     reader.onload = (e) => {
       setProofPreview(e.target?.result as string);
     };
-    reader.readAsDataURL(file);
+    reader.readAsDataURL(targetFile);
   };
 
   const copyToClipboard = (text: string, label: string) => {
@@ -156,24 +166,9 @@ export default function ZoomPage() {
     setProofError(null);
 
     try {
-      let finalProofUrl = proofPreview || "";
-
-      // Unggah ke Supabase Storage terlebih dahulu
-      if (proofFile) {
-        const cleanName = `zoom_${currentSession.id}_${currentUser.id || "u"}_${Date.now()}`;
-        const uploadRes = await SupabaseStorageService.uploadFile(
-          "attendance",
-          proofFile,
-          cleanName
-        );
-        if (uploadRes && uploadRes.url) {
-          finalProofUrl = uploadRes.url;
-        }
-      }
-
       const success = await submitAttendance(
         presenceInput.trim().toUpperCase(),
-        finalProofUrl,
+        proofFile || proofPreview || "",
         currentSession
       );
 
