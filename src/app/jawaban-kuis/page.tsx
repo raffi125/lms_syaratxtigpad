@@ -278,12 +278,26 @@ export default function JawabanKuisPage() {
                       <p className="text-[10px] text-slate-400 truncate">{s.userEmail}</p>
                     </div>
                     <div className="text-right shrink-0">
-                      <div className={`text-lg font-black ${s.passed ? "text-emerald-500" : "text-rose-500"}`}>
-                        {s.score}
-                      </div>
-                      <div className={`text-[10px] font-bold ${s.passed ? "text-emerald-500" : "text-rose-500"}`}>
-                        {s.passed ? "Lulus" : "Remedial"}
-                      </div>
+                      {s.hasUngradedEssays ? (
+                        <div>
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-500/15 text-amber-600 dark:text-amber-400 font-bold text-xs border border-amber-500/30">
+                            <i className="fa-solid fa-lock text-[10px]"></i>
+                            <span>Dirahasiakan</span>
+                          </span>
+                          <div className="text-[10px] text-slate-400 font-semibold mt-0.5">
+                            Perlu Koreksi
+                          </div>
+                        </div>
+                      ) : (
+                        <div>
+                          <div className={`text-lg font-black ${s.passed ? "text-emerald-500" : "text-rose-500"}`}>
+                            {s.score}
+                          </div>
+                          <div className={`text-[10px] font-bold ${s.passed ? "text-emerald-500" : "text-rose-500"}`}>
+                            {s.passed ? "Lulus" : "Remedial"}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -295,7 +309,7 @@ export default function JawabanKuisPage() {
                   {s.hasUngradedEssays && (
                     <div className="mt-2 flex items-center gap-1.5 text-[10px] font-bold text-amber-700 dark:text-amber-300 bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 rounded-lg w-fit">
                       <i className="fa-solid fa-clock text-amber-500"></i>
-                      <span>Perlu Penilaian Essai</span>
+                      <span>Perlu Penilaian Essai ({s.answers.filter((a) => a.type === "essai" && !a.isGraded).length} Soal)</span>
                     </div>
                   )}
                 </div>
@@ -320,10 +334,17 @@ export default function JawabanKuisPage() {
                       {selected.userEmail} · {selected.userRole}
                     </p>
                     <div className="flex items-center gap-3 mt-2 flex-wrap">
-                      <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${selected.passed ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400" : "bg-rose-500/15 text-rose-600 dark:text-rose-400"}`}>
-                        <i className={`fa-solid ${selected.passed ? "fa-check" : "fa-xmark"} mr-1`}></i>
-                        {selected.passed ? "Lulus" : "Remedial"} — Skor Akhir {selected.score}/100
-                      </span>
+                      {selected.hasUngradedEssays ? (
+                        <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center gap-1.5 border border-amber-500/30">
+                          <i className="fa-solid fa-lock text-amber-500"></i>
+                          <span>Nilai Dirahasiakan · Menunggu Koreksi ({selected.answers.filter((a) => a.type === "essai" && !a.isGraded).length} Soal Belum Dinilai)</span>
+                        </span>
+                      ) : (
+                        <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${selected.passed ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400" : "bg-rose-500/15 text-rose-600 dark:text-rose-400"}`}>
+                          <i className={`fa-solid ${selected.passed ? "fa-check" : "fa-xmark"} mr-1`}></i>
+                          {selected.passed ? "Lulus" : "Remedial"} — Skor Akhir {selected.score}/100
+                        </span>
+                      )}
                       <span className="text-xs text-slate-500 font-semibold">
                         {selected.earnedPoints}/{selected.totalPossiblePoints} Poin Terkumpul · {selected.submittedAt}
                       </span>

@@ -132,10 +132,10 @@ export async function POST(req: NextRequest) {
       userName: String(userName),
       userEmail: String(userEmail || ""),
       userRole: String(userRole || "peserta"),
-      score: Number(score ?? 0),
+      score: hasUngradedEssays ? 0 : Number(score ?? 0),
       earnedPoints: Number(earnedPoints ?? 0),
       totalPossiblePoints: Number(totalPossiblePoints ?? 100),
-      passed: Boolean(passed),
+      passed: hasUngradedEssays ? false : Boolean(passed),
       submittedAt: `${formattedDate} WIB`,
       answers,
       hasUngradedEssays,
@@ -150,7 +150,9 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: "Hasil jawaban kuis berhasil disimpan di database cloud!",
+      message: hasUngradedEssays
+        ? "Jawaban kuis berhasil dikumpulkan! Nilai dirahasiakan sementara karena menunggu penilaian essai oleh mentor."
+        : "Hasil jawaban kuis berhasil disimpan di database cloud!",
       submission: newSubmission,
     });
   } catch (error: any) {
@@ -240,8 +242,8 @@ export async function PATCH(req: NextRequest) {
       answers: updatedAnswers,
       earnedPoints: totalEarned,
       totalPossiblePoints: totalPossible,
-      score: newScore,
-      passed: isPassed,
+      score: hasUngraded ? 0 : newScore,
+      passed: !hasUngraded && isPassed,
       hasUngradedEssays: hasUngraded,
     };
 
@@ -249,8 +251,8 @@ export async function PATCH(req: NextRequest) {
     updatedList[subIndex] = updatedSub;
     await saveSubmissions(updatedList);
 
-    // Update user score in Supabase if configured
-    if (isSupabaseConfigured() && targetSub.userId) {
+    // Update user score in Supabase ONLY if all essays are graded
+    if (!hasUngraded && isSupabaseConfigured() && targetSub.userId) {
       try {
         await supabaseAdmin
           .from("users")
@@ -263,7 +265,9 @@ export async function PATCH(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: `Nilai essai berhasil disimpan! Skor akhir peserta: ${newScore}/100.`,
+      message: hasUngraded
+        ? `Nilai butir soal berhasil disimpan! Masih ada soal essai yang perlu dinilai.`
+        : `Semua soal essai selesai dinilai! Skor akhir resmi peserta: ${newScore}/100 (${isPassed ? "LULUS" : "REMEDIAL"}). Data nilai berhasil diterbitkan ke profil.`,
       data: updatedSub,
     });
   } catch (error: any) {

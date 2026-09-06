@@ -196,9 +196,15 @@ export default function ProfilePage() {
                   <span className="text-slate-600 dark:text-slate-400 font-medium">
                     <i className="fa-solid fa-graduation-cap text-tigpad mr-2"></i> Nilai Kuis Evaluasi
                   </span>
-                  <span className="font-bold text-green-600 dark:text-green-400">
-                    {currentUser.score} / 100 ({currentUser.score >= 70 ? "Lulus" : "Remedial"})
-                  </span>
+                  {currentUser.score && currentUser.score > 0 ? (
+                    <span className={`font-bold ${currentUser.score >= 70 ? "text-green-600 dark:text-green-400" : "text-amber-500"}`}>
+                      {currentUser.score} / 100 ({currentUser.score >= 70 ? "Lulus" : "Remedial"})
+                    </span>
+                  ) : (
+                    <span className="font-bold text-slate-400 text-xs">
+                      Belum Ada Nilai (Menunggu Penilaian)
+                    </span>
+                  )}
                 </div>
                 <div className="flex justify-between items-center p-3 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 shadow-sm">
                   <span className="text-slate-600 dark:text-slate-400 font-medium">

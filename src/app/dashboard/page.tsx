@@ -121,10 +121,20 @@ export default function DashboardPage() {
               <i className="fa-solid fa-graduation-cap"></i>
             </div>
             <span
-              className="text-[11px] font-bold text-green-500 bg-green-500/10 px-2 py-0.5 rounded-md"
+              className={`text-[11px] font-bold px-2 py-0.5 rounded-md ${
+                currentUser.score && currentUser.score >= 70
+                  ? "text-green-500 bg-green-500/10"
+                  : currentUser.score && currentUser.score > 0
+                  ? "text-amber-500 bg-amber-500/10"
+                  : "text-slate-400 bg-slate-500/10"
+              }`}
               id="stat1Tag"
             >
-              {currentUser.score >= 70 ? "Lulus" : "Remedial"}
+              {currentUser.score && currentUser.score >= 70
+                ? "Lulus"
+                : currentUser.score && currentUser.score > 0
+                ? "Remedial"
+                : "Belum Ada Nilai"}
             </span>
           </div>
           <div>
@@ -132,7 +142,7 @@ export default function DashboardPage() {
               className="text-2xl font-black group-hover:text-syarat transition-colors"
               id="overviewStat1"
             >
-              {currentUser.score} / 100
+              {currentUser.score && currentUser.score > 0 ? `${currentUser.score} / 100` : "Belum Ujian"}
             </div>
             <div className="text-xs text-slate-500 font-medium mt-0.5" id="stat1Label">
               Nilai Kuis Terbaru →

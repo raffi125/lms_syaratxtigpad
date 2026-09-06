@@ -153,6 +153,34 @@ export default function KuisPage() {
   const [showReviewDetail, setShowReviewDetail] = useState(false);
   const [openHints, setOpenHints] = useState<{ [key: number]: boolean }>({});
   const [essayAnswers, setEssayAnswers] = useState<{ [key: number]: string }>({});
+  const [isScoreConfidential, setIsScoreConfidential] = useState(false);
+  const [pendingSubmission, setPendingSubmission] = useState<{
+    hasPending: boolean;
+    score?: number;
+    quizTitle?: string;
+    submittedAt?: string;
+  }>({ hasPending: false });
+
+  // Check if current user has an ungraded submission in cloud storage
+  useEffect(() => {
+    if (!currentUser?.id) return;
+    fetch(`/api/quiz-submissions?userId=${currentUser.id}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.data && data.data.length > 0) {
+          const latest = data.data[0];
+          setPendingSubmission({
+            hasPending: Boolean(latest.hasUngradedEssays),
+            score: latest.hasUngradedEssays ? undefined : latest.score,
+            quizTitle: latest.quizTitle,
+            submittedAt: latest.submittedAt,
+          });
+        } else {
+          setPendingSubmission({ hasPending: false });
+        }
+      })
+      .catch(() => {});
+  }, [currentUser?.id, screen]);
 
   // Key for storing category lock statuses
   const STORAGE_KEY_QUIZ_LOCKS = "kolab_quiz_locked_status";
@@ -403,10 +431,25 @@ export default function KuisPage() {
     });
 
     const calculated = totalPossible > 0 ? Math.round((totalEarned / totalPossible) * 100) : 0;
-    setFinalScore(calculated);
+    
+    // PENTING: Jika ada soal essai, nilai dirahasiakan & status pending sampai dinilai mentor!
+    if (hasEssays) {
+      setFinalScore(0);
+      setIsScoreConfidential(true);
+      setPendingSubmission({
+        hasPending: true,
+        quizTitle: activeQuizTitle,
+        submittedAt: "Baru saja",
+      });
+      // JANGAN updateProfile({ score: calculated }) karena belum dinilai mentor
+    } else {
+      setFinalScore(calculated);
+      setIsScoreConfidential(false);
+      updateProfile({ score: calculated });
+    }
+
     setEarnedPoints(totalEarned);
     setTotalPossiblePoints(totalPossible);
-    updateProfile({ score: calculated });
     setScreen("completed");
 
     const quizLabel = activeCategory ? `Kuis ${activeCategory}` : "Kuis Evaluasi BISINDO";
@@ -414,12 +457,12 @@ export default function KuisPage() {
     logActivity({
       title: `Menyelesaikan ${quizLabel}`,
       description: hasEssays
-        ? `${activeQuizTitle} selesai dikumpulkan (${currentQuizQuestions.length} butir soal, nilai PG sementara: ${calculated}/100). Menunggu penilaian jawaban essai oleh mentor.`
+        ? `${activeQuizTitle} selesai dikumpulkan (${currentQuizQuestions.length} butir soal, termasuk ${currentQuizQuestions.filter((q) => q.type === "essai").length} butir soal essai). Nilai dirahasiakan & menunggu koreksi mentor.`
         : `${activeQuizTitle} selesai dengan perolehan skor ${calculated}/100 (${correctCount}/${currentQuizQuestions.length} soal tuntas, ${totalEarned}/${totalPossible} poin)`,
       category: "kuis",
       statusText: hasEssays ? "Menunggu Penilaian" : (calculated >= 70 ? `Lulus (${calculated})` : `Remedial (${calculated})`),
       statusBadge: hasEssays ? "amber" : (calculated >= 70 ? "green" : "amber"),
-      icon: "fa-solid fa-stopwatch-20 text-tigpad",
+      icon: hasEssays ? "fa-solid fa-lock text-amber-500" : "fa-solid fa-stopwatch-20 text-tigpad",
     });
 
     // Save answer detail to cloud so admin/mentor can review and grade
@@ -457,10 +500,10 @@ export default function KuisPage() {
         userName: currentUser.name,
         userEmail: currentUser.email,
         userRole: currentRole,
-        score: calculated,
+        score: hasEssays ? 0 : calculated,
         earnedPoints: totalEarned,
         totalPossiblePoints: totalPossible,
-        passed: calculated >= 70,
+        passed: hasEssays ? false : calculated >= 70,
         quizTitle: activeQuizTitle,
         category: activeCategory || "Umum",
         answers: answerRecords,
@@ -469,7 +512,7 @@ export default function KuisPage() {
 
     if (hasEssays) {
       showToast(
-        `${quizLabel} berhasil dikumpulkan! Soal essai akan dinilai manual oleh mentor.`,
+        `${quizLabel} berhasil dikumpulkan! Nilai dirahasiakan karena masih ada soal essai yang perlu dinilai oleh mentor.`,
         "info"
       );
     } else {
@@ -767,14 +810,27 @@ export default function KuisPage() {
               </div>
 
               <div className="glass-card p-4 rounded-2xl border border-slate-200 dark:border-slate-800 flex items-center gap-3 shadow-sm">
-                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center text-lg">
-                  <i className="fa-solid fa-award"></i>
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg ${
+                  pendingSubmission.hasPending
+                    ? "bg-amber-500/10 text-amber-500"
+                    : currentUser.score !== undefined && currentUser.score > 0
+                    ? "bg-emerald-500/10 text-emerald-500"
+                    : "bg-slate-500/10 text-slate-400"
+                }`}>
+                  <i className={`fa-solid ${pendingSubmission.hasPending ? "fa-lock" : "fa-award"}`}></i>
                 </div>
                 <div>
                   <div className="text-[10px] uppercase font-bold text-slate-400">Nilai Anda</div>
-                  <div className="text-lg font-black text-slate-800 dark:text-white">
-                    {currentUser.score !== undefined ? `${currentUser.score}/100` : "Belum Ujian"}
-                  </div>
+                  {pendingSubmission.hasPending ? (
+                    <div className="text-xs sm:text-sm font-black text-amber-600 dark:text-amber-400 flex items-center gap-1.5 mt-0.5">
+                      <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
+                      <span>Dirahasiakan (Perlu Koreksi)</span>
+                    </div>
+                  ) : (
+                    <div className="text-lg font-black text-slate-800 dark:text-white">
+                      {currentUser.score !== undefined && currentUser.score > 0 ? `${currentUser.score}/100` : "Belum Ujian"}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -1201,6 +1257,14 @@ export default function KuisPage() {
                     <strong>Petunjuk Soal:</strong> Jika mentor menyertakan petunjuk, Anda dapat membuka tips soal untuk membantu mengingat materi.
                   </span>
                 </li>
+                {currentQuizQuestions.some((q) => q.type === "essai") && (
+                  <li className="flex items-start gap-2 text-amber-700 dark:text-amber-300 bg-amber-500/10 p-2.5 rounded-xl border border-amber-500/20">
+                    <i className="fa-solid fa-lock text-amber-500 mt-0.5 shrink-0"></i>
+                    <span>
+                      <strong>Terdapat {currentQuizQuestions.filter((q) => q.type === "essai").length} Soal Essai:</strong> Lembar jawaban uraian Anda akan diperiksa dan dinilai manual oleh mentor pengajar. Nilai akhir kuis dirahasiakan sampai seluruh essai selesai dinilai.
+                    </span>
+                  </li>
+                )}
               </ul>
             </div>
 
@@ -1492,55 +1556,93 @@ export default function KuisPage() {
         {/* SCREEN 4: COMPLETED RESULT SCREEN & DETAILED REVIEW */}
         {screen === "completed" && (
           <div className="space-y-6 animate-slide-up max-w-3xl mx-auto">
-            <div className="glass-card p-8 sm:p-10 rounded-3xl space-y-6 text-center border-2 border-green-500/40 shadow-2xl">
-              <div className="w-16 h-16 rounded-2xl bg-green-500 text-white flex items-center justify-center text-3xl font-bold mx-auto shadow-xl">
-                <i className="fa-solid fa-circle-check"></i>
-              </div>
-
-              <div className="space-y-2">
-                <span className="px-3 py-1 rounded-full bg-green-500/15 text-green-600 dark:text-green-400 text-xs font-bold">
-                  Ujian Kuis Selesai
-                </span>
-                <h2 className="text-2xl sm:text-3xl font-black">Hasil Evaluasi: {activeQuizTitle}</h2>
-                <div className="text-5xl font-black text-syarat dark:text-syarat-light pt-2">
-                  {finalScore} / 100
-                </div>
-                <div className="flex justify-center gap-4 text-xs font-semibold text-slate-600 dark:text-slate-300 pt-1">
-                  <span>Poin Diperoleh: <strong>{earnedPoints} / {totalPossiblePoints} Pts</strong></span>
-                  <span>•</span>
-                  <span>
-                    Benar: <strong>{currentQuizQuestions.filter((q) => q.type !== "essai" && answers[q.id] === q.correctAnswer).length} / {currentQuizQuestions.filter((q) => q.type !== "essai").length || currentQuizQuestions.length} PG</strong>
-                  </span>
-                </div>
-
-                {currentQuizQuestions.some((q) => q.type === "essai") && (
-                  <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-800 dark:text-amber-300 text-xs text-left flex items-start gap-3 max-w-lg mx-auto">
-                    <i className="fa-solid fa-clock text-amber-500 text-lg shrink-0 mt-0.5"></i>
-                    <div className="space-y-0.5">
-                      <p className="font-bold">Menunggu Penilaian Essai oleh Mentor</p>
-                      <p className="text-[11px] opacity-90 leading-relaxed">
-                        Nilai di atas merupakan nilai sementara dari soal pilihan ganda. Nilai akhir kuis akan diperbarui otomatis setelah mentor selesai mengoreksi dan menginput nilai essai Anda.
-                      </p>
-                    </div>
+            <div className={`glass-card p-8 sm:p-10 rounded-3xl space-y-6 text-center border-2 shadow-2xl ${
+              isScoreConfidential
+                ? "border-amber-500/40 bg-gradient-to-b from-amber-500/[0.03] to-transparent"
+                : "border-green-500/40"
+            }`}>
+              {isScoreConfidential ? (
+                <>
+                  <div className="w-16 h-16 rounded-2xl bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center text-3xl font-bold mx-auto shadow-xl border border-amber-500/30 animate-pulse">
+                    <i className="fa-solid fa-lock"></i>
                   </div>
-                )}
 
-                <p className="text-xs text-slate-500 max-w-md mx-auto pt-2 leading-relaxed">
-                  Status:{" "}
-                  <strong className={finalScore >= 70 ? "text-green-500" : "text-amber-500"}>
-                    {finalScore >= 70 ? "LULUS (≥ 70)" : "REMEDIAL (< 70)"}
-                  </strong>{" "}
-                  •{" "}
-                  {finalScore >= 70
-                    ? "Selamat! Anda memenuhi kualifikasi kompetensi BISINDO dan sertifikat kelulusan siap diterbitkan."
-                    : "Belum mencapai batas nilai minimal 70. Silakan tinjau kembali materi modul dan ikuti ujian remedial."}
-                </p>
-              </div>
+                  <div className="space-y-3 max-w-lg mx-auto">
+                    <div>
+                      <span className="px-3 py-1 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 text-xs font-bold inline-flex items-center gap-1.5 border border-amber-500/30">
+                        <i className="fa-solid fa-hourglass-half"></i>
+                        <span>Jawaban Berhasil Dikumpulkan</span>
+                      </span>
+                    </div>
+
+                    <h2 className="text-2xl sm:text-3xl font-black text-slate-800 dark:text-white">
+                      Nilai Dirahasiakan Sementara
+                    </h2>
+
+                    <div className="p-4 sm:p-5 rounded-2xl bg-amber-500/10 border-2 border-dashed border-amber-500/30 text-left space-y-2.5">
+                      <div className="flex items-center gap-2 text-amber-800 dark:text-amber-300 font-bold text-xs">
+                        <i className="fa-solid fa-user-pen text-amber-500"></i>
+                        <span>Menunggu Penilaian Soal Essai oleh Mentor</span>
+                      </div>
+                      <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                        Kuis evaluasi ini memuat <strong>{currentQuizQuestions.filter((q) => q.type === "essai").length} butir soal essai</strong> yang memerlukan pemeriksaan dan penilaian manual dari mentor pengajar.
+                      </p>
+                      <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                        Nilai total kuis dirahasiakan terlebih dahulu dan tidak dikeluarkan secara otomatis, agar hasil evaluasi mencerminkan akumulasi menyeluruh (Pilihan Ganda & Essai).
+                      </p>
+                      <div className="pt-2 border-t border-amber-500/20 flex flex-wrap items-center justify-between gap-2 text-[11px] font-semibold text-amber-700 dark:text-amber-400">
+                        <span>✓ {currentQuizQuestions.filter((q) => q.type !== "essai").length} Soal PG Terjawab</span>
+                        <span>⏳ {currentQuizQuestions.filter((q) => q.type === "essai").length} Soal Essai Menunggu Penilaian</span>
+                      </div>
+                    </div>
+
+                    <p className="text-xs text-slate-500 pt-1 leading-relaxed">
+                      Status: <strong className="text-amber-600 dark:text-amber-400">Menunggu Koreksi Mentor</strong> • Nilai resmi dan sertifikat kompetensi akan diterbitkan setelah mentor selesai memeriksa seluruh jawaban Anda.
+                    </p>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="w-16 h-16 rounded-2xl bg-green-500 text-white flex items-center justify-center text-3xl font-bold mx-auto shadow-xl">
+                    <i className="fa-solid fa-circle-check"></i>
+                  </div>
+
+                  <div className="space-y-2">
+                    <span className="px-3 py-1 rounded-full bg-green-500/15 text-green-600 dark:text-green-400 text-xs font-bold">
+                      Ujian Kuis Selesai
+                    </span>
+                    <h2 className="text-2xl sm:text-3xl font-black">Hasil Evaluasi: {activeQuizTitle}</h2>
+                    <div className="text-5xl font-black text-syarat dark:text-syarat-light pt-2">
+                      {finalScore} / 100
+                    </div>
+                    <div className="flex justify-center gap-4 text-xs font-semibold text-slate-600 dark:text-slate-300 pt-1">
+                      <span>Poin Diperoleh: <strong>{earnedPoints} / {totalPossiblePoints} Pts</strong></span>
+                      <span>•</span>
+                      <span>
+                        Benar: <strong>{currentQuizQuestions.filter((q) => q.type !== "essai" && answers[q.id] === q.correctAnswer).length} / {currentQuizQuestions.filter((q) => q.type !== "essai").length || currentQuizQuestions.length} PG</strong>
+                      </span>
+                    </div>
+
+                    <p className="text-xs text-slate-500 max-w-md mx-auto pt-2 leading-relaxed">
+                      Status:{" "}
+                      <strong className={finalScore >= 70 ? "text-green-500" : "text-amber-500"}>
+                        {finalScore >= 70 ? "LULUS (≥ 70)" : "REMEDIAL (< 70)"}
+                      </strong>{" "}
+                      •{" "}
+                      {finalScore >= 70
+                        ? "Selamat! Anda memenuhi kualifikasi kompetensi BISINDO dan sertifikat kelulusan siap diterbitkan."
+                        : "Belum mencapai batas nilai minimal 70. Silakan tinjau kembali materi modul dan ikuti ujian remedial."}
+                    </p>
+                  </div>
+                </>
+              )}
 
               <div className="pt-2 flex justify-center gap-3 flex-wrap">
                 <button
                   onClick={() => {
                     setAnswers({});
+                    setEssayAnswers({});
+                    setIsScoreConfidential(false);
                     setScreen("list");
                   }}
                   className="px-5 py-2.5 rounded-xl font-bold text-xs border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
@@ -1552,9 +1654,9 @@ export default function KuisPage() {
                   className="px-5 py-2.5 rounded-xl font-bold text-xs bg-syarat/10 text-syarat border border-syarat/30 hover:bg-syarat/20 transition-colors flex items-center gap-2"
                 >
                   <i className={`fa-solid ${showReviewDetail ? "fa-chevron-up" : "fa-chevron-down"}`}></i>
-                  <span>{showReviewDetail ? "Sembunyikan Pembahasan" : "Lihat Pembahasan Lengkap"}</span>
+                  <span>{showReviewDetail ? "Sembunyikan Pembahasan" : "Lihat Lembar Jawaban & Pembahasan"}</span>
                 </button>
-                {finalScore >= 70 && (
+                {!isScoreConfidential && finalScore >= 70 && (
                   <Link
                     href="/sertifikat"
                     className="btn-duotone px-6 py-2.5 rounded-xl font-bold text-xs inline-flex items-center gap-2 shadow-lg"
