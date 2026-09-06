@@ -186,66 +186,94 @@ export default function KuisPage() {
   const STORAGE_KEY_QUIZ_LOCKS = "kolab_quiz_locked_status";
 
   // Lock status state (true = locked 🔒, false = open 🔓)
-  // Default: Pertemuan 1 open (false), Pertemuan 2-6 locked (true)
-  const [lockedCategories, setLockedCategories] = useState<{ [key: string]: boolean }>(() => {
+  const [lockedCategories, setLockedCategories] = useState<{ [key: string]: boolean }>({
+    "Pertemuan 1": false,
+    "Pertemuan 2": true,
+    "Pertemuan 3": true,
+    "Pertemuan 4": true,
+    "Pertemuan 5": true,
+    "Pertemuan 6": true,
+  });
+
+  // Sync with cloud Supabase Storage and localStorage on mount
+  useEffect(() => {
+    // 1. Ambil dari localStorage terlebih dahulu untuk render instan
     if (typeof window !== "undefined") {
       try {
         const saved = localStorage.getItem(STORAGE_KEY_QUIZ_LOCKS);
         if (saved) {
-          return JSON.parse(saved);
+          const parsed = JSON.parse(saved);
+          if (parsed && typeof parsed === "object") {
+            setLockedCategories(parsed);
+          }
         }
       } catch (e) {}
     }
-    return {
-      "Pertemuan 1": false,
-      "Pertemuan 2": true,
-      "Pertemuan 3": true,
-      "Pertemuan 4": true,
-      "Pertemuan 5": true,
-      "Pertemuan 6": true,
-    };
-  });
 
-  // Toggle single category lock (Buka / Kunci)
+    // 2. Sinkronkan dengan otoritas cloud Supabase Storage (/api/quiz-locks)
+    fetch("/api/quiz-locks")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.success && data?.locks && typeof data.locks === "object") {
+          setLockedCategories(data.locks);
+          if (typeof window !== "undefined") {
+            try {
+              localStorage.setItem(STORAGE_KEY_QUIZ_LOCKS, JSON.stringify(data.locks));
+            } catch (e) {}
+          }
+        }
+      })
+      .catch((err) => console.warn("[quiz-locks] Gagal memuat status kunci dari cloud:", err));
+  }, []);
+
+  // Toggle single category lock (Buka / Kunci) dengan persistensi cloud Supabase
   const toggleCategoryLock = (categoryKey: string) => {
-    setLockedCategories((prev) => {
-      const isCurrentlyLocked = prev[categoryKey] ?? false;
-      const nextLocked = !isCurrentlyLocked;
-      const updated = { ...prev, [categoryKey]: nextLocked };
+    const isCurrentlyLocked = lockedCategories[categoryKey] ?? false;
+    const nextLocked = !isCurrentlyLocked;
+    const updated = { ...lockedCategories, [categoryKey]: nextLocked };
 
-      if (typeof window !== "undefined") {
-        try {
-          localStorage.setItem(STORAGE_KEY_QUIZ_LOCKS, JSON.stringify(updated));
-        } catch (e) {}
-      }
+    // 1. Update state lokal segera
+    setLockedCategories(updated);
 
-      if (nextLocked) {
-        showToast(`🔒 ${categoryKey} berhasil DIKUNCI. Peserta tidak dapat mengakses kuis ini.`, "warning");
-        logActivity({
-          title: `Mengunci ${categoryKey}`,
-          description: `Kuis ${categoryKey} dikunci oleh ${currentUser.name || "Mentor"}. Peserta tidak dapat mengakses lembar soal.`,
-          category: "kuis",
-          statusText: "Dikunci",
-          statusBadge: "amber",
-          icon: "fa-solid fa-lock text-amber-500",
-        });
-      } else {
-        showToast(`🔓 ${categoryKey} berhasil DIBUKA! Peserta kini dapat mengerjakan kuis.`, "success");
-        logActivity({
-          title: `Membuka Akses ${categoryKey}`,
-          description: `Akses kuis ${categoryKey} telah dibuka untuk peserta oleh ${currentUser.name || "Mentor"}.`,
-          category: "kuis",
-          statusText: "Terbuka",
-          statusBadge: "green",
-          icon: "fa-solid fa-lock-open text-green-500",
-        });
-      }
+    // 2. Simpan ke localStorage
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem(STORAGE_KEY_QUIZ_LOCKS, JSON.stringify(updated));
+      } catch (e) {}
+    }
 
-      return updated;
-    });
+    // 3. Simpan permanen ke Supabase Cloud Storage (/api/quiz-locks)
+    fetch("/api/quiz-locks", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ categoryKey, locked: nextLocked, locks: updated }),
+    }).catch((err) => console.error("[quiz-locks] Gagal menyimpan ke cloud:", err));
+
+    // 4. Tampilkan Toast & Rekam Aktivitas (di luar pure updater)
+    if (nextLocked) {
+      showToast(`🔒 ${categoryKey} berhasil DIKUNCI. Peserta tidak dapat mengakses kuis ini.`, "warning");
+      logActivity({
+        title: `Mengunci ${categoryKey}`,
+        description: `Kuis ${categoryKey} dikunci oleh ${currentUser.name || "Mentor"}. Peserta tidak dapat mengakses lembar soal.`,
+        category: "kuis",
+        statusText: "Dikunci",
+        statusBadge: "amber",
+        icon: "fa-solid fa-lock text-amber-500",
+      });
+    } else {
+      showToast(`🔓 ${categoryKey} berhasil DIBUKA! Peserta kini dapat mengerjakan kuis.`, "success");
+      logActivity({
+        title: `Membuka Akses ${categoryKey}`,
+        description: `Akses kuis ${categoryKey} telah dibuka untuk peserta oleh ${currentUser.name || "Mentor"}.`,
+        category: "kuis",
+        statusText: "Terbuka",
+        statusBadge: "green",
+        icon: "fa-solid fa-lock-open text-green-500",
+      });
+    }
   };
 
-  // Batch toggle all categories lock/unlock
+  // Batch toggle all categories lock/unlock dengan persistensi cloud Supabase
   const setAllCategoriesLock = (lock: boolean) => {
     const updated: { [key: string]: boolean } = {};
     PERTEMUAN_LIST.forEach((p) => {
@@ -254,12 +282,21 @@ export default function KuisPage() {
     customCategories.forEach((c) => {
       updated[c] = lock;
     });
+
     setLockedCategories(updated);
+
     if (typeof window !== "undefined") {
       try {
         localStorage.setItem(STORAGE_KEY_QUIZ_LOCKS, JSON.stringify(updated));
       } catch (e) {}
     }
+
+    fetch("/api/quiz-locks", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ locks: updated }),
+    }).catch((err) => console.error("[quiz-locks] Gagal batch sync ke cloud:", err));
+
     showToast(
       lock ? "🔒 Seluruh kuis pertemuan berhasil DIKUNCI." : "🔓 Seluruh kuis pertemuan berhasil DIBUKA untuk seluruh peserta!",
       lock ? "warning" : "success"

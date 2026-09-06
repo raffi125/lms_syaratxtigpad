@@ -475,10 +475,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   // Initialize on mount: fetch directly from Supabase Cloud
   useEffect(() => {
-    // Clear any residual localStorage to ensure purely remote Supabase state
+    // Bersihkan hanya key legacy dummy lama tanpa menghapus status kuis atau sesi
     if (typeof window !== "undefined" && window.localStorage) {
       try {
-        localStorage.clear();
+        const legacyKeys = ["kolab_users_mock", "kolab_modules_mock", "kolab_dummy_legacy"];
+        legacyKeys.forEach((k) => localStorage.removeItem(k));
       } catch {
         // ignore
       }
