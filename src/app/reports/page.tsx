@@ -1,17 +1,21 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import { useApp } from "@/context/AppContext";
 import { calculateAnalytics } from "@/lib/analytics";
 import { exportAttendanceToExcel } from "@/lib/excelExport";
 
 export default function ReportsPage() {
-  const { users, modules, zoomData, certificates, showToast } = useApp();
+  const { users, modules, zoomData, certificates, showToast, refreshFromSupabase } = useApp();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [pertemuanFilter, setPertemuanFilter] = useState<number | "all">("all");
   const [showFormulaModal, setShowFormulaModal] = useState(false);
+
+  useEffect(() => {
+    refreshFromSupabase();
+  }, []);
 
   // Jalankan sistem perhitungan analitik terpusat murni dari Supabase
   const analytics = useMemo(() => {

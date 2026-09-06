@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useMemo } from "react";
+import React, { useState, useRef, useMemo, useEffect } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import { useApp } from "@/context/AppContext";
 import { SupabaseStorageService } from "@/lib/supabaseStorage";
@@ -18,6 +18,7 @@ export default function ZoomPage() {
     updateZoomSession,
     deleteZoomSession,
     showToast,
+    refreshFromSupabase,
   } = useApp();
 
   const isManager = currentRole === "mentor" || currentRole === "admin";
@@ -48,6 +49,24 @@ export default function ZoomPage() {
   // Filter & Search Table Presensi
   const [attendanceSessionFilter, setAttendanceSessionFilter] = useState<string>("all");
   const [attendanceSearch, setAttendanceSearch] = useState<string>("");
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Segarkan rekapan presensi & sesi saat halaman Zoom dibuka
+  useEffect(() => {
+    refreshFromSupabase();
+  }, []);
+
+  const handleManualRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await refreshFromSupabase();
+      showToast("Data presensi dan sesi berhasil disinkronkan dari server!", "success");
+    } catch {
+      showToast("Gagal menyinkronkan data presensi dari server.", "error");
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   // Modals
   const [createModalOpen, setCreateModalOpen] = useState(false);
@@ -909,6 +928,17 @@ export default function ZoomPage() {
                   className="pl-8 pr-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-syarat w-40 sm:w-48"
                 />
               </div>
+
+              {/* Tombol Segarkan Data Presensi Langsung dari Supabase */}
+              <button
+                onClick={handleManualRefresh}
+                disabled={isRefreshing}
+                className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold flex items-center gap-1.5 transition-all disabled:opacity-50"
+                title="Muat ulang rekapan presensi dan sesi dari server Supabase"
+              >
+                <i className={`fa-solid fa-arrows-rotate text-xs ${isRefreshing ? "fa-spin text-syarat" : ""}`}></i>
+                <span>{isRefreshing ? "Menyinkron..." : "Segarkan"}</span>
+              </button>
 
               {/* Tombol Export Excel List Absen (Untuk Admin / Mentor) */}
               {isManager && (

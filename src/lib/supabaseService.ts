@@ -1,4 +1,4 @@
-import { supabase, isSupabaseConfigured } from "./supabase";
+import { supabase, supabaseAdmin, isSupabaseConfigured } from "./supabase";
 
 export interface DBUser {
   id: number;
@@ -72,6 +72,7 @@ export interface DBAttendanceLog {
   method: string;
   verified: boolean;
   proof_url?: string;
+  proofUrl?: string;
 }
 
 export interface DBGameWord {
@@ -348,29 +349,79 @@ export const SupabaseService = {
 
   async getAttendanceLogs(): Promise<DBAttendanceLog[]> {
     if (!isSupabaseConfigured()) return [];
-    const { data, error } = await supabase
+    const client = supabaseAdmin || supabase;
+    const { data, error } = await client
       .from("attendance_logs")
       .select("*")
       .order("id", { ascending: false });
-    if (error) return [];
-    return data || [];
+    if (error) {
+      console.warn("Supabase getAttendanceLogs error:", error.message);
+      return [];
+    }
+    return (data || []).map((row: any) => {
+      let proofUrl = row.proof_url || "";
+      let method = row.method || "";
+      if (!proofUrl && method && method.includes("[PROOF:")) {
+        const match = method.match(/\[PROOF:(.*?)\]/);
+        if (match) {
+          proofUrl = match[1];
+          method = method.replace(/\[PROOF:.*?\]/, "").trim();
+        }
+      }
+      return {
+        ...row,
+        method,
+        proof_url: proofUrl,
+        proofUrl: proofUrl,
+      };
+    });
   },
 
   async addAttendanceLog(log: Partial<DBAttendanceLog>): Promise<boolean> {
     if (!isSupabaseConfigured()) return false;
-    const payload: any = {
+    const client = supabaseAdmin || supabase;
+
+    // Persiapkan method string yang menyematkan bukti screenshot jika ada
+    let cleanMethod = log.method || "Kode Sesi";
+    const proofUrl = log.proof_url || (log as any).proofUrl || "";
+    if (proofUrl && !cleanMethod.includes("[PROOF:")) {
+      cleanMethod = `${cleanMethod} [PROOF:${proofUrl}]`;
+    }
+
+    const basePayload: any = {
       name: log.name,
-      institution: log.institution,
-      time: log.time,
-      method: log.method,
+      institution: log.institution || "",
+      time: log.time || "",
+      method: cleanMethod,
       verified: log.verified ?? true,
     };
-    if (log.user_id) payload.user_id = log.user_id;
-    if (log.session_id) payload.session_id = log.session_id;
-    if (log.user_id_code || log.npm) payload.user_id_code = log.user_id_code || log.npm;
-    if (log.proof_url) payload.proof_url = log.proof_url;
+    if (log.user_id_code || log.npm) {
+      basePayload.user_id_code = log.user_id_code || log.npm;
+    }
 
-    const { error } = await supabase.from("attendance_logs").insert([payload]);
+    const fullPayload: any = { ...basePayload };
+    if (typeof log.user_id === "number" && log.user_id > 0 && log.user_id < 2000000000) {
+      fullPayload.user_id = log.user_id;
+    }
+    if (typeof log.session_id === "number" && log.session_id > 0) {
+      fullPayload.session_id = log.session_id;
+    }
+
+    // Eksekusi insert dengan payload lengkap
+    let { error } = await client.from("attendance_logs").insert([fullPayload]);
+
+    // Jika terjadi FK violation (23503), retry bertahap agar presensi peserta tidak pernah hilang
+    if (error && (error.code === "23503" || error.message.includes("foreign key"))) {
+      console.warn("Supabase addAttendanceLog FK warning, retrying safely:", error.message);
+      const retry1 = { ...basePayload };
+      if (fullPayload.session_id) retry1.session_id = fullPayload.session_id;
+      let res = await client.from("attendance_logs").insert([retry1]);
+      if (res.error && (res.error.code === "23503" || res.error.message.includes("foreign key"))) {
+        res = await client.from("attendance_logs").insert([basePayload]);
+      }
+      error = res.error;
+    }
+
     if (error) {
       console.warn("Supabase addAttendanceLog error:", error.message);
       return false;
@@ -384,7 +435,8 @@ export const SupabaseService = {
 
   async deleteAttendanceLog(id: number): Promise<boolean> {
     if (!isSupabaseConfigured()) return false;
-    const { error } = await supabase.from("attendance_logs").delete().eq("id", id);
+    const client = supabaseAdmin || supabase;
+    const { error } = await client.from("attendance_logs").delete().eq("id", id);
     if (error) {
       console.warn("Supabase deleteAttendanceLog error:", error.message);
       return false;
@@ -394,7 +446,8 @@ export const SupabaseService = {
 
   async cancelAttendance(sessionId: number, userIdOrName: string | number): Promise<boolean> {
     if (!isSupabaseConfigured()) return false;
-    let query = supabase.from("attendance_logs").delete().eq("session_id", sessionId);
+    const client = supabaseAdmin || supabase;
+    let query = client.from("attendance_logs").delete().eq("session_id", sessionId);
     if (typeof userIdOrName === "number") {
       query = query.eq("user_id", userIdOrName);
     } else {

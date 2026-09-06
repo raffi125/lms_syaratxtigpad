@@ -1088,8 +1088,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       });
 
       if (isSupabaseConfigured()) {
-        await SupabaseService.recordAttendance({
-          user_id: currentUser.id,
+        const saved = await SupabaseService.recordAttendance({
+          user_id: typeof currentUser.id === "number" && currentUser.id < 1000000 ? currentUser.id : undefined,
           session_id: target.id,
           name: currentUser.name,
           user_id_code: currentUser.user_id || currentUser.npm,
@@ -1100,6 +1100,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           verified: true,
           proof_url: proofUrl || "",
         });
+        if (!saved) {
+          console.warn("Peringatan: Gagal menyimpan log presensi ke Supabase, namun tersimpan di lokal.");
+        }
+        await refreshFromSupabase();
       }
 
       showToast("Presensi & bukti screenshot Zoom berhasil diverifikasi!", "success");
@@ -1119,6 +1123,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
     if (isSupabaseConfigured()) {
       await SupabaseService.deleteAttendanceLog(id);
+      await refreshFromSupabase();
     }
 
     showToast("Catatan presensi berhasil dihapus oleh pengelola.", "info");
@@ -1147,11 +1152,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }));
 
     if (isSupabaseConfigured()) {
-      if (targetLog?.id) {
+      if (targetLog?.id && targetLog.id < 1000000000) {
         await SupabaseService.deleteAttendanceLog(targetLog.id);
       } else {
-        await SupabaseService.cancelAttendance(sessionId, currentUser.id || currentUser.name);
+        await SupabaseService.cancelAttendance(sessionId, currentUser.user_id || currentUser.npm || currentUser.name);
       }
+      await refreshFromSupabase();
     }
 
     showToast("Presensi Anda pada sesi ini berhasil dibatalkan.", "warning");
