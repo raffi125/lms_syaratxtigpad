@@ -473,9 +473,27 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Initialize on mount: fetch directly from Supabase Cloud
+  // Initialize on mount: fetch directly from Supabase Cloud & restore theme from localStorage
   useEffect(() => {
-    // Bersihkan hanya key legacy dummy lama tanpa menghapus status kuis atau sesi
+    // 1. Pulihkan tema dark/light dari localStorage murni (bukan ke database)
+    if (typeof window !== "undefined") {
+      try {
+        const savedTheme = localStorage.getItem("kolab_theme") as "light" | "dark" | null;
+        if (savedTheme === "dark" || savedTheme === "light") {
+          setTheme(savedTheme);
+          document.documentElement.classList.toggle("dark", savedTheme === "dark");
+          document.documentElement.setAttribute("data-theme", savedTheme);
+        } else {
+          const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+          const initial = prefersDark ? "dark" : "light";
+          setTheme(initial);
+          document.documentElement.classList.toggle("dark", initial === "dark");
+          document.documentElement.setAttribute("data-theme", initial);
+        }
+      } catch (e) {}
+    }
+
+    // 2. Bersihkan hanya key legacy dummy lama tanpa menghapus status kuis atau sesi
     if (typeof window !== "undefined" && window.localStorage) {
       try {
         const legacyKeys = ["kolab_users_mock", "kolab_modules_mock", "kolab_dummy_legacy"];
@@ -559,7 +577,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const toggleTheme = () => {
     const nextTheme = theme === "light" ? "dark" : "light";
     setTheme(nextTheme);
-    document.documentElement.classList.toggle("dark", nextTheme === "dark");
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem("kolab_theme", nextTheme);
+      } catch (e) {}
+      document.documentElement.classList.toggle("dark", nextTheme === "dark");
+      document.documentElement.setAttribute("data-theme", nextTheme);
+    }
   };
 
   const showToast = (message: string, type: "success" | "error" | "warning" | "info" = "info") => {

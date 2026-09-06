@@ -24,8 +24,9 @@ export default function HomePage() {
   const [isSubmittingTicket, setIsSubmittingTicket] = useState(false);
 
   useEffect(() => {
-    // Inisialisasi tema dari sistem/dokumen
-    const prefersDark = typeof window !== "undefined" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+    // Inisialisasi tema dari localStorage murni (bukan database)
+    const savedTheme = typeof window !== "undefined" ? localStorage.getItem("kolab_theme") : null;
+    const prefersDark = savedTheme ? savedTheme === "dark" : (typeof window !== "undefined" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
     if (prefersDark) {
       setIsDark(true);
       document.documentElement.classList.add("dark");
@@ -103,6 +104,12 @@ export default function HomePage() {
   const toggleDarkMode = () => {
     const nextDark = !isDark;
     setIsDark(nextDark);
+    const themeStr = nextDark ? "dark" : "light";
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem("kolab_theme", themeStr);
+      } catch (e) {}
+    }
     if (nextDark) {
       document.documentElement.classList.add("dark");
       document.documentElement.setAttribute("data-theme", "dark");
