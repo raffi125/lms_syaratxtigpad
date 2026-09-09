@@ -264,10 +264,10 @@ export default function Navbar({ onToggleMobileSidebar }: NavbarProps) {
               className="flex items-center gap-2 cursor-pointer pl-1"
             >
               <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-syarat to-tigpad text-white font-extrabold flex items-center justify-center text-xs shadow-md border-2 border-tigpad overflow-hidden">
-                {currentUser.avatar_url ? (
+                {currentUser.avatar_url || currentUser.avatar ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={currentUser.avatar_url}
+                    src={currentUser.avatar_url || currentUser.avatar}
                     alt={currentUser.name}
                     className="w-full h-full object-cover"
                   />
@@ -283,12 +283,25 @@ export default function Navbar({ onToggleMobileSidebar }: NavbarProps) {
 
             {profileOpen && (
               <ul className="absolute right-0 mt-3 p-2 shadow-2xl glass-card rounded-2xl w-56 sm:w-60 text-xs space-y-1 z-50 border border-slate-200 dark:border-slate-800 animate-slide-up">
-                <li className="px-3 py-2 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 rounded-xl">
-                  <div className="font-bold text-slate-700 dark:text-slate-200">
-                    {currentUser.name}
+                <li className="px-3 py-2 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 rounded-xl flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-syarat to-tigpad text-white font-extrabold flex items-center justify-center text-[10px] shadow-sm border border-tigpad overflow-hidden flex-shrink-0">
+                    {currentUser.avatar_url || currentUser.avatar ? (
+                      <img
+                        src={currentUser.avatar_url || currentUser.avatar}
+                        alt={currentUser.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span>{getInitials(currentUser.name)}</span>
+                    )}
                   </div>
-                  <div className="text-[10px] text-slate-500 font-mono truncate">
-                    {currentUser.email}
+                  <div className="min-w-0">
+                    <div className="font-bold text-slate-700 dark:text-slate-200 truncate">
+                      {currentUser.name}
+                    </div>
+                    <div className="text-[10px] text-slate-500 font-mono truncate">
+                      {currentUser.email}
+                    </div>
                   </div>
                 </li>
                 <li>

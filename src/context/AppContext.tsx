@@ -93,12 +93,14 @@ interface AppContextType {
   updateModule: (id: number, module: Partial<ModuleItem>) => void;
   deleteModule: (id: number) => void;
   submitAttendance: (
-    code: string,
+    codeOrProofUrl?: string | File,
     proofUrl?: string | File,
     targetSession?: ActiveZoomSession | number
   ) => Promise<boolean> | boolean;
   deleteAttendanceLog: (id: number) => Promise<boolean>;
   cancelAttendance: (sessionId: number) => Promise<boolean>;
+  markAllAttended: (sessionId: number) => Promise<number>;
+  markParticipantAttendance: (sessionId: number, user: User) => Promise<boolean>;
   addZoomSession: (session: Partial<ActiveZoomSession>) => Promise<void>;
   updateZoomSession: (id: number, session: Partial<ActiveZoomSession>) => Promise<void>;
   deleteZoomSession: (id: number) => Promise<void>;
@@ -268,6 +270,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             score: u.score ?? 0,
             progress: u.progress ?? 0,
             avatar_url: u.avatar_url && !u.avatar_url.startsWith("blob:") ? u.avatar_url : undefined,
+            avatar: u.avatar_url && !u.avatar_url.startsWith("blob:") ? u.avatar_url : undefined,
             password: u.role === "admin" ? "admin" : u.role === "mentor" ? "mentor" : undefined,
           };
         });
@@ -282,6 +285,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             category: m.category || "BISINDO",
             description: m.description || "",
             duration: m.duration || "90 Menit",
+            date: m.date || "",
+            time: m.time || "",
             videoUrl: m.video_url || "",
             pdfUrl: m.pdf_url || "",
             completed: m.completed ?? false,
@@ -394,99 +399,91 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
       setCertificates(mergedCerts);
 
-      if (dbZoomSessions && dbZoomSessions.length > 0) {
-        const active = dbZoomSessions[0];
-        setZoomData((prev) => {
-          const mappedLogs: AttendanceItem[] =
-            dbLogs && dbLogs.length > 0
-              ? dbLogs.map((l: DBAttendanceLog) => {
-                  const uid = l.user_id_code || l.npm || "";
-                  return {
-                    id: l.id,
-                    name: l.name,
-                    user_id: uid,
-                    npm: uid,
-                    institution: l.institution,
-                    time: l.time,
-                    method: l.method,
-                    verified: l.verified,
-                    sessionId: l.session_id,
-                    session_id: l.session_id,
-                    proof_url: l.proof_url || (l as any).proofUrl || "",
-                    proofUrl: l.proof_url || (l as any).proofUrl || "",
-                  };
-                })
-              : [];
+      let activeSessionsList = dbZoomSessions || [];
+      if (activeSessionsList.length === 0 && isSupabaseConfigured()) {
+        try {
+          const seeded = await SupabaseService.addZoomSession({
+            title: "Sesi Tatap Muka Daring 1: Pengenalan Alfabet BISINDO",
+            meeting_id: "882 1928 3391",
+            passcode: "BISINDO2026",
+            host: "Mentor Kolab",
+            date: new Date().toISOString().split("T")[0],
+            time: "14:00",
+            zoom_url: "https://zoom.us/j/88219283391",
+            presence_code: "KOLAB1",
+            status: "Berlangsung",
+            attendees: 0,
+            desc: "Pertemuan tatap muka virtual via Zoom membahas materi dasar BISINDO",
+          });
+          if (seeded) {
+            activeSessionsList = [seeded];
+          }
+        } catch (seedErr) {
+          console.warn("Supabase auto-seed zoom session warning:", seedErr);
+        }
+      }
 
-          // Gabungkan log lokal yang baru saja disubmit jika belum ada di database
-          const existingIds = new Set(mappedLogs.map((l) => l.id));
-          const localOnly = (prev.attendanceLogs || []).filter(
-            (l) => !existingIds.has(l.id) && (l.id > 1000000000 || l.proof_url)
-          );
-          const finalLogs = mappedLogs.length > 0 ? [...mappedLogs, ...localOnly] : (prev.attendanceLogs.length > 0 ? prev.attendanceLogs : []);
+      const mappedLogs: AttendanceItem[] =
+        dbLogs && dbLogs.length > 0
+          ? dbLogs.map((l: DBAttendanceLog) => {
+              const uid = l.user_id_code || (l.user_id ? String(l.user_id) : "") || l.npm || "";
+              return {
+                id: l.id,
+                name: l.name,
+                user_id: uid,
+                npm: uid,
+                institution: l.institution,
+                date: l.date || "",
+                time: (l.time || "").replace(/^Hari ini\s*[•,]\s*/i, "").trim(),
+                method: l.method,
+                status: l.status || "Hadir",
+                verified: l.verified ?? true,
+                sessionId: l.session_id,
+                session_id: l.session_id,
+                proof_url: l.proof_url || (l as any).proofUrl || "",
+                proofUrl: l.proof_url || (l as any).proofUrl || "",
+              };
+            })
+          : [];
 
-          return {
-            activeSession: {
-              id: active.id,
-              title: active.title,
-              meetingId: active.meeting_id,
-              passcode: active.passcode,
-              host: active.host,
-              date: active.date,
-              zoomUrl: active.zoom_url,
-              presenceCode: active.presence_code,
-              status: active.status,
-              attendees: active.attendees || 0,
-            },
-            sessions: dbZoomSessions.map((s: DBZoomSession) => ({
-              id: s.id,
-              title: s.title,
-              meetingId: s.meeting_id,
-              passcode: s.passcode,
-              host: s.host,
-              date: s.date,
-              zoomUrl: s.zoom_url,
-              presenceCode: s.presence_code,
-              status: s.status,
-              attendees: s.attendees || 0,
-            })),
-            attendanceLogs: finalLogs,
-          };
+      if (activeSessionsList.length > 0) {
+        const active = activeSessionsList[0];
+        setZoomData({
+          activeSession: {
+            id: active.id,
+            title: active.title,
+            meetingId: active.meeting_id,
+            passcode: active.passcode,
+            host: active.host,
+            date: active.date,
+            time: active.time || "",
+            zoomUrl: active.zoom_url,
+            presenceCode: active.presence_code,
+            status: active.status || "Berlangsung",
+            attendees: active.attendees || 0,
+            desc: active.desc || "",
+          },
+          sessions: activeSessionsList.map((s: DBZoomSession) => ({
+            id: s.id,
+            title: s.title,
+            meetingId: s.meeting_id,
+            passcode: s.passcode,
+            host: s.host,
+            date: s.date,
+            time: s.time || "",
+            zoomUrl: s.zoom_url,
+            presenceCode: s.presence_code,
+            status: s.status || "Berlangsung",
+            attendees: s.attendees || 0,
+            desc: s.desc || "",
+          })),
+          attendanceLogs: mappedLogs,
         });
       } else {
-        setZoomData((prev) => {
-          const mappedLogs: AttendanceItem[] =
-            dbLogs && dbLogs.length > 0
-              ? dbLogs.map((l: DBAttendanceLog) => {
-                  const uid = l.user_id_code || l.npm || "";
-                  return {
-                    id: l.id,
-                    name: l.name,
-                    user_id: uid,
-                    npm: uid,
-                    institution: l.institution,
-                    time: l.time,
-                    method: l.method,
-                    verified: l.verified,
-                    sessionId: l.session_id,
-                    session_id: l.session_id,
-                    proof_url: l.proof_url || (l as any).proofUrl || "",
-                    proofUrl: l.proof_url || (l as any).proofUrl || "",
-                  };
-                })
-              : [];
-
-          const existingIds = new Set(mappedLogs.map((l) => l.id));
-          const localOnly = (prev.attendanceLogs || []).filter(
-            (l) => !existingIds.has(l.id) && (l.id > 1000000000 || l.proof_url)
-          );
-          const finalLogs = mappedLogs.length > 0 ? [...mappedLogs, ...localOnly] : (prev.attendanceLogs.length > 0 ? prev.attendanceLogs : []);
-
-          return {
-            activeSession: EMPTY_ZOOM_DATA.activeSession,
-            sessions: [],
-            attendanceLogs: finalLogs,
-          };
+        setZoomData({
+          activeSession: EMPTY_ZOOM_DATA.activeSession,
+          sessions: [],
+          attendanceLogs: mappedLogs,
         });
       }
     } catch (err) {
@@ -618,10 +615,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setToast((prev) => ({ ...prev, show: false }));
   };
 
-  const currentUser =
-    (currentUserId ? users.find((u) => u.id === currentUserId) : null) ||
+  const userById = currentUserId ? users.find((u) => u.id === currentUserId) : null;
+  const userByRole = users.find((u) => u.role === currentRole);
+  const currentUser: User =
+    (userById && userById.role === currentRole ? userById : null) ||
+    userByRole ||
+    userById ||
     (currentRole === "admin" ? INITIAL_ADMIN : currentRole === "mentor" ? INITIAL_MENTOR : null) ||
-    users.find((u) => u.role === currentRole) ||
     (currentRole === "peserta"
       ? {
           id: currentUserId || 9999,
@@ -702,7 +702,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     icon?: string;
   }) => {
     const now = new Date();
-    const timeStr = `Hari ini, ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")} WIB`;
+    const timeStr = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")} WIB`;
     const newAct: LearningActivity = {
       id: "act_" + Date.now() + "_" + Math.floor(Math.random() * 1000),
       title: activity.title,
@@ -723,6 +723,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const switchRole = (role: Role) => {
     setCurrentRole(role);
+    const targetUser = users.find((u) => u.role === role);
+    if (targetUser) {
+      setCurrentUserId(targetUser.id);
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem("currentUserId", String(targetUser.id));
+      }
+    }
     if (typeof window !== "undefined") {
       sessionStorage.setItem("currentRole", role);
     }
@@ -943,7 +950,26 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   const updateProfile = async (data: Partial<User>) => {
-    setUsers((prev) => prev.map((u) => (u.id === currentUser.id ? { ...u, ...data } : u)));
+    const avatarUrl = data.avatar_url || data.avatar;
+    setUsers((prev) => {
+      const exists = prev.some((u) => u.id === currentUser.id);
+      if (exists) {
+        return prev.map((u) =>
+          u.id === currentUser.id
+            ? { ...u, ...data, ...(avatarUrl ? { avatar_url: avatarUrl, avatar: avatarUrl } : {}) }
+            : u
+        );
+      } else {
+        return [
+          ...prev,
+          {
+            ...currentUser,
+            ...data,
+            ...(avatarUrl ? { avatar_url: avatarUrl, avatar: avatarUrl } : {}),
+          },
+        ];
+      }
+    });
 
     if (isSupabaseConfigured()) {
       await SupabaseService.updateUser(currentUser.id, {
@@ -952,7 +978,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         user_id: data.user_id || data.npm,
         npm: data.user_id || data.npm,
         institution: data.institution,
-        avatar_url: data.avatar_url || data.avatar,
+        avatar_url: avatarUrl,
       });
     }
 
@@ -995,6 +1021,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       category: newMod.category || "BISINDO",
       description: newMod.description || "",
       duration: newMod.duration || "90 Menit",
+      date: newMod.date || "",
+      time: newMod.time || "",
       videoUrl: newMod.videoUrl || "",
       pdfUrl: newMod.pdfUrl || "",
       completed: false,
@@ -1008,6 +1036,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         category: item.category,
         description: item.description,
         duration: item.duration,
+        date: item.date,
+        time: item.time,
         video_url: item.videoUrl,
         pdf_url: item.pdfUrl,
       });
@@ -1028,6 +1058,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         category: updated.category,
         description: updated.description,
         duration: updated.duration,
+        date: updated.date,
+        time: updated.time,
         video_url: updated.videoUrl,
         pdf_url: updated.pdfUrl,
       });
@@ -1044,8 +1076,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   const submitAttendance = async (
-    code: string,
-    proofUrl?: string | File,
+    codeOrProofUrl?: string | File,
+    proofUrlParam?: string | File,
     targetSession?: ActiveZoomSession | number
   ): Promise<boolean> => {
     let target = zoomData.activeSession;
@@ -1056,13 +1088,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
 
     if (!target) {
-      showToast("Tidak ada sesi Zoom aktif saat ini!", "warning");
+      showToast("Pilih sesi pertemuan Zoom terlebih dahulu!", "warning");
       return false;
     }
 
-    if (code.trim().toUpperCase() !== target.presenceCode.toUpperCase()) {
-      showToast("Kode presensi tidak sesuai!", "error");
-      return false;
+    // ponytail & user request: Hapus kewajiban kode presensi agar tidak ribet
+    let actualProofUrl = "";
+    if (typeof proofUrlParam === "string" && proofUrlParam) {
+      actualProofUrl = proofUrlParam;
+    } else if (typeof codeOrProofUrl === "string" && (codeOrProofUrl.startsWith("http") || codeOrProofUrl.startsWith("data:"))) {
+      actualProofUrl = codeOrProofUrl;
     }
 
     const already = zoomData.attendanceLogs.some(
@@ -1078,137 +1113,151 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
 
     const now = new Date();
-    const timeStr = `Hari ini • ${now.getHours().toString().padStart(2, "0")}:${now
+    const dateStr = now.toISOString().split("T")[0];
+    const timeStr = `${now.getHours().toString().padStart(2, "0")}:${now
       .getMinutes()
       .toString()
       .padStart(2, "0")} WIB`;
 
-    let finalLog: AttendanceItem | null = null;
+    const finalProofUrl = actualProofUrl.trim();
+    const cleanMethod = finalProofUrl
+      ? `Presensi Mandiri & SS Zoom`
+      : `Presensi Mandiri`;
 
-    // 1. Eksekusi penyimpanan ke backend API /api/attendance
-    try {
-      let res: Response | null = null;
-      if (proofUrl instanceof File) {
-        const formData = new FormData();
-        formData.append("file", proofUrl);
-        formData.append("name", currentUser.name);
-        formData.append("user_id_code", currentUser.user_id || currentUser.npm || "");
-        formData.append("institution", currentUser.institution || "Komunitas BISINDO");
-        formData.append("session_id", String(target.id));
-        formData.append("presence_code", code.trim().toUpperCase());
-        formData.append("time", timeStr);
-        if (typeof currentUser.id === "number" && currentUser.id < 1000000) {
-          formData.append("user_id", String(currentUser.id));
-        }
-        res = await fetch("/api/attendance", {
-          method: "POST",
-          body: formData,
-        });
-      } else {
-        res = await fetch("/api/attendance", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            name: currentUser.name,
-            user_id_code: currentUser.user_id || currentUser.npm,
-            institution: currentUser.institution || "Komunitas BISINDO",
-            session_id: target.id,
-            presence_code: code.trim().toUpperCase(),
-            time: timeStr,
-            proof_url: typeof proofUrl === "string" ? proofUrl : "",
-            user_id: typeof currentUser.id === "number" && currentUser.id < 1000000 ? currentUser.id : undefined,
-          }),
-        });
-      }
-
-      if (res && res.ok) {
-        const data = await res.json();
-        if (data.success && data.log) {
-          finalLog = data.log;
-        }
-      }
-    } catch (apiErr) {
-      console.warn("[submitAttendance] /api/attendance call failed, will try direct Supabase:", apiErr);
+    const payload: Partial<DBAttendanceLog> = {
+      name: currentUser.name,
+      user_id_code: currentUser.user_id || currentUser.npm || "",
+      institution: currentUser.institution || "Komunitas BISINDO",
+      session_id: target.id,
+      date: dateStr,
+      time: timeStr,
+      method: cleanMethod,
+      status: "Hadir",
+      verified: true,
+      proof_url: finalProofUrl,
+    };
+    if (typeof currentUser.id === "number" && currentUser.id > 0 && currentUser.id < 2147483647) {
+      payload.user_id = currentUser.id;
     }
 
-    // 2. Fallback jika API route tidak merespons
-    if (!finalLog) {
-      const proofStr = typeof proofUrl === "string" ? proofUrl : "";
-      finalLog = {
+    let saved: any = null;
+    if (isSupabaseConfigured()) {
+      saved = await SupabaseService.addAttendanceLog(payload);
+    }
+
+    if (saved) {
+      await refreshFromSupabase();
+      logActivity({
+        title: `Presensi Pertemuan: ${target.title || "Tatap Muka Daring"}`,
+        description: `Presensi Berhasil • Terverifikasi Hadir di Database (Tabel Absen)`,
+        category: "zoom",
+        statusText: "Hadir",
+        statusBadge: "blue",
+        icon: "fa-solid fa-clipboard-user",
+      });
+      showToast("Presensi berhasil disimpan ke tabel absen Supabase!", "success");
+      return true;
+    } else {
+      if (isSupabaseConfigured()) {
+        console.error("Gagal menyimpan presensi ke Supabase tabel absen:", payload);
+        showToast("Gagal menyimpan presensi ke tabel absen database. Silakan coba lagi.", "error");
+        return false;
+      }
+
+      // Offline mode fallback murni
+      const localLog: AttendanceItem = {
         id: Date.now(),
         name: currentUser.name,
-        user_id: currentUser.user_id || currentUser.npm,
-        npm: currentUser.user_id || currentUser.npm,
+        user_id: currentUser.user_id || currentUser.npm || "",
+        npm: currentUser.user_id || currentUser.npm || "",
         institution: currentUser.institution || "Komunitas BISINDO",
+        date: dateStr,
         time: timeStr,
-        method: proofStr ? "Kode Sesi & SS Zoom" : "Kode Sesi",
+        method: finalProofUrl ? "Presensi & SS Zoom" : "Presensi Mandiri",
+        status: "Hadir",
         verified: true,
         sessionId: target.id,
         session_id: target.id,
-        proof_url: proofStr,
-        proofUrl: proofStr,
+        proof_url: finalProofUrl,
+        proofUrl: finalProofUrl,
       };
-
-      if (isSupabaseConfigured()) {
-        await SupabaseService.recordAttendance({
-          user_id: typeof currentUser.id === "number" && currentUser.id < 1000000 ? currentUser.id : undefined,
-          session_id: target.id,
-          name: currentUser.name,
-          user_id_code: currentUser.user_id || currentUser.npm,
-          npm: currentUser.user_id || currentUser.npm,
-          institution: currentUser.institution,
-          time: timeStr,
-          method: proofStr ? "Kode Sesi & SS Zoom" : "Kode Sesi",
-          verified: true,
-          proof_url: proofStr,
-        }).catch((e) => console.warn("Fallback direct Supabase record error:", e));
-      }
-    }
-
-    // Perbarui state lokal secara instan agar rekapan peserta dan admin langsung tampil
-    setZoomData((prev) => {
-      const filtered = prev.attendanceLogs.filter((l) => l.id !== finalLog!.id);
-      return {
+      setZoomData((prev) => ({
         ...prev,
-        attendanceLogs: [finalLog!, ...filtered],
-      };
-    });
+        attendanceLogs: [localLog, ...prev.attendanceLogs.filter((l) => l.id !== localLog.id)],
+      }));
+      showToast("Presensi disimpan secara offline (Supabase belum terhubung).", "warning");
+      return true;
+    }
+  };
 
-    logActivity({
-      title: `Presensi Pertemuan Zoom: ${target.title || "Tatap Muka Daring"}`,
-      description: `Kode Sesi: ${code.toUpperCase()} • ${finalLog.proof_url ? "Bukti SS Zoom Terlampir" : "Terverifikasi Hadir"}`,
-      category: "zoom",
-      statusText: "Hadir",
-      statusBadge: "blue",
-      icon: "fa-solid fa-headset",
-    });
+  const markAllAttended = async (sessionId: number): Promise<number> => {
+    if (!isSupabaseConfigured()) {
+      showToast("Database Supabase belum terkonfigurasi.", "error");
+      return 0;
+    }
+    const participants = users.filter((u) => u.role === "peserta");
+    const count = await SupabaseService.markAllAttended(sessionId, participants);
+    await refreshFromSupabase();
+    if (count > 0) {
+      showToast(`Berhasil menandai ${count} peserta hadir ke database!`, "success");
+    } else {
+      showToast("Seluruh peserta aktif sudah tercatat hadir pada sesi ini.", "info");
+    }
+    return count;
+  };
 
-    showToast("Presensi & bukti screenshot Zoom berhasil diverifikasi!", "success");
+  const markParticipantAttendance = async (sessionId: number, user: User): Promise<boolean> => {
+    if (!isSupabaseConfigured()) {
+      showToast("Database Supabase belum terkonfigurasi.", "error");
+      return false;
+    }
+    const now = new Date();
+    const dateStr = now.toISOString().split("T")[0];
+    const timeStr = `${now.getHours().toString().padStart(2, "0")}:${now
+      .getMinutes()
+      .toString()
+      .padStart(2, "0")} WIB`;
+    const payload: Partial<DBAttendanceLog> = {
+      name: user.name,
+      user_id_code: user.user_id || user.npm || "",
+      institution: user.institution || "Komunitas BISINDO",
+      session_id: sessionId,
+      date: dateStr,
+      time: timeStr,
+      method: "Manual Mentor",
+      verified: true,
+    };
+    if (typeof user.id === "number" && user.id > 0 && user.id < 2000000000) {
+      payload.user_id = user.id;
+    }
+    const res = await SupabaseService.addAttendanceLog(payload);
 
-    // Sinkronisasi data dari Supabase di latar belakang
-    refreshFromSupabase().catch(() => {});
-
-    return true;
+    if (res) {
+      await refreshFromSupabase();
+      showToast(`${user.name} berhasil ditandai hadir ke database!`, "success");
+      return true;
+    } else {
+      showToast(`Gagal menandai kehadiran ${user.name} ke database.`, "error");
+      return false;
+    }
   };
 
   const deleteAttendanceLog = async (id: number): Promise<boolean> => {
-    // Menghapus satu catatan presensi spesifik (Kewenangan Admin & Mentor)
-    setZoomData((prev) => ({
-      ...prev,
-      attendanceLogs: prev.attendanceLogs.filter((log) => log.id !== id),
-    }));
-
     if (isSupabaseConfigured()) {
       await SupabaseService.deleteAttendanceLog(id);
       await refreshFromSupabase();
+    } else {
+      setZoomData((prev) => ({
+        ...prev,
+        attendanceLogs: prev.attendanceLogs.filter((log) => log.id !== id),
+      }));
     }
 
-    showToast("Catatan presensi berhasil dihapus oleh pengelola.", "info");
+    showToast("Catatan presensi berhasil dihapus dari database.", "info");
     return true;
   };
 
   const cancelAttendance = async (sessionId: number): Promise<boolean> => {
-    // Membatalkan presensi peserta untuk sesi ini
     const targetLog = zoomData.attendanceLogs.find(
       (l) =>
         (l.sessionId === sessionId || l.session_id === sessionId) &&
@@ -1216,28 +1265,28 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           (l.user_id && l.user_id === (currentUser.user_id || currentUser.npm)))
     );
 
-    setZoomData((prev) => ({
-      ...prev,
-      attendanceLogs: prev.attendanceLogs.filter(
-        (l) =>
-          !(
-            (l.sessionId === sessionId || l.session_id === sessionId) &&
-            (l.name.toLowerCase() === currentUser.name.toLowerCase() ||
-              (l.user_id && l.user_id === (currentUser.user_id || currentUser.npm)))
-          )
-      ),
-    }));
-
     if (isSupabaseConfigured()) {
-      if (targetLog?.id && targetLog.id < 1000000000) {
+      if (targetLog?.id) {
         await SupabaseService.deleteAttendanceLog(targetLog.id);
       } else {
         await SupabaseService.cancelAttendance(sessionId, currentUser.user_id || currentUser.npm || currentUser.name);
       }
       await refreshFromSupabase();
+    } else {
+      setZoomData((prev) => ({
+        ...prev,
+        attendanceLogs: prev.attendanceLogs.filter(
+          (l) =>
+            !(
+              (l.sessionId === sessionId || l.session_id === sessionId) &&
+              (l.name.toLowerCase() === currentUser.name.toLowerCase() ||
+                (l.user_id && l.user_id === (currentUser.user_id || currentUser.npm)))
+            )
+        ),
+      }));
     }
 
-    showToast("Presensi Anda pada sesi ini berhasil dibatalkan.", "warning");
+    showToast("Presensi Anda pada sesi ini berhasil dibatalkan dari database.", "warning");
     return true;
   };
 
@@ -1246,8 +1295,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       id: Date.now(),
       title: data.title || "Sesi Praktik Tatap Muka BISINDO",
       host: data.host || currentUser.name,
-      date: data.date || "Jadwal Mendatang",
-      status: data.status || "MENDATANG",
+      date: data.date || new Date().toISOString().split("T")[0],
+      time: data.time || "14:00",
+      status: data.status || "Berlangsung",
       meetingId: data.meetingId || "884 920 192",
       passcode: data.passcode || "BISINDO2026",
       presenceCode: data.presenceCode || "BIS-" + Math.floor(100 + Math.random() * 900),
@@ -1269,9 +1319,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         passcode: newSession.passcode,
         host: newSession.host,
         date: newSession.date,
+        time: newSession.time,
         zoom_url: newSession.zoomUrl,
         presence_code: newSession.presenceCode,
         status: newSession.status,
+        desc: newSession.desc,
         attendees: 0,
       }).catch((e) => {
         console.warn("Supabase add zoom error:", e);
@@ -1308,9 +1360,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         passcode: updated.passcode,
         host: updated.host,
         date: updated.date,
+        time: updated.time,
         zoom_url: updated.zoomUrl,
         presence_code: updated.presenceCode,
         status: updated.status,
+        desc: updated.desc,
       });
     }
     showToast("Sesi Zoom berhasil diperbarui di database!", "success");
@@ -1707,6 +1761,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         submitAttendance,
         deleteAttendanceLog,
         cancelAttendance,
+        markAllAttended,
+        markParticipantAttendance,
         addZoomSession,
         updateZoomSession,
         deleteZoomSession,

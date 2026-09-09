@@ -13,14 +13,14 @@ export default function ProfilePage() {
   const [name, setName] = useState(currentUser.name || "");
   const [email, setEmail] = useState(currentUser.email || "");
   const [phone, setPhone] = useState(currentUser.phone || "");
-  const [avatarPhoto, setAvatarPhoto] = useState<string | null>(currentUser.avatar_url || null);
+  const [avatarPhoto, setAvatarPhoto] = useState<string | null>(currentUser.avatar_url || currentUser.avatar || null);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
 
   React.useEffect(() => {
     setName(currentUser.name || "");
     setEmail(currentUser.email || "");
     setPhone(currentUser.phone || "");
-    setAvatarPhoto(currentUser.avatar_url || null);
+    setAvatarPhoto(currentUser.avatar_url || currentUser.avatar || null);
   }, [currentUser]);
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {

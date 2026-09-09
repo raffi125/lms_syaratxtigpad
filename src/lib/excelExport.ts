@@ -47,8 +47,9 @@ export function exportAttendanceToExcel(
         "User ID / NPM": log.user_id || log.npm || "-",
         "Instansi / Lembaga": log.institution || "-",
         "Sesi Zoom": sessionName,
-        "Waktu Presensi": log.time || "-",
-        "Metode Presensi": log.method || "Kode Sesi & SS Zoom",
+        "Tanggal Presensi": log.date || "",
+        "Waktu Presensi": (log.time || "").replace(/^Hari ini\s*[•,]\s*/i, ""),
+        "Metode Presensi": log.method || "Presensi Mandiri",
         "Status": log.verified ? "Hadir (Terverifikasi)" : "Belum Hadir",
         "Bukti SS Zoom": proofStatus,
         "Tautan / Keterangan Bukti SS": proofLink,
@@ -65,7 +66,8 @@ export function exportAttendanceToExcel(
       { wch: 18 }, // User ID / NPM
       { wch: 28 }, // Instansi
       { wch: 32 }, // Sesi Zoom
-      { wch: 22 }, // Waktu Presensi
+      { wch: 16 }, // Tanggal Presensi
+      { wch: 18 }, // Waktu Presensi
       { wch: 25 }, // Metode Presensi
       { wch: 22 }, // Status
       { wch: 20 }, // Bukti SS Zoom

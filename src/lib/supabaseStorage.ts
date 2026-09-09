@@ -81,6 +81,32 @@ export const SupabaseStorageService = {
     const filePath = resolved.filePath;
 
     try {
+      // Jika di lingkungan browser, kirim via API route server-side untuk bypass RLS
+      if (typeof window !== "undefined") {
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("bucket", targetBucket);
+        formData.append("filePath", filePath);
+
+        const res = await fetch("/api/storage/upload", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success) {
+            return {
+              url: json.url,
+              path: json.path || filePath,
+              bucket: targetBucket,
+              isRemote: true,
+            };
+          }
+        }
+      }
+
+      // Sisi server (atau fallback) menggunakan supabaseAdmin langsung
       const { error } = await supabaseAdmin.storage
         .from(targetBucket)
         .upload(filePath, file, {
@@ -120,4 +146,23 @@ export const SupabaseStorageService = {
       };
     }
   },
+
+  async deleteFile(bucket: "serti" | "image" | "modul", filePath: string): Promise<boolean> {
+    if (!isSupabaseConfigured()) return false;
+    try {
+      if (typeof window !== "undefined") {
+        const res = await fetch(`/api/storage/upload?bucket=${bucket}&path=${encodeURIComponent(filePath)}`, {
+          method: "DELETE",
+        });
+        const json = await res.json();
+        return Boolean(json.success);
+      }
+      const { error } = await supabaseAdmin.storage.from(bucket).remove([filePath]);
+      return !error;
+    } catch (err) {
+      console.warn("deleteFile exception:", err);
+      return false;
+    }
+  },
 };
+

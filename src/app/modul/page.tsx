@@ -24,6 +24,8 @@ export default function ModulPage() {
   const [formTitle, setFormTitle] = useState("");
   const [formMentor, setFormMentor] = useState("");
   const [formDesc, setFormDesc] = useState("");
+  const [formDate, setFormDate] = useState("");
+  const [formTime, setFormTime] = useState("");
   const [formVideoUrl, setFormVideoUrl] = useState("");
   const [formPdfUrl, setFormPdfUrl] = useState("");
 
@@ -59,6 +61,8 @@ export default function ModulPage() {
     setFormTitle("");
     setFormMentor(currentRole === "mentor" ? (currentUser.name || "Mentor") : "Admin LMS");
     setFormDesc("");
+    setFormDate(new Date().toISOString().split("T")[0]);
+    setFormTime("09:00");
     setFormVideoUrl("");
     setFormPdfUrl("");
     setUploadModalOpen(true);
@@ -71,6 +75,8 @@ export default function ModulPage() {
     setFormTitle(mod.title);
     setFormMentor(mod.mentor || (currentRole === "mentor" ? currentUser.name : "Mentor"));
     setFormDesc(mod.description || "");
+    setFormDate(mod.date || "");
+    setFormTime(mod.time || "");
     setFormVideoUrl(mod.videoUrl || "");
     setFormPdfUrl(mod.pdfUrl || "");
     setUploadModalOpen(true);
@@ -131,6 +137,8 @@ export default function ModulPage() {
         title: formTitle,
         mentor: formMentor,
         description: formDesc,
+        date: formDate,
+        time: formTime,
         videoUrl: formVideoUrl.trim(),
         pdfUrl: formPdfUrl.trim(),
       });
@@ -141,6 +149,8 @@ export default function ModulPage() {
         description: formDesc,
         category: "BISINDO",
         duration: "30 Menit",
+        date: formDate,
+        time: formTime,
         videoUrl: formVideoUrl.trim(),
         pdfUrl: formPdfUrl.trim(),
       });
@@ -308,6 +318,22 @@ export default function ModulPage() {
                     <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
                       {m.description}
                     </p>
+
+                    {(m.date || m.time) && (
+                      <div className="flex items-center gap-2 text-[11px] font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/80 px-2.5 py-1 rounded-xl w-fit">
+                        {m.date && (
+                          <span className="flex items-center gap-1 text-syarat dark:text-syarat-light">
+                            <i className="fa-regular fa-calendar text-xs"></i> {m.date}
+                          </span>
+                        )}
+                        {m.date && m.time && <span>•</span>}
+                        {m.time && (
+                          <span className="flex items-center gap-1 text-tigpad">
+                            <i className="fa-regular fa-clock text-xs"></i> {m.time} WIB
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   <div className="pt-4 border-t border-slate-100 dark:border-slate-800/80 flex flex-wrap items-center justify-between text-xs gap-2">
@@ -632,6 +658,32 @@ export default function ModulPage() {
                   placeholder="Penjelasan singkat fokus materi..."
                   className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border text-xs font-semibold"
                 ></textarea>
+              </div>
+
+              {/* Input Date & Time Modul */}
+              <div className="grid grid-cols-2 gap-3 p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800">
+                <div>
+                  <label className="block font-bold mb-1.5 text-slate-700 dark:text-slate-200">
+                    <i className="fa-regular fa-calendar text-syarat mr-1"></i> Tanggal Pelaksanaan
+                  </label>
+                  <input
+                    type="date"
+                    value={formDate}
+                    onChange={(e) => setFormDate(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-syarat"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold mb-1.5 text-slate-700 dark:text-slate-200">
+                    <i className="fa-regular fa-clock text-tigpad mr-1"></i> Waktu / Jam
+                  </label>
+                  <input
+                    type="time"
+                    value={formTime}
+                    onChange={(e) => setFormTime(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-syarat"
+                  />
+                </div>
               </div>
 
               {/* Video Tutorial Section */}

@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import DashboardLayout from "@/components/DashboardLayout";
 import { useApp } from "@/context/AppContext";
+import { SupabaseService } from "@/lib/supabaseService";
 import { SupabaseStorageService } from "@/lib/supabaseStorage";
 import { QuizItem, QuizAnswerRecord } from "@/types";
 
@@ -161,14 +162,13 @@ export default function KuisPage() {
     submittedAt?: string;
   }>({ hasPending: false });
 
-  // Check if current user has an ungraded submission in cloud storage
+  // Check if current user has an ungraded submission in database
   useEffect(() => {
     if (!currentUser?.id) return;
-    fetch(`/api/quiz-submissions?userId=${currentUser.id}`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success && data.data && data.data.length > 0) {
-          const latest = data.data[0];
+    SupabaseService.getQuizSubmissions(currentUser.id)
+      .then((subs) => {
+        if (subs && subs.length > 0) {
+          const latest = subs[0];
           setPendingSubmission({
             hasPending: Boolean(latest.hasUngradedEssays),
             score: latest.hasUngradedEssays ? undefined : latest.score,
@@ -529,23 +529,22 @@ export default function KuisPage() {
       };
     });
 
-    fetch("/api/quiz-submissions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        userId: currentUser.id,
-        userName: currentUser.name,
-        userEmail: currentUser.email,
-        userRole: currentRole,
-        score: hasEssays ? 0 : calculated,
-        earnedPoints: totalEarned,
-        totalPossiblePoints: totalPossible,
-        passed: hasEssays ? false : calculated >= 70,
-        quizTitle: activeQuizTitle,
-        category: activeCategory || "Umum",
-        answers: answerRecords,
-      }),
-    }).catch(() => {}); // ponytail: fire-and-forget, no blocking the UX
+    SupabaseService.saveQuizSubmission({
+      id: `sub_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+      userId: currentUser.id,
+      userName: currentUser.name,
+      userEmail: currentUser.email,
+      userRole: currentRole,
+      score: hasEssays ? 0 : calculated,
+      earnedPoints: totalEarned,
+      totalPossiblePoints: totalPossible,
+      passed: hasEssays ? false : calculated >= 70,
+      quizTitle: activeQuizTitle || "Pertemuan 1: Komunikasi, Inklusi & Budaya Tuli",
+      category: activeCategory || "Pertemuan 1",
+      answers: answerRecords,
+      submittedAt: new Date().toISOString(),
+      hasUngradedEssays: hasEssays,
+    }).catch((err) => console.error("[Quiz Submit Error]:", err));
 
     if (hasEssays) {
       showToast(

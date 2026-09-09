@@ -3,14 +3,26 @@
 import React, { useState, useEffect } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import { useApp } from "@/context/AppContext";
+import { SupabaseService } from "@/lib/supabaseService";
 import type { QuizSubmission, QuizAnswerRecord } from "@/types";
 
+const PERTEMUAN_LIST_OPTIONS = [
+  { key: "all", label: "Semua Kuis Pertemuan" },
+  { key: "Pertemuan 1", label: "Pertemuan 1: Komunikasi & Budaya Tuli" },
+  { key: "Pertemuan 2", label: "Pertemuan 2: Abjad & Angka BISINDO" },
+  { key: "Pertemuan 3", label: "Pertemuan 3: Percakapan Dasar & Angka" },
+  { key: "Pertemuan 4", label: "Pertemuan 4: Kosakata Sehari-hari" },
+  { key: "Pertemuan 5", label: "Pertemuan 5: Struktur Kalimat" },
+  { key: "Pertemuan 6", label: "Pertemuan 6: Praktik & Evaluasi Akhir" },
+];
+
 export default function JawabanKuisPage() {
-  const { currentRole, currentUser, showToast } = useApp();
+  const { currentRole, currentUser, users, showToast } = useApp();
   const [submissions, setSubmissions] = useState<QuizSubmission[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<QuizSubmission | null>(null);
   const [search, setSearch] = useState("");
+  const [meetingFilter, setMeetingFilter] = useState("all");
   const [passFilter, setPassFilter] = useState("all");
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
@@ -46,11 +58,10 @@ export default function JawabanKuisPage() {
   const fetchSubmissions = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/quiz-submissions");
-      const data = await res.json();
-      setSubmissions(data.data || []);
+      const data = await SupabaseService.getQuizSubmissions();
+      setSubmissions(data || []);
     } catch {
-      showToast("Gagal memuat data jawaban kuis.", "error");
+      showToast("Gagal memuat data jawaban kuis dari database.", "error");
     } finally {
       setLoading(false);
     }
@@ -75,46 +86,42 @@ export default function JawabanKuisPage() {
 
     setSavingGradeKey(key);
     try {
-      const res = await fetch("/api/quiz-submissions", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          submissionId: selected.id,
-          quizId,
-          earnedPoints: pointsVal,
-          mentorFeedback: input?.feedback || "",
-          gradedBy: currentUser?.name || (currentRole === "mentor" ? "Mentor" : "Admin"),
-        }),
-      });
+      const res = await SupabaseService.gradeEssayAnswer(
+        selected.id,
+        quizId,
+        pointsVal,
+        input?.feedback || "",
+        currentUser?.name || (currentRole === "mentor" ? "Mentor" : "Admin")
+      );
 
-      const data = await res.json();
-      if (data.success && data.data) {
-        const updatedSub: QuizSubmission = data.data;
+      if (res.success && res.data) {
+        const updatedSub: QuizSubmission = res.data;
         setSelected(updatedSub);
         setSubmissions((prev) =>
           prev.map((s) => (s.id === updatedSub.id ? updatedSub : s))
         );
-        showToast(data.message || "Nilai essai berhasil disimpan!", "success");
+        showToast(res.message || "Nilai essai berhasil disimpan ke database!", "success");
       } else {
-        showToast(data.message || "Gagal menyimpan nilai essai.", "error");
+        showToast(res.message || "Gagal menyimpan nilai essai ke database.", "error");
       }
     } catch {
-      showToast("Terjadi kesalahan saat menyimpan nilai essai.", "error");
+      showToast("Terjadi kesalahan saat menyimpan nilai essai ke database.", "error");
     } finally {
       setSavingGradeKey(null);
     }
   };
 
   const deleteSubmission = async (id: string) => {
-    if (!confirm("Hapus riwayat jawaban ini?")) return;
+    if (!confirm("Hapus riwayat jawaban ini dari database?")) return;
     setDeletingId(id);
     try {
-      const res = await fetch(`/api/quiz-submissions?id=${id}`, { method: "DELETE" });
-      const data = await res.json();
-      if (data.success) {
+      const ok = await SupabaseService.deleteQuizSubmission(id);
+      if (ok) {
         setSubmissions((prev) => prev.filter((s) => s.id !== id));
         if (selected?.id === id) setSelected(null);
-        showToast("Riwayat jawaban dihapus.", "info");
+        showToast("Riwayat jawaban dihapus dari database.", "info");
+      } else {
+        showToast("Gagal menghapus riwayat jawaban dari database.", "error");
       }
     } catch {
       showToast("Gagal menghapus riwayat jawaban.", "error");
@@ -124,15 +131,16 @@ export default function JawabanKuisPage() {
   };
 
   const clearAllSubmissions = async () => {
-    if (!confirm("Yakin ingin menghapus SEMUA riwayat jawaban kuis peserta dari cloud storage?")) return;
+    if (!confirm("Yakin ingin menghapus SEMUA riwayat jawaban kuis peserta dari database?")) return;
     setLoading(true);
     try {
-      const res = await fetch("/api/quiz-submissions?all=true", { method: "DELETE" });
-      const data = await res.json();
-      if (data.success) {
+      const ok = await SupabaseService.deleteQuizSubmission(undefined, undefined, true);
+      if (ok) {
         setSubmissions([]);
         setSelected(null);
-        showToast("Semua riwayat jawaban kuis berhasil dibersihkan!", "info");
+        showToast("Semua riwayat jawaban kuis berhasil dibersihkan dari database!", "info");
+      } else {
+        showToast("Gagal membersihkan riwayat jawaban.", "error");
       }
     } catch {
       showToast("Gagal membersihkan riwayat jawaban.", "error");
@@ -151,7 +159,11 @@ export default function JawabanKuisPage() {
       (passFilter === "ungraded" && s.hasUngradedEssays) ||
       (passFilter === "lulus" && s.passed) ||
       (passFilter === "remedial" && !s.passed);
-    return matchSearch && matchPass;
+    const matchMeeting =
+      meetingFilter === "all" ||
+      s.category === meetingFilter ||
+      (s.quizTitle && s.quizTitle.toLowerCase().includes(meetingFilter.toLowerCase()));
+    return matchSearch && matchPass && matchMeeting;
   });
 
   if (!isManager) {
@@ -242,16 +254,29 @@ export default function JawabanKuisPage() {
                   className="w-full pl-8 pr-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-semibold focus:ring-2 focus:ring-syarat outline-none"
                 />
               </div>
-              <select
-                value={passFilter}
-                onChange={(e) => setPassFilter(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-semibold"
-              >
-                <option value="all">Semua Hasil ({submissions.length})</option>
-                <option value="ungraded">⏳ Perlu Dinilai ({submissions.filter((s) => s.hasUngradedEssays).length})</option>
-                <option value="lulus">Lulus (≥70)</option>
-                <option value="remedial">Remedial (&lt;70)</option>
-              </select>
+              <div className="grid grid-cols-1 gap-2">
+                <select
+                  value={meetingFilter}
+                  onChange={(e) => setMeetingFilter(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-bold text-blue-600 dark:text-blue-400"
+                >
+                  {PERTEMUAN_LIST_OPTIONS.map((opt) => (
+                    <option key={opt.key} value={opt.key}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  value={passFilter}
+                  onChange={(e) => setPassFilter(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-semibold"
+                >
+                  <option value="all">Semua Hasil ({submissions.length})</option>
+                  <option value="ungraded">⏳ Perlu Dinilai ({submissions.filter((s) => s.hasUngradedEssays).length})</option>
+                  <option value="lulus">Lulus (≥70)</option>
+                  <option value="remedial">Remedial (&lt;70)</option>
+                </select>
+              </div>
             </div>
 
             {loading ? (
@@ -272,10 +297,51 @@ export default function JawabanKuisPage() {
                     selected?.id === s.id ? "border-syarat shadow-md ring-1 ring-syarat/30" : "border-slate-200 dark:border-slate-800"
                   }`}
                 >
+                  {/* Badge Identifikasi Pertemuan & Judul Kuis */}
+                  <div className="flex items-center gap-1.5 mb-2 flex-wrap">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-600 dark:text-blue-400 font-extrabold text-[10px] border border-blue-200 dark:border-blue-800">
+                      <i className="fa-solid fa-bookmark text-[9px]"></i>
+                      {s.category || "Pertemuan 1"}
+                    </span>
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold truncate max-w-[160px]">
+                      {s.quizTitle || "Kuis Budaya Tuli & Inklusi"}
+                    </span>
+                  </div>
+
                   <div className="flex items-center justify-between gap-2">
-                    <div className="min-w-0">
-                      <p className="font-bold text-sm text-slate-800 dark:text-slate-100 truncate">{s.userName}</p>
-                      <p className="text-[10px] text-slate-400 truncate">{s.userEmail}</p>
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      {(() => {
+                        const submitter = users.find(
+                          (u) =>
+                            (s.userId && u.id === s.userId) ||
+                            (s.userEmail && u.email.toLowerCase() === s.userEmail.toLowerCase()) ||
+                            u.name.toLowerCase().trim() === s.userName.toLowerCase().trim()
+                        );
+                        const av = submitter?.avatar_url || submitter?.avatar;
+                        const ini = s.userName
+                          .split(" ")
+                          .map((n) => n[0])
+                          .slice(0, 2)
+                          .join("")
+                          .toUpperCase();
+                        return (
+                          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-syarat to-tigpad text-white font-bold text-[10px] flex items-center justify-center shadow-sm flex-shrink-0 overflow-hidden border border-slate-200/60 dark:border-slate-700/60">
+                            {av ? (
+                              <img
+                                src={av}
+                                alt={s.userName}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <span>{ini}</span>
+                            )}
+                          </div>
+                        );
+                      })()}
+                      <div className="min-w-0">
+                        <p className="font-bold text-sm text-slate-800 dark:text-slate-100 truncate">{s.userName}</p>
+                        <p className="text-[10px] text-slate-400 truncate">{s.userEmail}</p>
+                      </div>
                     </div>
                     <div className="text-right shrink-0">
                       {s.hasUngradedEssays ? (
@@ -323,16 +389,51 @@ export default function JawabanKuisPage() {
               <div className="glass-card p-5 sm:p-6 rounded-3xl border border-slate-200 dark:border-slate-800 space-y-4">
                 {/* Header detail */}
                 <div className="flex items-start justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800">
-                  <div>
-                    <span className="text-[10px] font-extrabold uppercase tracking-wide text-syarat px-2 py-0.5 rounded-full bg-syarat/10">
-                      {selected.quizTitle || "Kuis BISINDO"}
-                    </span>
-                    <h3 className="font-extrabold text-lg text-slate-800 dark:text-slate-100 mt-1">
-                      {selected.userName}
-                    </h3>
-                    <p className="text-xs text-slate-400">
-                      {selected.userEmail} · {selected.userRole}
-                    </p>
+                  <div className="flex items-start gap-3">
+                    {(() => {
+                      const selUser = users.find(
+                        (u) =>
+                          (selected.userId && u.id === selected.userId) ||
+                          (selected.userEmail && u.email.toLowerCase() === selected.userEmail.toLowerCase()) ||
+                          u.name.toLowerCase().trim() === selected.userName.toLowerCase().trim()
+                      );
+                      const av = selUser?.avatar_url || selUser?.avatar;
+                      const ini = selected.userName
+                        .split(" ")
+                        .map((n) => n[0])
+                        .slice(0, 2)
+                        .join("")
+                        .toUpperCase();
+                      return (
+                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-syarat to-tigpad text-white font-bold text-sm flex items-center justify-center shadow overflow-hidden flex-shrink-0 border border-slate-200/60 dark:border-slate-700/60 mt-1">
+                          {av ? (
+                            <img
+                              src={av}
+                              alt={selected.userName}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <span>{ini}</span>
+                          )}
+                        </div>
+                      );
+                    })()}
+                    <div>
+                      <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                        <span className="text-[11px] font-extrabold tracking-wide px-2.5 py-0.5 rounded-full bg-blue-500/15 text-blue-700 dark:text-blue-300 border border-blue-500/20 flex items-center gap-1.5">
+                          <i className="fa-solid fa-bookmark text-[10px]"></i>
+                          <span>{selected.category || "Pertemuan 1"}</span>
+                        </span>
+                        <span className="text-xs font-bold text-slate-700 dark:text-slate-200">
+                          {selected.quizTitle || "Pertemuan 1: Komunikasi, Inklusi & Budaya Tuli"}
+                        </span>
+                      </div>
+                      <h3 className="font-black text-xl text-slate-800 dark:text-slate-100">
+                        {selected.userName}
+                      </h3>
+                      <p className="text-xs text-slate-400">
+                        {selected.userEmail} · {selected.userRole}
+                      </p>
                     <div className="flex items-center gap-3 mt-2 flex-wrap">
                       {selected.hasUngradedEssays ? (
                         <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center gap-1.5 border border-amber-500/30">
@@ -350,7 +451,8 @@ export default function JawabanKuisPage() {
                       </span>
                     </div>
                   </div>
-                  <div className="flex gap-2 shrink-0">
+                </div>
+                <div className="flex gap-2 shrink-0">
                     <button
                       onClick={() => setSelected(null)}
                       className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 text-sm transition-colors"

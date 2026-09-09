@@ -28,6 +28,8 @@ export interface ModuleItem {
   category: string;
   description: string;
   duration: string;
+  date?: string;
+  time?: string;
   videoUrl: string;
   pdfUrl: string;
   completed: boolean;
@@ -53,8 +55,10 @@ export interface AttendanceItem {
   user_id: string;
   npm: string;
   institution: string;
+  date?: string;
   time: string;
   method: string;
+  status?: string;
   verified: boolean;
   sessionId?: number;
   session_id?: number;
@@ -69,6 +73,7 @@ export interface ActiveZoomSession {
   passcode: string;
   host: string;
   date: string;
+  time?: string;
   zoomUrl: string;
   presenceCode: string;
   status: string;
@@ -153,6 +158,8 @@ export interface DBModule {
   category: string;
   description: string;
   duration: string;
+  date?: string;
+  time?: string;
   video_url: string;
   pdf_url: string;
   completed?: boolean;
@@ -187,10 +194,12 @@ export interface DBZoomSession {
   passcode: string;
   host: string;
   date: string;
+  time?: string;
   zoom_url: string;
   presence_code: string;
   status: string;
   attendees: number;
+  desc?: string;
 }
 
 export interface DBAttendanceLog {
@@ -201,11 +210,15 @@ export interface DBAttendanceLog {
   user_id_code?: string;
   npm?: string;
   institution: string;
+  date?: string;
   time: string;
   method: string;
+  status?: string;
   verified: boolean;
   proof_url?: string;
 }
+
+export type DBAbsen = DBAttendanceLog;
 
 export interface SupportTicket {
   id: string; // e.g. TKT-2026-XXXX
@@ -255,6 +268,24 @@ export interface QuizSubmission {
   category?: string;
   answers: QuizAnswerRecord[];
   hasUngradedEssays?: boolean;
+}
+
+export interface DBQuizUser {
+  id: string;
+  user_id?: number;
+  user_name: string;
+  user_email?: string;
+  user_role?: string;
+  quiz_title?: string;
+  category?: string;
+  score: number;
+  earned_points: number;
+  total_possible_points: number;
+  passed: boolean;
+  submitted_at: string;
+  answers: QuizAnswerRecord[];
+  has_ungraded_essays?: boolean;
+  created_at?: string;
 }
 
 export interface DBGameWord {

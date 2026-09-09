@@ -7,7 +7,7 @@ import { useApp } from "@/context/AppContext";
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const { currentRole, unreadNotifCount } = useApp();
+  const { currentRole, currentUser, unreadNotifCount } = useApp();
 
   const isMentor = currentRole === "mentor";
   const isAdmin = currentRole === "admin";
@@ -30,16 +30,24 @@ export default function Sidebar() {
       {/* Role Profile Header */}
       <div className="p-3.5 rounded-2xl bg-gradient-to-br from-syarat/10 to-tigpad/10 border border-syarat/20 flex items-center gap-3">
         <div
-          className="w-10 h-10 rounded-xl bg-syarat text-white flex items-center justify-center font-bold text-lg shadow overflow-hidden flex-shrink-0"
+          className="w-10 h-10 rounded-xl bg-gradient-to-tr from-syarat to-tigpad text-white flex items-center justify-center font-bold text-lg shadow overflow-hidden flex-shrink-0 border border-syarat/30"
           id="sidebarAvatarBox"
         >
-          <i id="sidebarRoleIcon" className={getRoleIcon()}></i>
+          {currentUser.avatar_url || currentUser.avatar ? (
+            <img
+              src={currentUser.avatar_url || currentUser.avatar}
+              alt={currentUser.name}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <i id="sidebarRoleIcon" className={getRoleIcon()}></i>
+          )}
         </div>
-        <div>
-          <h3 id="sidebarRoleTitle" className="font-extrabold text-sm">
-            {getRoleTitle()}
+        <div className="min-w-0">
+          <h3 id="sidebarRoleTitle" className="font-extrabold text-sm truncate text-slate-800 dark:text-white">
+            {currentUser.name || getRoleTitle()}
           </h3>
-          <p className="text-[11px] text-slate-500 dark:text-slate-400">
+          <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
             {isMentor ? "Instruktur & Evaluator" : isAdmin ? "Manajemen Sistem" : "Peserta Umum Aktif"}
           </p>
         </div>
@@ -104,9 +112,24 @@ export default function Sidebar() {
               : "hover:bg-slate-200/50 dark:hover:bg-slate-800/50 text-slate-600 dark:text-slate-300"
           }`}
         >
-          <i className="fa-solid fa-headset text-sm"></i>
+          <i className="fa-solid fa-video text-sm text-blue-500"></i>
           <span id="navText_zoom">
-            {isMentor || isAdmin ? "Kelola Zoom & Presensi" : "Zoom & Presensi"}
+            {isMentor || isAdmin ? "Kelola Jadwal Zoom" : "Jadwal Zoom"}
+          </span>
+        </Link>
+
+        {/* Presensi & Absensi (Terpisah) */}
+        <Link
+          href="/presensi"
+          className={`flex items-center gap-3 px-3.5 py-3 rounded-2xl transition-all ${
+            pathname === "/presensi"
+              ? "sidebar-active"
+              : "hover:bg-slate-200/50 dark:hover:bg-slate-800/50 text-slate-600 dark:text-slate-300"
+          }`}
+        >
+          <i className="fa-solid fa-clipboard-user text-sm text-emerald-500"></i>
+          <span id="navText_presensi">
+            {isMentor || isAdmin ? "Kelola Presensi" : "Presensi & Absen"}
           </span>
         </Link>
 

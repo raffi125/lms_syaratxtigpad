@@ -516,8 +516,16 @@ export default function ReportsPage() {
                       >
                         {/* Peserta Avatar & Name */}
                         <td className="py-3.5 px-3.5 font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2.5">
-                          <div className="w-7 h-7 rounded-xl bg-gradient-to-tr from-syarat to-tigpad text-white flex items-center justify-center font-extrabold text-[10px] shadow-sm flex-shrink-0">
-                            {initials}
+                          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-syarat to-tigpad text-white flex items-center justify-center font-extrabold text-[10px] shadow-sm flex-shrink-0 overflow-hidden border border-slate-200/60 dark:border-slate-700/60">
+                            {p.avatar_url || p.avatar ? (
+                              <img
+                                src={p.avatar_url || p.avatar}
+                                alt={p.name}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              initials
+                            )}
                           </div>
                           <div className="leading-tight">
                             <div>{p.name}</div>

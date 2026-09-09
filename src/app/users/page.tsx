@@ -22,6 +22,7 @@ export default function UsersPage() {
   // Edit Form states
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingUserId, setEditingUserId] = useState<number | null>(null);
+  const editingUser = users.find((u) => u.id === editingUserId);
   const [editName, setEditName] = useState("");
   const [editEmail, setEditEmail] = useState("");
   const [editNpm, setEditNpm] = useState("");
@@ -349,12 +350,23 @@ export default function UsersPage() {
                       <tr key={u.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
                         <td className="p-3.5">
                           <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-syarat to-tigpad text-white font-bold text-xs flex items-center justify-center shadow flex-shrink-0">
-                              {u.name
-                                .split(" ")
-                                .map((n) => n[0])
-                                .slice(0, 2)
-                                .join("")}
+                            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-syarat to-tigpad text-white font-bold text-xs flex items-center justify-center shadow flex-shrink-0 overflow-hidden border border-slate-200/60 dark:border-slate-700/60">
+                              {u.avatar_url || u.avatar ? (
+                                <img
+                                  src={u.avatar_url || u.avatar}
+                                  alt={u.name}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <span>
+                                  {u.name
+                                    .split(" ")
+                                    .map((n) => n[0])
+                                    .slice(0, 2)
+                                    .join("")
+                                    .toUpperCase()}
+                                </span>
+                              )}
                             </div>
                             <div>
                               <div className="font-bold text-slate-800 dark:text-white flex items-center gap-1.5">
@@ -610,6 +622,43 @@ export default function UsersPage() {
               </div>
 
               <form onSubmit={handleEditSubmit} className="space-y-3.5 text-xs">
+                {/* Preview Foto Profil Pengguna */}
+                <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-700">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-syarat to-tigpad text-white font-bold text-sm flex items-center justify-center shadow overflow-hidden flex-shrink-0 border border-slate-200/50 dark:border-slate-700/50">
+                    {editingUser?.avatar_url || editingUser?.avatar ? (
+                      <img
+                        src={editingUser.avatar_url || editingUser.avatar}
+                        alt={editName}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span>
+                        {editName
+                          .split(" ")
+                          .map((n) => n[0])
+                          .slice(0, 2)
+                          .join("")
+                          .toUpperCase()}
+                      </span>
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="font-bold text-slate-800 dark:text-slate-100 text-xs truncate">
+                      {editName || "Pengguna"}
+                    </div>
+                    <div className="text-[10px] text-slate-400 font-mono truncate">
+                      {editEmail}
+                    </div>
+                    {editingUser?.avatar_url || editingUser?.avatar ? (
+                      <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1 mt-0.5">
+                        <i className="fa-solid fa-circle-check text-[9px]"></i> Foto Profil Terpasang
+                      </span>
+                    ) : (
+                      <span className="text-[10px] text-slate-400 italic">Belum mengunggah foto profil</span>
+                    )}
+                  </div>
+                </div>
+
                 {/* Informasi Identitas Akun */}
                 <div className="space-y-2.5">
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">

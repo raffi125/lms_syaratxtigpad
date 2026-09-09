@@ -28,16 +28,20 @@ export const isSupabaseConfigured = () => {
   );
 };
 
+// Client resmi untuk browser (menggunakan Anon Key yang diizinkan untuk client-side)
 export const supabase = createClient(
   supabaseUrl,
   supabaseAnonKey || "placeholder-anon-key"
 );
 
-const supabaseSecretKey = process.env.NEXT_PUBLIC_SUPABASE_SECRET_KEY || "";
-export const supabaseAdmin = createClient(
-  supabaseUrl,
-  supabaseSecretKey || supabaseAnonKey || "placeholder-anon-key",
-  {
-    auth: { persistSession: false },
-  }
-);
+// Admin client: Hanya aktif di sisi Server (Node.js/API Route)
+// Di browser (typeof window !== "undefined"), SELALU gunakan supabase (Anon client)
+// untuk mencegah error fatal: "Forbidden use of secret API key in browser"
+const isServer = typeof window === "undefined";
+const serverSecretKey = isServer
+  ? (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY || "")
+  : "";
+
+export const supabaseAdmin = (isServer && serverSecretKey)
+  ? createClient(supabaseUrl, serverSecretKey, { auth: { persistSession: false } })
+  : supabase;
