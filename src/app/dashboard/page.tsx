@@ -4,11 +4,12 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import DashboardLayout from "@/components/DashboardLayout";
 import { useApp } from "@/context/AppContext";
+import { getPlayerXP } from "@/lib/gameRanking";
 
 export default function DashboardPage() {
   const { currentRole, currentUser, modules, zoomData, certificates, activities, clearActivities } = useApp();
   const [greeting, setGreeting] = useState("Selamat Belajar");
-  const [highScore, setHighScore] = useState(480);
+  const [gameXP, setGameXP] = useState<number>(() => getPlayerXP());
 
   useEffect(() => {
     const hour = new Date().getHours();
@@ -17,8 +18,21 @@ export default function DashboardPage() {
     else if (hour >= 15 && hour < 18) setGreeting("Selamat Sore");
     else setGreeting("Selamat Malam");
 
-    setHighScore(currentUser.score ? Math.max(currentUser.score, 480) : 480);
-  }, [currentUser.score]);
+    const handleScoreUpdate = (e: any) => {
+      if (e.detail?.newTotalXP !== undefined) {
+        setGameXP(e.detail.newTotalXP);
+      } else {
+        setGameXP(getPlayerXP());
+      }
+    };
+
+    window.addEventListener("kolab_game_score_updated", handleScoreUpdate);
+    window.addEventListener("storage", handleScoreUpdate);
+    return () => {
+      window.removeEventListener("kolab_game_score_updated", handleScoreUpdate);
+      window.removeEventListener("storage", handleScoreUpdate);
+    };
+  }, []);
 
   const completedCount = modules.filter((m) => m.completed).length;
   const totalCount = modules.length;
@@ -142,7 +156,7 @@ export default function DashboardPage() {
               className="text-2xl font-black group-hover:text-syarat transition-colors"
               id="overviewStat1"
             >
-              {currentUser.score && currentUser.score > 0 ? `${currentUser.score} / 100` : "Belum Ujian"}
+              {currentUser.score && currentUser.score > 0 ? `${Math.min(100, currentUser.score)} / 100` : "Belum Ujian"}
             </div>
             <div className="text-xs text-slate-500 font-medium mt-0.5" id="stat1Label">
               Nilai Kuis Terbaru →
@@ -181,29 +195,29 @@ export default function DashboardPage() {
         </Link>
 
         <Link
-          href="/game"
-          className="glass-card p-5 sm:p-6 rounded-3xl space-y-3 hover:border-purple-500 transition-all group"
+          href="/ranking-game"
+          className="glass-card p-5 sm:p-6 rounded-3xl space-y-3 hover:border-amber-500 transition-all group"
         >
           <div className="flex justify-between items-center">
-            <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center text-lg font-bold">
-              <i className="fa-solid fa-gamepad"></i>
+            <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center text-lg font-bold">
+              <i className="fa-solid fa-trophy"></i>
             </div>
             <span
-              className="text-[11px] font-bold text-purple-600 bg-purple-500/10 px-2 py-0.5 rounded-md"
+              className="text-[11px] font-bold text-amber-600 bg-amber-500/10 px-2 py-0.5 rounded-md"
               id="statGameTag"
             >
-              Skor: {highScore}
+              {gameXP} XP
             </span>
           </div>
           <div>
             <div
-              className="text-2xl font-black group-hover:text-purple-500 transition-colors"
+              className="text-2xl font-black group-hover:text-amber-500 transition-colors"
               id="overviewStatGame"
             >
-              Arcade BISINDO
+              Ranking Game
             </div>
             <div className="text-xs text-slate-500 font-medium mt-0.5" id="statGameLabel">
-              Ejaan, Refleks & Memori Kartu →
+              Klasemen & Poin Game →
             </div>
           </div>
         </Link>

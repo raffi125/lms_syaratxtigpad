@@ -1,24 +1,31 @@
-import type { User, ModuleItem, ZoomData, CertificateItem } from "@/types";
+import type { User, ModuleItem, ZoomData, CertificateItem, QuizSubmission } from "@/types";
 
-export interface PertemuanMetric {
+export interface PertemuanQuizMetric {
   pertemuanNumber: number;
   title: string;
   topic: string;
   targetDuration: string;
   completedCount: number;
-  completionRate: number; // percentage
+  completionRate: number; // percentage peserta yang telah menyelesaikan kuis
   avgScore: number;
-  attendanceRate: number;
-  status: "Selesai" | "Berlangsung" | "Mendatang";
+  highestScore: number;
+  lowestScore: number;
+  passedCount: number;
+  remedialCount: number;
+  passingRate: number; // percentage lulus KKM (>= 70)
+  status: "Tuntas" | "Memenuhi KKM" | "Perlu Evaluasi" | "Selesai" | "Berlangsung" | "Mendatang";
+  attendanceRate: number; // Dipertahankan untuk kompatibilitas tipe
 }
 
+export type PertemuanMetric = PertemuanQuizMetric;
+
 export interface AnalyticsCalculationResult {
-  // 1. Peserta
+  // 1. Peserta Kuis
   totalPeserta: number;
   activePeserta: number;
   pesertaTrendVsPertemuanLalu: number;
 
-  // 2. Kuis & Nilai
+  // 2. Kuis & Nilai (Inti Perhitungan Murni Berbasis Nilai Kuis)
   kkm: number;
   avgScore: number;
   highestScore: number;
@@ -27,54 +34,64 @@ export interface AnalyticsCalculationResult {
   passedCount: number;
   remedialCount: number;
   passingRate: number; // percentage >= KKM
+  remedialRate: number; // percentage < KKM
   scoreTrendVsPertemuanLalu: number;
 
-  // 3. Distribusi Nilai
+  // 3. Distribusi Predikat Nilai Kuis
   distribution: {
     gradeA: { count: number; percentage: number; label: string };
     gradeB: { count: number; percentage: number; label: string };
     gradeC: { count: number; percentage: number; label: string };
   };
 
-  // 4. Modul & Pertemuan
+  // 4. Analitik Nilai Kuis per Pertemuan / Silabus
   totalPertemuan: number;
-  avgProgress: number; // 0 - 100%
+  avgProgress: number; // Rata-rata kelulusan kuis (%)
   avgPertemuanCompleted: number;
-  pertemuanBreakdown: PertemuanMetric[];
+  pertemuanBreakdown: PertemuanQuizMetric[];
 
-  // 5. Presensi / Zoom
+  // 5. Presensi / Zoom (Dipertahankan 0 untuk kompatibilitas antarmuka)
   totalZoomSessions: number;
   totalVerifiedLogs: number;
-  attendanceRate: number; // percentage
+  attendanceRate: number;
   attendanceTrendVsPertemuanLalu: number;
 
-  // 6. Sertifikasi
+  // 6. Sertifikasi Berbasis Nilai Kuis (Murni Nilai Kuis >= KKM)
   totalEligible: number;
   totalIssued: number;
   pendingIssued: number;
   certificationRate: number;
 }
 
+const DEFAULT_TOPICS = [
+  { pNum: 1, title: "Pertemuan 1: Komunikasi, Inklusi & Budaya Tuli", topic: "Komunikasi, Inklusi & Budaya Tuli" },
+  { pNum: 2, title: "Pertemuan 2: Bahasa Isyarat & Pengenalan Abjad", topic: "Bahasa Isyarat & Pengenalan Abjad" },
+  { pNum: 3, title: "Pertemuan 3: Perkenalan & Komunikasi Dasar", topic: "Perkenalan & Komunikasi Dasar" },
+  { pNum: 4, title: "Pertemuan 4: Isyarat Keluarga, Rumah & Lingkungan", topic: "Isyarat Keluarga, Rumah & Lingkungan" },
+  { pNum: 5, title: "Pertemuan 5: Kata Tanya, Kalimat Tanya & Emosi", topic: "Kata Tanya, Kalimat Tanya & Emosi" },
+  { pNum: 6, title: "Pertemuan 6: Penerapan Percakapan & Interaksi Teman Tuli", topic: "Penerapan Percakapan & Evaluasi" },
+];
+
 /**
- * Menghitung analitik pembelajaran secara murni berdasarkan data aktual Supabase (Zero Dummy).
- * Seluruh perincian kurikulum diambil langsung dari tabel 'modules'.
+ * Menghitung laporan dan analitik pembelajaran MURNI BERDASARKAN NILAI KUIS SAJA.
+ * Evaluasi capaian belajar, kelulusan KKM, dan hak sertifikasi dihitung secara eksklusif dari skor kuis.
  */
 export function calculateAnalytics(
   users: User[],
-  modules: ModuleItem[],
-  zoomData: ZoomData,
-  certificates: CertificateItem[],
-  kkmThreshold = 70
+  modules: ModuleItem[] = [],
+  zoomData: ZoomData = { activeSession: null, attendanceLogs: [] },
+  certificates: CertificateItem[] = [],
+  kkmThreshold = 70,
+  quizSubmissions: QuizSubmission[] = []
 ): AnalyticsCalculationResult {
   const pesertaList = users.filter((u) => u.role === "peserta");
   const totalPeserta = pesertaList.length;
-  const totalPertemuan = modules.length;
 
   // 1. Peserta metrics
   const activePeserta = pesertaList.filter((u) => u.status === "Aktif").length;
   const pesertaTrendVsPertemuanLalu = 0;
 
-  // 2. Kuis & Nilai metrics
+  // 2. Kuis & Nilai metrics (Murni dari skor kuis)
   let avgScore = 0;
   let highestScore = 0;
   let lowestScore = 0;
@@ -82,13 +99,28 @@ export function calculateAnalytics(
   let passedCount = 0;
   let remedialCount = 0;
   let passingRate = 0;
+  let remedialRate = 0;
 
-  const countA = pesertaList.filter((p) => p.score >= 85).length;
-  const countB = pesertaList.filter((p) => p.score >= kkmThreshold && p.score < 85).length;
-  const countC = pesertaList.filter((p) => p.score < kkmThreshold).length;
+  // Helper untuk mendapatkan nilai kuis murni peserta (skala 0-100, terpisah total dari poin game)
+  const getPesertaQuizScore = (p: User): number => {
+    const sub = quizSubmissions.find(
+      (s) => s.userId === p.id || s.userName.toLowerCase() === p.name.toLowerCase()
+    );
+    if (sub && typeof sub.score === "number") {
+      return Math.min(100, Math.max(0, sub.score));
+    }
+    return Math.min(100, Math.max(0, Number(p.score ?? 0)));
+  };
+
+  const countA = pesertaList.filter((p) => getPesertaQuizScore(p) >= 85).length;
+  const countB = pesertaList.filter((p) => {
+    const s = getPesertaQuizScore(p);
+    return s >= kkmThreshold && s < 85;
+  }).length;
+  const countC = pesertaList.filter((p) => getPesertaQuizScore(p) < kkmThreshold).length;
 
   if (totalPeserta > 0) {
-    const scores = pesertaList.map((p) => p.score).sort((a, b) => a - b);
+    const scores = pesertaList.map((p) => getPesertaQuizScore(p)).sort((a, b) => a - b);
     const sumScore = scores.reduce((acc, curr) => acc + curr, 0);
     avgScore = +(sumScore / totalPeserta).toFixed(1);
     highestScore = Math.max(...scores);
@@ -100,103 +132,115 @@ export function calculateAnalytics(
     passedCount = scores.filter((s) => s >= kkmThreshold).length;
     remedialCount = totalPeserta - passedCount;
     passingRate = +((passedCount / totalPeserta) * 100).toFixed(1);
+    remedialRate = +((remedialCount / totalPeserta) * 100).toFixed(1);
   }
 
-  const scoreTrendVsPertemuanLalu = 0;
-
-  // 3. Distribusi Nilai
+  // 3. Distribusi Predikat Nilai Kuis
   const distribution = {
     gradeA: {
       count: countA,
       percentage: totalPeserta > 0 ? +((countA / totalPeserta) * 100).toFixed(1) : 0,
-      label: "Sangat Baik (≥85)",
+      label: "Grade A (≥85) - Sangat Baik",
     },
     gradeB: {
       count: countB,
       percentage: totalPeserta > 0 ? +((countB / totalPeserta) * 100).toFixed(1) : 0,
-      label: `Baik / Lulus (${kkmThreshold}–84)`,
+      label: `Grade B (${kkmThreshold}–84) - Lulus Memenuhi KKM`,
     },
     gradeC: {
       count: countC,
       percentage: totalPeserta > 0 ? +((countC / totalPeserta) * 100).toFixed(1) : 0,
-      label: `Perlu Remedial (<${kkmThreshold})`,
+      label: `Grade C (<${kkmThreshold}) - Perlu Remedial`,
     },
   };
 
-  // 4. Modul & Pertemuan Breakdown Murni dari Data Supabase
-  const avgProgress =
-    totalPeserta > 0
-      ? +(pesertaList.reduce((acc, curr) => acc + (curr.progress || 0), 0) / totalPeserta).toFixed(1)
-      : 0;
+  // 4. Analitik Nilai Kuis per Pertemuan / Topik Kuis
+  const meetingsSource = modules.length > 0
+    ? modules.map((m, idx) => ({
+        pNum: idx + 1,
+        title: m.title.toLowerCase().startsWith("pertemuan") ? m.title : `Pertemuan ${idx + 1}: ${m.title}`,
+        topic: m.description || m.category || `Materi Pertemuan ${idx + 1}`,
+        duration: m.duration || "30 Menit",
+      }))
+    : DEFAULT_TOPICS.map((t) => ({
+        ...t,
+        duration: "30 Menit",
+      }));
 
-  const avgPertemuanCompleted =
-    totalPertemuan > 0 ? +((avgProgress / 100) * totalPertemuan).toFixed(1) : 0;
+  const totalPertemuan = meetingsSource.length;
 
-  const verifiedLogsList = zoomData.attendanceLogs || zoomData.attendance || [];
+  const pertemuanBreakdown: PertemuanQuizMetric[] = meetingsSource.map((m) => {
+    const pNum = m.pNum;
 
-  const pertemuanBreakdown: PertemuanMetric[] = modules.map((m, idx) => {
-    const pNum = idx + 1;
-    const requiredProgress = totalPertemuan > 0 ? (pNum / totalPertemuan) * 100 - 5 : 0;
-    const completedPeserta = pesertaList.filter((p) => (p.progress ?? 0) >= requiredProgress);
-    const completedCount = completedPeserta.length;
-    const completionRate = totalPeserta > 0 ? +((completedCount / totalPeserta) * 100).toFixed(1) : 0;
+    // Filter submission khusus pertemuan ini jika tersedia
+    const meetingSubmissions = quizSubmissions.filter((sub) => {
+      const matchCat = sub.category && sub.category.toLowerCase().includes(`pertemuan ${pNum}`);
+      const matchTitle = sub.quizTitle && sub.quizTitle.toLowerCase().includes(`pertemuan ${pNum}`);
+      const matchAns = Array.isArray(sub.answers) && sub.answers.some((a) => (a.meeting || "").toLowerCase().includes(`pertemuan ${pNum}`));
+      return matchCat || matchTitle || matchAns;
+    });
 
-    const avgPertemuanScore =
-      completedPeserta.length > 0
-        ? +(completedPeserta.reduce((acc, p) => acc + (p.score ?? 0), 0) / completedPeserta.length).toFixed(1)
-        : avgScore;
+    let pAvgScore = avgScore;
+    let pHighest = highestScore;
+    let pLowest = lowestScore;
+    let pPassed = passedCount;
+    let pRemedial = remedialCount;
+    let pPassingRate = passingRate;
+    let pCompletedCount = totalPeserta;
 
-    // Presensi daring pertemuan dari log aktual
-    const matchingSession = (zoomData.sessions || []).find(
-      (s) =>
-        s.id === m.id ||
-        s.title?.toLowerCase().includes(`pertemuan ${pNum}`) ||
-        (m.title && s.title?.toLowerCase().includes(m.title.toLowerCase()))
-    );
+    if (meetingSubmissions.length > 0) {
+      const mScores = meetingSubmissions.map((s) => s.score).sort((a, b) => a - b);
+      const sum = mScores.reduce((acc, cur) => acc + cur, 0);
+      pAvgScore = +(sum / mScores.length).toFixed(1);
+      pHighest = Math.max(...mScores);
+      pLowest = Math.min(...mScores);
+      pPassed = mScores.filter((s) => s >= kkmThreshold).length;
+      pRemedial = mScores.length - pPassed;
+      pPassingRate = +((pPassed / mScores.length) * 100).toFixed(1);
+      pCompletedCount = meetingSubmissions.length;
+    }
 
-    const sessionLogs = matchingSession
-      ? verifiedLogsList.filter((l) => l.sessionId === matchingSession.id && l.verified)
-      : [];
+    const completionRate = totalPeserta > 0 ? +((pCompletedCount / totalPeserta) * 100).toFixed(1) : 0;
 
-    const attRate =
-      totalPeserta > 0 && sessionLogs.length > 0
-        ? Math.min(100, +((sessionLogs.length / totalPeserta) * 100).toFixed(1))
-        : 0;
-
-    const status: "Selesai" | "Berlangsung" | "Mendatang" =
-      completionRate >= 100
-        ? "Selesai"
-        : completionRate > 0
-        ? "Berlangsung"
-        : "Mendatang";
+    let pStatus: PertemuanQuizMetric["status"] = "Memenuhi KKM";
+    if (pAvgScore >= 80) {
+      pStatus = "Tuntas";
+    } else if (pAvgScore >= kkmThreshold) {
+      pStatus = "Memenuhi KKM";
+    } else {
+      pStatus = "Perlu Evaluasi";
+    }
 
     return {
       pertemuanNumber: pNum,
-      title: m.title.toLowerCase().startsWith("pertemuan") ? m.title : `Pertemuan ${pNum}: ${m.title}`,
-      topic: m.description || m.category || "Materi Pembelajaran",
-      targetDuration: m.duration || "90 Menit",
-      completedCount,
+      title: m.title,
+      topic: m.topic,
+      targetDuration: m.duration,
+      completedCount: pCompletedCount,
       completionRate,
-      avgScore: avgPertemuanScore,
-      attendanceRate: attRate,
-      status,
+      avgScore: pAvgScore,
+      highestScore: pHighest,
+      lowestScore: pLowest,
+      passedCount: pPassed,
+      remedialCount: pRemedial,
+      passingRate: pPassingRate,
+      status: pStatus,
+      attendanceRate: pPassingRate,
     };
   });
 
-  // 5. Presensi / Kehadiran Zoom Murni dari Data Supabase
-  const totalZoomSessions = (zoomData.sessions || []).length;
-  const totalVerifiedLogs = verifiedLogsList.filter((l) => l.verified).length;
+  const avgProgress = passingRate;
+  const avgPertemuanCompleted = totalPertemuan > 0 ? +((passingRate / 100) * totalPertemuan).toFixed(1) : 0;
 
-  let attendanceRate = 0;
-  if (totalPeserta > 0 && totalZoomSessions > 0 && totalVerifiedLogs > 0) {
-    const rawRate = (totalVerifiedLogs / (totalPeserta * totalZoomSessions)) * 100;
-    attendanceRate = Math.min(100, +rawRate.toFixed(1));
-  }
-
+  // 5. Presensi / Zoom (Diabaikan - Murni Nilai Kuis Saja)
+  const totalZoomSessions = 0;
+  const totalVerifiedLogs = 0;
+  const attendanceRate = 0;
   const attendanceTrendVsPertemuanLalu = 0;
 
-  // 6. Sertifikasi
-  const eligiblePeserta = pesertaList.filter((p) => p.score >= kkmThreshold && (p.progress ?? 0) >= 80);
+  // 6. Sertifikasi Murni Berdasarkan Nilai Kuis (KKM >= 70)
+  // Peserta yang mencapai KKM 70 langsung dinyatakan memenuhi syarat kelulusan resmi
+  const eligiblePeserta = pesertaList.filter((p) => getPesertaQuizScore(p) >= kkmThreshold);
   const totalEligible = eligiblePeserta.length;
   const totalIssued = certificates.filter((c) => c.certIssued).length;
   const pendingIssued = Math.max(0, totalEligible - totalIssued);
@@ -205,7 +249,7 @@ export function calculateAnalytics(
   return {
     totalPeserta,
     activePeserta,
-    pesertaTrendVsPertemuanLalu,
+    pesertaTrendVsPertemuanLalu: 0,
     kkm: kkmThreshold,
     avgScore,
     highestScore,
@@ -214,7 +258,8 @@ export function calculateAnalytics(
     passedCount,
     remedialCount,
     passingRate,
-    scoreTrendVsPertemuanLalu,
+    remedialRate,
+    scoreTrendVsPertemuanLalu: 0,
     distribution,
     totalPertemuan,
     avgProgress,

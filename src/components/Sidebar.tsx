@@ -161,6 +161,19 @@ export default function Sidebar() {
           <span id="navText_game">Game BISINDO</span>
         </Link>
 
+        {/* Ranking Game */}
+        <Link
+          href="/ranking-game"
+          className={`flex items-center gap-3 px-3.5 py-3 rounded-2xl transition-all ${
+            pathname === "/ranking-game"
+              ? "sidebar-active"
+              : "hover:bg-slate-200/50 dark:hover:bg-slate-800/50 text-slate-600 dark:text-slate-300"
+          }`}
+        >
+          <i className="fa-solid fa-trophy text-sm text-amber-500"></i>
+          <span id="navText_ranking_game">Ranking Game</span>
+        </Link>
+
         {/* Sertifikat */}
         <Link
           href="/sertifikat"

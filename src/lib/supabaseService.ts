@@ -94,6 +94,18 @@ export interface DBGameWord {
 // SUPABASE API SERVICE
 // ==========================================
 
+// Helper payload JSON yang kompatibel dengan browser client & Node.js environment
+function createJsonStoragePayload(data: any): any {
+  const jsonStr = JSON.stringify(data, null, 2);
+  if (typeof Buffer !== "undefined") {
+    return Buffer.from(jsonStr, "utf-8");
+  }
+  if (typeof Blob !== "undefined") {
+    return new Blob([jsonStr], { type: "application/json" });
+  }
+  return jsonStr;
+}
+
 export const SupabaseService = {
   // 1. Users
   async getUsers(): Promise<DBUser[]> {
@@ -159,6 +171,39 @@ export const SupabaseService = {
       return false;
     }
     return true;
+  },
+
+  async updateUserScore(
+    userId?: number,
+    score?: number,
+    userEmail?: string,
+    userName?: string
+  ): Promise<boolean> {
+    if (!isSupabaseConfigured() || score === undefined) return false;
+    const client = supabaseAdmin || supabase;
+    const cleanScore = Math.max(0, Math.min(100, Math.round(Number(score) || 0)));
+
+    let updated = false;
+
+    // 1. Update by numeric id
+    if (userId && typeof userId === "number" && userId > 0) {
+      const { error } = await client.from("users").update({ score: cleanScore }).eq("id", userId);
+      if (!error) updated = true;
+    }
+
+    // 2. Fallback / supplementary update by email
+    if (!updated && userEmail && userEmail.trim()) {
+      const { error } = await client.from("users").update({ score: cleanScore }).ilike("email", userEmail.trim());
+      if (!error) updated = true;
+    }
+
+    // 3. Fallback / supplementary update by name
+    if (!updated && userName && userName.trim()) {
+      const { error } = await client.from("users").update({ score: cleanScore }).ilike("name", userName.trim());
+      if (!error) updated = true;
+    }
+
+    return updated;
   },
 
   async deleteUser(id: number): Promise<boolean> {
@@ -928,7 +973,7 @@ export const SupabaseService = {
         const updated = [sub, ...filtered];
         await supabaseAdmin.storage
           .from("modul")
-          .upload("system/quiz_submissions.json", Buffer.from(JSON.stringify(updated, null, 2), "utf-8"), {
+          .upload("system/quiz_submissions.json", createJsonStoragePayload(updated), {
             contentType: "application/json",
             upsert: true,
           });
@@ -936,8 +981,12 @@ export const SupabaseService = {
     }
 
     // Update user score in users table if all essays are graded
-    if (!sub.hasUngradedEssays && sub.userId) {
-      await this.updateUserScore(sub.userId, sub.score);
+    if (!sub.hasUngradedEssays && (sub.userId || sub.userEmail)) {
+      try {
+        await this.updateUserScore(sub.userId, sub.score, sub.userEmail, sub.userName);
+      } catch (e) {
+        console.warn("Supabase saveQuizSubmission updateUserScore error:", e);
+      }
     }
 
     return {
@@ -1012,16 +1061,16 @@ export const SupabaseService = {
       }
     });
 
-    const newScore = totalPossible > 0 ? Math.round((totalEarned / totalPossible) * 100) : 0;
-    const isPassed = newScore >= 70;
+    const calculatedScore = totalPossible > 0 ? Math.round((totalEarned / totalPossible) * 100) : 0;
+    const isPassed = calculatedScore >= 70;
 
     const updatedSub: QuizSubmission = {
       ...targetSub,
       answers: updatedAnswers,
       earnedPoints: totalEarned,
       totalPossiblePoints: totalPossible,
-      score: hasUngraded ? 0 : newScore,
-      passed: !hasUngraded && isPassed,
+      score: calculatedScore,
+      passed: isPassed,
       hasUngradedEssays: hasUngraded,
     };
 
@@ -1042,23 +1091,83 @@ export const SupabaseService = {
       try {
         await supabaseAdmin.storage
           .from("modul")
-          .upload("system/quiz_submissions.json", Buffer.from(JSON.stringify(updatedList, null, 2), "utf-8"), {
+          .upload("system/quiz_submissions.json", createJsonStoragePayload(updatedList), {
             contentType: "application/json",
             upsert: true,
           });
       } catch {}
     }
 
-    if (!hasUngraded && targetSub.userId) {
-      await this.updateUserScore(targetSub.userId, newScore);
+    try {
+      await this.updateUserScore(targetSub.userId, calculatedScore, targetSub.userEmail, targetSub.userName);
+    } catch (e) {
+      console.warn("Supabase gradeEssayAnswer updateUserScore error:", e);
     }
 
     return {
       success: true,
       data: updatedSub,
       message: hasUngraded
-        ? "Nilai butir soal berhasil disimpan! Masih ada soal essai yang perlu dinilai."
-        : `Semua soal essai selesai dinilai! Skor resmi: ${newScore}/100 (${isPassed ? "LULUS" : "REMEDIAL"}).`,
+        ? `Nilai butir soal berhasil disimpan! Skor saat ini: ${calculatedScore}/100. (Masih ada soal essai yang belum dinilai)`
+        : `Semua soal essai selesai dinilai! Skor resmi: ${calculatedScore}/100 (${isPassed ? "LULUS" : "REMEDIAL"}).`,
+    };
+  },
+
+  async updateQuizSubmissionScore(
+    submissionId: string,
+    newScore: number,
+    gradedBy?: string
+  ): Promise<{ success: boolean; data?: QuizSubmission; message?: string }> {
+    if (!isSupabaseConfigured()) return { success: false, message: "Database tidak terhubung" };
+    const client = supabaseAdmin || supabase;
+
+    const submissions = await this.getQuizSubmissions();
+    const subIndex = submissions.findIndex((s) => s.id === submissionId);
+    if (subIndex === -1) {
+      return { success: false, message: "Data jawaban kuis tidak ditemukan" };
+    }
+
+    const targetSub = submissions[subIndex];
+    const cleanScore = Math.max(0, Math.min(100, Math.round(Number(newScore) || 0)));
+    const isPassed = cleanScore >= 70;
+
+    const updatedSub: QuizSubmission = {
+      ...targetSub,
+      score: cleanScore,
+      passed: isPassed,
+      hasUngradedEssays: false,
+    };
+
+    const payload: any = {
+      score: updatedSub.score,
+      passed: updatedSub.passed,
+      has_ungraded_essays: false,
+    };
+
+    const { error } = await client.from("quizzes_user").update(payload).eq("id", submissionId);
+    if (error && (error.code === "42P01" || error.message?.includes("does not exist"))) {
+      const updatedList = [...submissions];
+      updatedList[subIndex] = updatedSub;
+      try {
+        await supabaseAdmin.storage
+          .from("modul")
+          .upload("system/quiz_submissions.json", createJsonStoragePayload(updatedList), {
+            contentType: "application/json",
+            upsert: true,
+          });
+      } catch {}
+    }
+
+    try {
+      await this.updateUserScore(targetSub.userId, cleanScore, targetSub.userEmail, targetSub.userName);
+    } catch (e) {
+      console.warn("Supabase updateQuizSubmissionScore updateUserScore error:", e);
+    }
+
+    return {
+      success: true,
+      data: updatedSub,
+      message: `Nilai kuis ${targetSub.userName} berhasil diperbarui menjadi ${cleanScore}/100 (${isPassed ? "LULUS" : "REMEDIAL"})!`,
     };
   },
 
@@ -1071,7 +1180,7 @@ export const SupabaseService = {
       try {
         await supabaseAdmin.storage
           .from("modul")
-          .upload("system/quiz_submissions.json", Buffer.from(JSON.stringify([], null, 2), "utf-8"), {
+          .upload("system/quiz_submissions.json", createJsonStoragePayload([]), {
             contentType: "application/json",
             upsert: true,
           });
@@ -1083,7 +1192,7 @@ export const SupabaseService = {
         const filtered = current.filter((s) => s.id !== id);
         await supabaseAdmin.storage
           .from("modul")
-          .upload("system/quiz_submissions.json", Buffer.from(JSON.stringify(filtered, null, 2), "utf-8"), {
+          .upload("system/quiz_submissions.json", createJsonStoragePayload(filtered), {
             contentType: "application/json",
             upsert: true,
           });

@@ -17,7 +17,7 @@ const PERTEMUAN_LIST_OPTIONS = [
 ];
 
 export default function JawabanKuisPage() {
-  const { currentRole, currentUser, users, showToast } = useApp();
+  const { currentRole, currentUser, users, updateUser, showToast } = useApp();
   const [submissions, setSubmissions] = useState<QuizSubmission[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<QuizSubmission | null>(null);
@@ -25,6 +25,10 @@ export default function JawabanKuisPage() {
   const [meetingFilter, setMeetingFilter] = useState("all");
   const [passFilter, setPassFilter] = useState("all");
   const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  // State penilaian skor langsung (overall)
+  const [manualScore, setManualScore] = useState<number | string>("");
+  const [isSavingManualScore, setIsSavingManualScore] = useState(false);
 
   // State penilaian essai oleh mentor
   const [gradingInputs, setGradingInputs] = useState<
@@ -41,6 +45,7 @@ export default function JawabanKuisPage() {
   // Isi input penilaian dengan nilai yang sudah tersimpan saat submission dipilih
   useEffect(() => {
     if (selected) {
+      setManualScore(selected.score ?? 0);
       const inputs: Record<string, { points: number | string; feedback: string }> = {};
       selected.answers.forEach((a) => {
         if (a.type === "essai") {
@@ -97,17 +102,84 @@ export default function JawabanKuisPage() {
       if (res.success && res.data) {
         const updatedSub: QuizSubmission = res.data;
         setSelected(updatedSub);
+        setManualScore(updatedSub.score ?? 0);
         setSubmissions((prev) =>
           prev.map((s) => (s.id === updatedSub.id ? updatedSub : s))
         );
-        showToast(res.message || "Nilai essai berhasil disimpan ke database!", "success");
+
+        // Sinkronkan nilai pengguna di AppContext
+        if (updatedSub.userId) {
+          updateUser(updatedSub.userId, { score: updatedSub.score });
+        } else {
+          const matchedUser = users.find(
+            (u) =>
+              (updatedSub.userEmail && u.email?.toLowerCase() === updatedSub.userEmail.toLowerCase()) ||
+              u.name?.toLowerCase().trim() === updatedSub.userName?.toLowerCase().trim()
+          );
+          if (matchedUser) {
+            updateUser(matchedUser.id, { score: updatedSub.score });
+          }
+        }
+
+        showToast(res.message || "Nilai butir essai berhasil disimpan ke database!", "success");
       } else {
         showToast(res.message || "Gagal menyimpan nilai essai ke database.", "error");
       }
-    } catch {
+    } catch (err) {
+      console.error("handleSaveGrade error:", err);
       showToast("Terjadi kesalahan saat menyimpan nilai essai ke database.", "error");
     } finally {
       setSavingGradeKey(null);
+    }
+  };
+
+  const handleSaveOverallScore = async () => {
+    if (!selected) return;
+    const val = Number(manualScore);
+    if (manualScore === "" || isNaN(val) || val < 0 || val > 100) {
+      showToast("Nilai akhir kuis harus berupa angka antara 0 hingga 100!", "warning");
+      return;
+    }
+
+    setIsSavingManualScore(true);
+    try {
+      const res = await SupabaseService.updateQuizSubmissionScore(
+        selected.id,
+        val,
+        currentUser?.name || (currentRole === "mentor" ? "Mentor" : "Admin")
+      );
+
+      if (res.success && res.data) {
+        const updatedSub: QuizSubmission = res.data;
+        setSelected(updatedSub);
+        setManualScore(updatedSub.score ?? 0);
+        setSubmissions((prev) =>
+          prev.map((s) => (s.id === updatedSub.id ? updatedSub : s))
+        );
+
+        // Sinkronkan nilai peserta di AppContext
+        if (updatedSub.userId) {
+          updateUser(updatedSub.userId, { score: updatedSub.score });
+        } else {
+          const matchedUser = users.find(
+            (u) =>
+              (updatedSub.userEmail && u.email?.toLowerCase() === updatedSub.userEmail.toLowerCase()) ||
+              u.name?.toLowerCase().trim() === updatedSub.userName?.toLowerCase().trim()
+          );
+          if (matchedUser) {
+            updateUser(matchedUser.id, { score: updatedSub.score });
+          }
+        }
+
+        showToast(res.message || `Nilai kuis berhasil disimpan: ${val}/100!`, "success");
+      } else {
+        showToast(res.message || "Gagal memperbarui nilai kuis ke database.", "error");
+      }
+    } catch (err) {
+      console.error("handleSaveOverallScore error:", err);
+      showToast("Terjadi kesalahan saat memperbarui nilai kuis.", "error");
+    } finally {
+      setIsSavingManualScore(false);
     }
   };
 
@@ -467,6 +539,62 @@ export default function JawabanKuisPage() {
                       title="Hapus riwayat ini"
                     >
                       <i className={`fa-solid ${deletingId === selected.id ? "fa-spinner fa-spin" : "fa-trash-can"}`}></i>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Panel Perbarui Skor Akhir / Simpan Nilai Kuis */}
+                <div className="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-slate-50 to-blue-50/40 dark:from-slate-900/90 dark:to-slate-800/80 border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3.5 shadow-sm">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-xs font-black text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
+                        <i className="fa-solid fa-award text-syarat"></i>
+                        <span>Nilai Akhir Kuis Peserta</span>
+                      </span>
+                      <span
+                        className={`text-[10px] font-black px-2.5 py-0.5 rounded-full ${
+                          Number(manualScore) >= 70
+                            ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
+                            : "bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/20"
+                        }`}
+                      >
+                        {Number(manualScore) >= 70 ? "STATUS: LULUS (≥70)" : "STATUS: REMEDIAL (<70)"}
+                      </span>
+                      {selected.hasUngradedEssays && (
+                        <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/20">
+                          <i className="fa-solid fa-clock mr-1"></i>
+                          Menunggu Koreksi Essai
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                      Masukkan nilai akhir kuis (0 - 100) dan klik <strong>Simpan Nilai</strong> untuk memperbarui skor peserta ke database dan profil.
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
+                    <div className="relative flex items-center w-28 sm:w-32">
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="1"
+                        value={manualScore}
+                        onChange={(e) => setManualScore(e.target.value)}
+                        placeholder="0 - 100"
+                        className="w-full pl-3 pr-10 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-black text-slate-800 dark:text-slate-100 outline-none focus:ring-2 focus:ring-syarat shadow-sm text-center"
+                      />
+                      <span className="absolute right-3 text-xs font-bold text-slate-400 pointer-events-none">
+                        /100
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      disabled={isSavingManualScore}
+                      onClick={handleSaveOverallScore}
+                      className="btn-primary px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 shadow-sm transition-all whitespace-nowrap"
+                    >
+                      <i className={`fa-solid ${isSavingManualScore ? "fa-spinner fa-spin" : "fa-floppy-disk"}`}></i>
+                      <span>{isSavingManualScore ? "Menyimpan..." : "Simpan Nilai"}</span>
                     </button>
                   </div>
                 </div>

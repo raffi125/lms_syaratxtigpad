@@ -1,22 +1,28 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import Link from "next/link";
 import DashboardLayout from "@/components/DashboardLayout";
 import { useApp } from "@/context/AppContext";
 import { SupabaseService } from "@/lib/supabaseService";
 import { DBGameWord } from "@/types";
 import { gameAudio } from "@/lib/gameAudio";
 import WordBankModal from "@/components/WordBankModal";
+import {
+  getPlayerXP,
+  addPlayerGamePoints,
+  calculateGameLeaderboard,
+  type GameRankTier,
+} from "@/lib/gameRanking";
 
 type GameMode = "fingerspelling" | "rush" | "memory";
 
 export default function GamePage() {
-  const { currentRole, currentUser, users, updateUser, showToast, logActivity } = useApp();
+  const { currentRole, currentUser, users, showToast, logActivity } = useApp();
   const isManager = currentRole === "mentor" || currentRole === "admin";
 
   const [activeTab, setActiveTab] = useState<GameMode>("fingerspelling");
   const [soundEnabled, setSoundEnabled] = useState(true);
-  const [showLeaderboardModal, setShowLeaderboardModal] = useState(false);
 
   // Word Bank Data from Supabase
   const [gameWords, setGameWords] = useState<{ [key: string]: string[] }>({
@@ -28,111 +34,37 @@ export default function GamePage() {
   const [wordBankModalOpen, setWordBankModalOpen] = useState(false);
   const [allWordItems, setAllWordItems] = useState<DBGameWord[]>([]);
 
-  // Player Arcade XP & Gamification
-  const [playerXP, setPlayerXP] = useState<number>(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("kolab_arcade_xp");
-      return saved ? Number(saved) : 280;
-    }
-    return 280;
-  });
+  // Player Arcade XP & Gamification (Murni Poin Game, Terpisah dari Nilai Kuis)
+  const [playerXP, setPlayerXP] = useState<number>(() => getPlayerXP());
 
-  const addXP = (amount: number) => {
-    setPlayerXP((prev) => {
-      const next = prev + amount;
-      if (typeof window !== "undefined") {
-        localStorage.setItem("kolab_arcade_xp", String(next));
+  // Dengarkan event pembaruan skor game secara real-time
+  useEffect(() => {
+    const handleScoreUpdate = (e: any) => {
+      if (e.detail?.newTotalXP !== undefined) {
+        setPlayerXP(e.detail.newTotalXP);
+      } else {
+        setPlayerXP(getPlayerXP());
       }
-      return next;
-    });
-  };
-
-  // Sinkronisasi skor pengguna ke database/profil secara real-time
-  const awardScoreToUser = (points: number) => {
-    addXP(points);
-    const updatedScore = (currentUser.score || 0) + points;
-    updateUser(currentUser.id, { score: updatedScore });
-  };
-
-  // =========================================================================
-  // SISTEM RANKING DINAMIS BERDASARKAN JUMLAH SELURUH PESERTA
-  // =========================================================================
-  const participantUsers = users.filter((u) => u.role === "peserta");
-  const participantList = [...participantUsers];
-  if (!participantList.some((u) => u.id === currentUser.id)) {
-    participantList.push(currentUser);
-  }
-
-  const totalParticipants = Math.max(participantList.length, 1);
-
-  // Urutkan seluruh peserta berdasarkan total skor (descending)
-  const sortedParticipants = [...participantList].sort((a, b) => {
-    const sA = a.id === currentUser.id ? Math.max(a.score || 0, currentUser.score || 0) : (a.score || 0);
-    const sB = b.id === currentUser.id ? Math.max(b.score || 0, currentUser.score || 0) : (b.score || 0);
-    return sB - sA;
-  });
-
-  const myRankIndex = sortedParticipants.findIndex((u) => u.id === currentUser.id);
-  const myRank = myRankIndex !== -1 ? myRankIndex + 1 : totalParticipants;
-  const betterThanPercent = Math.max(
-    0,
-    Math.min(100, Math.round(((totalParticipants - myRank) / totalParticipants) * 100))
-  );
-
-  // Penentuan Tier berdasarkan kuota & persentase dari total peserta
-  const getParticipantRankTier = (rankPos: number, total: number) => {
-    const pct = (rankPos / total) * 100;
-    if (rankPos === 1 || pct <= 10) {
-      return {
-        title: "Grandmaster BISINDO",
-        tierName: "Top 10%",
-        badge: "bg-gradient-to-r from-purple-600 via-pink-600 to-amber-500 text-white shadow-purple-500/20",
-        icon: "fa-solid fa-crown text-amber-300",
-        levelText: "Tier S (Juara Utama)",
-        ringColor: "border-purple-500 ring-purple-500/30",
-      };
-    }
-    if (rankPos <= 3 || pct <= 25) {
-      return {
-        title: "Master Isyarat",
-        tierName: "Top 25%",
-        badge: "bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-blue-500/20",
-        icon: "fa-solid fa-gem text-cyan-200",
-        levelText: "Tier A (Jajaran Elit)",
-        ringColor: "border-blue-500 ring-blue-500/30",
-      };
-    }
-    if (pct <= 50) {
-      return {
-        title: "Pejuang Tangkas",
-        tierName: "Top 50%",
-        badge: "bg-gradient-to-r from-emerald-600 to-teal-500 text-white shadow-emerald-500/20",
-        icon: "fa-solid fa-medal text-emerald-200",
-        levelText: "Tier B (Paruh Atas)",
-        ringColor: "border-emerald-500 ring-emerald-500/30",
-      };
-    }
-    if (pct <= 75) {
-      return {
-        title: "Penjelajah Kata",
-        tierName: "Top 75%",
-        badge: "bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-amber-500/20",
-        icon: "fa-solid fa-star text-amber-200",
-        levelText: "Tier C (Penjelajah)",
-        ringColor: "border-amber-500 ring-amber-500/30",
-      };
-    }
-    return {
-      title: "Pemula BISINDO",
-      tierName: "Peserta Aktif",
-      badge: "bg-slate-600 text-white",
-      icon: "fa-solid fa-seedling text-emerald-300",
-      levelText: "Tier D (Perintis)",
-      ringColor: "border-slate-500 ring-slate-500/30",
     };
+    window.addEventListener("kolab_game_score_updated", handleScoreUpdate);
+    window.addEventListener("storage", handleScoreUpdate);
+    return () => {
+      window.removeEventListener("kolab_game_score_updated", handleScoreUpdate);
+      window.removeEventListener("storage", handleScoreUpdate);
+    };
+  }, []);
+
+  // Perolehan Poin Game Murni (TIDAK mengubah ataupun mencemari nilai kuis evaluasi)
+  const awardScoreToUser = (points: number) => {
+    const nextXP = addPlayerGamePoints(currentUser.id, points);
+    setPlayerXP(nextXP);
   };
 
-  const currentRankTier = getParticipantRankTier(myRank, totalParticipants);
+  // =========================================================================
+  // SISTEM RANKING DINAMIS BERDASARKAN POIN GAME SELURUH PESERTA
+  // =========================================================================
+  const gameSummary = calculateGameLeaderboard(users, currentUser, playerXP);
+  const { myRank, myTier: currentRankTier, betterThanPercent, totalParticipants } = gameSummary;
 
   // Toggle Sound
   const toggleSound = () => {
@@ -659,19 +591,15 @@ export default function GamePage() {
 
             {/* Quick Action Buttons */}
             <div className="flex items-center gap-2 flex-wrap self-stretch lg:self-center justify-end">
-              {/* Tombol Buka Modal Klasemen Peserta */}
-              <button
-                type="button"
-                onClick={() => {
-                  setShowLeaderboardModal(true);
-                  gameAudio.playClick();
-                }}
-                className="px-3.5 py-2 rounded-2xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-700 dark:text-amber-300 text-xs font-bold flex items-center gap-1.5 transition-all border border-amber-500/30 shadow-sm"
-                title="Lihat papan peringkat dan posisi kamu di antara seluruh peserta"
+              {/* Tombol Menuju Papan Peringkat Game Terdedikasi */}
+              <Link
+                href="/ranking-game"
+                className="px-3.5 py-2 rounded-2xl bg-gradient-to-r from-amber-500/20 to-orange-500/20 hover:from-amber-500/30 hover:to-orange-500/30 text-amber-800 dark:text-amber-300 text-xs font-bold flex items-center gap-1.5 transition-all border border-amber-500/40 shadow-sm"
+                title="Buka halaman Papan Peringkat Game & Klasemen Peserta"
               >
                 <i className="fa-solid fa-trophy text-amber-500"></i>
-                <span>Klasemen Peserta ({totalParticipants})</span>
-              </button>
+                <span>Ranking Game ({totalParticipants})</span>
+              </Link>
 
               {/* Tombol Kelola Bank Kata untuk Mentor/Admin */}
               {isManager && (
@@ -725,7 +653,7 @@ export default function GamePage() {
                 </div>
                 <div className="text-[11px] text-slate-500">
                   {betterThanPercent > 0 ? (
-                    <>Performa kamu lebih unggul dari <span className="font-bold text-emerald-600 dark:text-emerald-400">{betterThanPercent}%</span> seluruh peserta pelatihan!</>
+                    <>Ketangkasan isyarat kamu lebih unggul dari <span className="font-bold text-emerald-600 dark:text-emerald-400">{betterThanPercent}%</span> seluruh peserta!</>
                   ) : (
                     <>Raih poin di permainan untuk melesat naik di klasemen peserta!</>
                   )}
@@ -734,16 +662,26 @@ export default function GamePage() {
             </div>
 
             {/* Quick Standing Progress Bar */}
-            <div className="w-full sm:w-48 flex flex-col gap-1 items-end">
+            <div className="w-full sm:w-56 flex flex-col gap-1 items-end">
               <div className="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
                 <div
                   className="bg-gradient-to-r from-syarat to-tigpad h-full rounded-full transition-all duration-500"
                   style={{ width: `${Math.max(5, 100 - (myRank / totalParticipants) * 100)}%` }}
                 ></div>
               </div>
-              <span className="text-[10px] font-bold text-slate-400">
-                Skor Akun: {currentUser.score || 0} Poin
-              </span>
+              <div className="flex items-center gap-2 text-[10px]">
+                <span className="font-bold text-amber-600 dark:text-amber-400">
+                  Total: {playerXP} XP
+                </span>
+                <span className="text-slate-300 dark:text-slate-700">•</span>
+                <Link
+                  href="/ranking-game"
+                  className="font-extrabold text-syarat hover:underline flex items-center gap-0.5"
+                >
+                  <span>Buka Ranking Game</span>
+                  <i className="fa-solid fa-arrow-right text-[8px]"></i>
+                </Link>
+              </div>
             </div>
           </div>
 
@@ -1544,137 +1482,6 @@ export default function GamePage() {
         )}
       </div>
 
-      {/* ========================================================================= */}
-      {/* MODAL KLASEMEN PESERTA (BERDASARKAN JUMLAH SELURUH PESERTA)                */}
-      {/* ========================================================================= */}
-      {showLeaderboardModal && (
-        <div className="modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-          <div className="glass-card rounded-3xl max-w-xl w-full max-h-[85vh] flex flex-col overflow-hidden shadow-2xl border border-slate-200 dark:border-slate-800 animate-slide-up">
-            {/* Header Modal */}
-            <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-gradient-to-r from-amber-500/10 via-syarat/10 to-transparent">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center text-lg">
-                  <i className="fa-solid fa-trophy"></i>
-                </div>
-                <div>
-                  <h3 className="text-base font-black text-slate-800 dark:text-white">
-                    Papan Peringkat Peserta
-                  </h3>
-                  <p className="text-xs text-slate-500">
-                    Total {totalParticipants} peserta aktif terdaftar dalam sistem
-                  </p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowLeaderboardModal(false)}
-                className="w-8 h-8 rounded-xl glass-card flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-white transition"
-              >
-                <i className="fa-solid fa-xmark"></i>
-              </button>
-            </div>
-
-            {/* Kartu Posisi User Saat Ini */}
-            <div className="p-4 bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-syarat to-blue-600 text-white font-black flex items-center justify-center shadow-md">
-                    #{myRank}
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-xs font-black text-slate-800 dark:text-white">
-                        {currentUser.name} (Kamu)
-                      </span>
-                      <span className={`px-2 py-0.2 rounded-full text-[9px] font-black ${currentRankTier.badge}`}>
-                        {currentRankTier.tierName}
-                      </span>
-                    </div>
-                    <span className="text-[11px] text-slate-500">
-                      Peringkat #{myRank} dari {totalParticipants} peserta ({betterThanPercent}% lebih unggul)
-                    </span>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <span className="text-xs font-black text-amber-500 block">
-                    {currentUser.score || 0} Poin
-                  </span>
-                  <span className="text-[10px] text-slate-400 font-bold uppercase">
-                    Skor Akun
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Daftar Klasemen Peserta */}
-            <div className="p-4 overflow-y-auto flex-1 space-y-2 divide-y divide-slate-100 dark:divide-slate-800/60">
-              {sortedParticipants.map((u, index) => {
-                const isMe = u.id === currentUser.id;
-                const pos = index + 1;
-                const userScore = isMe ? (currentUser.score || 0) : (u.score || 0);
-                const tier = getParticipantRankTier(pos, totalParticipants);
-
-                return (
-                  <div
-                    key={u.id || index}
-                    className={`flex items-center justify-between p-3 rounded-2xl transition ${
-                      isMe
-                        ? "bg-syarat/10 border border-syarat/30"
-                        : "hover:bg-slate-50 dark:hover:bg-slate-800/50"
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 flex items-center justify-center font-black text-sm">
-                        {pos === 1 ? (
-                          <span className="text-lg" title="Juara 1">🥇</span>
-                        ) : pos === 2 ? (
-                          <span className="text-lg" title="Juara 2">🥈</span>
-                        ) : pos === 3 ? (
-                          <span className="text-lg" title="Juara 3">🥉</span>
-                        ) : (
-                          <span className="text-slate-400">#{pos}</span>
-                        )}
-                      </div>
-
-                      <div className="w-9 h-9 rounded-xl bg-slate-200 dark:bg-slate-700 flex items-center justify-center font-black text-xs text-slate-600 dark:text-slate-300">
-                        {u.name ? u.name.charAt(0).toUpperCase() : "P"}
-                      </div>
-
-                      <div>
-                        <div className="flex items-center gap-1.5">
-                          <span className={`text-xs font-bold ${isMe ? "text-syarat dark:text-syarat-light font-black" : "text-slate-800 dark:text-slate-200"}`}>
-                            {u.name} {isMe && "(Kamu)"}
-                          </span>
-                          <span className={`px-1.5 py-0.5 rounded-full text-[9px] font-bold ${tier.badge}`}>
-                            {tier.tierName}
-                          </span>
-                        </div>
-                        <span className="text-[10px] text-slate-400">
-                          {u.institution || "Peserta Pelatihan BISINDO"}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="text-right">
-                      <span className="text-xs font-black text-amber-500 block">
-                        {userScore}
-                      </span>
-                      <span className="text-[9px] text-slate-400 font-bold uppercase">Poin</span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Footer Modal */}
-            <div className="p-4 border-t border-slate-100 dark:border-slate-800 text-center bg-slate-50 dark:bg-slate-900">
-              <p className="text-[11px] text-slate-500">
-                Peringkat diperbarui secara otomatis setiap kamu menyelesaikan ronde permainan!
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Modal Kelola Bank Kata untuk Mentor/Admin */}
       {isManager && (
