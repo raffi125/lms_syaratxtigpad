@@ -1,7 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
+import Modal from "@/components/Modal";
+import Pagination from "@/components/Pagination";
 import { useApp, User, Role } from "@/context/AppContext";
 
 export default function UsersPage() {
@@ -137,6 +139,20 @@ export default function UsersPage() {
     const matchRole = roleFilter === "all" || u.role === roleFilter;
     return matchSearch && matchRole;
   });
+
+  // Pagination states
+  const [userPage, setUserPage] = useState(1);
+  const [userPageSize, setUserPageSize] = useState(10);
+
+  useEffect(() => {
+    setUserPage(1);
+  }, [search, roleFilter]);
+
+  const userTotalPages = Math.max(1, Math.ceil(filteredUsers.length / userPageSize));
+  const paginatedUsers = useMemo(() => {
+    const start = (userPage - 1) * userPageSize;
+    return filteredUsers.slice(start, start + userPageSize);
+  }, [filteredUsers, userPage, userPageSize]);
 
   const totalPeserta = users.filter((u) => u.role === "peserta").length;
   const totalMentor = users.filter((u) => u.role === "mentor").length;
@@ -344,7 +360,7 @@ export default function UsersPage() {
                     </td>
                   </tr>
                 ) : (
-                  filteredUsers.map((u) => {
+                  paginatedUsers.map((u) => {
                     const isSelf = currentUser && currentUser.id === u.id;
                     return (
                       <tr key={u.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
@@ -482,341 +498,331 @@ export default function UsersPage() {
               </tbody>
             </table>
           </div>
+
+          {/* Pagination */}
+          <div className="p-4 border-t border-slate-200 dark:border-slate-800">
+            <Pagination
+              currentPage={userPage}
+              totalPages={userTotalPages}
+              totalItems={filteredUsers.length}
+              pageSize={userPageSize}
+              pageSizeOptions={[5, 10, 20, 50]}
+              onPageChange={setUserPage}
+              onPageSizeChange={setUserPageSize}
+              itemLabel="pengguna"
+            />
+          </div>
         </div>
 
         {/* Modal: Tambah Pengguna */}
-        {isAddModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div
-              className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm"
-              onClick={() => setIsAddModalOpen(false)}
-            ></div>
-            <div className="glass-card p-6 sm:p-7 rounded-3xl max-w-md w-full relative z-10 animate-slide-up space-y-4">
-              <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-3">
-                <h3 className="font-extrabold text-base text-syarat dark:text-syarat-light flex items-center gap-2">
-                  <i className="fa-solid fa-user-plus text-tigpad"></i> Tambah Pengguna Baru
-                </h3>
-                <button
-                  onClick={() => setIsAddModalOpen(false)}
-                  className="p-1 text-slate-400 hover:text-red-500"
+        <Modal
+          isOpen={isAddModalOpen}
+          onClose={() => setIsAddModalOpen(false)}
+          title="Tambah Pengguna Baru"
+          subtitle="Buat akun baru untuk peserta, mentor, atau admin"
+          icon="fa-solid fa-user-plus"
+          size="md"
+        >
+          <form onSubmit={handleAddSubmit} className="space-y-3 text-xs">
+            <div>
+              <label className="block font-bold mb-1">Nama Lengkap</label>
+              <input
+                type="text"
+                required
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                placeholder="Nama lengkap pengguna"
+                className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-semibold"
+              />
+            </div>
+
+            <div>
+              <label className="block font-bold mb-1">Alamat Email</label>
+              <input
+                type="email"
+                required
+                value={newEmail}
+                onChange={(e) => setNewEmail(e.target.value)}
+                placeholder="nama@email.com"
+                className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-semibold"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block font-bold mb-1">User ID</label>
+                <input
+                  type="text"
+                  value={newNpm}
+                  onChange={(e) => setNewNpm(e.target.value)}
+                  placeholder="User ID (Auto jika kosong)"
+                  className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-mono font-semibold"
+                />
+              </div>
+              <div>
+                <label className="block font-bold mb-1">Peran Akun</label>
+                <select
+                  value={newRole}
+                  onChange={(e) => setNewRole(e.target.value as Role)}
+                  className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-bold"
                 >
-                  <i className="fa-solid fa-xmark text-lg"></i>
-                </button>
+                  <option value="peserta">Peserta Umum</option>
+                  <option value="mentor">Mentor BISINDO</option>
+                  <option value="admin">Administrator</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label className="block font-bold mb-1">Kata Sandi Awal</label>
+              <input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Kata sandi (default jika kosong)"
+                className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-semibold"
+              />
+            </div>
+
+            <div>
+              <label className="block font-bold mb-1">Instansi / Komunitas / Kota</label>
+              <input
+                type="text"
+                value={newInstitution}
+                onChange={(e) => setNewInstitution(e.target.value)}
+                placeholder="Instansi / Komunitas / Umum"
+                className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-semibold"
+              />
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
+              <button
+                type="button"
+                onClick={() => setIsAddModalOpen(false)}
+                className="px-4 py-2 rounded-xl font-bold border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800"
+              >
+                Batal
+              </button>
+              <button
+                type="submit"
+                className="btn-duotone px-5 py-2 rounded-xl font-bold shadow"
+              >
+                Simpan Pengguna
+              </button>
+            </div>
+          </form>
+        </Modal>
+
+        {/* Modal: Edit Pengguna */}
+        <Modal
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          title="Edit Data Pengguna"
+          subtitle={
+            <span>
+              User ID: <strong className="font-mono text-syarat">{editNpm || `#${editingUserId}`}</strong>
+            </span>
+          }
+          icon="fa-solid fa-user-pen"
+          size="lg"
+        >
+          <form onSubmit={handleEditSubmit} className="space-y-3.5 text-xs">
+            {/* Preview Foto Profil Pengguna */}
+            <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-700">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-syarat to-tigpad text-white font-bold text-sm flex items-center justify-center shadow overflow-hidden flex-shrink-0 border border-slate-200/50 dark:border-slate-700/50">
+                {editingUser?.avatar_url || editingUser?.avatar ? (
+                  <img
+                    src={editingUser.avatar_url || editingUser.avatar}
+                    alt={editName}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span>
+                    {editName
+                      .split(" ")
+                      .map((n) => n[0])
+                      .slice(0, 2)
+                      .join("")
+                      .toUpperCase()}
+                  </span>
+                )}
+              </div>
+              <div className="min-w-0">
+                <div className="font-bold text-slate-800 dark:text-slate-100 text-xs truncate">
+                  {editName || "Pengguna"}
+                </div>
+                <div className="text-[10px] text-slate-400 font-mono truncate">
+                  {editEmail}
+                </div>
+                {editingUser?.avatar_url || editingUser?.avatar ? (
+                  <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1 mt-0.5">
+                    <i className="fa-solid fa-circle-check text-[9px]"></i> Foto Profil Terpasang
+                  </span>
+                ) : (
+                  <span className="text-[10px] text-slate-400 italic">Belum mengunggah foto profil</span>
+                )}
+              </div>
+            </div>
+
+            {/* Informasi Identitas Akun */}
+            <div className="space-y-2.5">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                Informasi Akun
+              </span>
+              <div>
+                <label className="block font-bold mb-1">Nama Lengkap</label>
+                <input
+                  type="text"
+                  required
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  placeholder="Nama lengkap pengguna"
+                  className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-syarat"
+                />
               </div>
 
-              <form onSubmit={handleAddSubmit} className="space-y-3 text-xs">
-                <div>
-                  <label className="block font-bold mb-1">Nama Lengkap</label>
-                  <input
-                    type="text"
-                    required
-                    value={newName}
-                    onChange={(e) => setNewName(e.target.value)}
-                    placeholder="Nama lengkap pengguna"
-                    className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-semibold"
-                  />
-                </div>
-
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block font-bold mb-1">Alamat Email</label>
                   <input
                     type="email"
                     required
-                    value={newEmail}
-                    onChange={(e) => setNewEmail(e.target.value)}
+                    value={editEmail}
+                    onChange={(e) => setEditEmail(e.target.value)}
                     placeholder="nama@email.com"
-                    className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-semibold"
+                    className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-syarat"
                   />
                 </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block font-bold mb-1">User ID</label>
-                    <input
-                      type="text"
-                      value={newNpm}
-                      onChange={(e) => setNewNpm(e.target.value)}
-                      placeholder="User ID (Auto jika kosong)"
-                      className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-mono font-semibold"
-                    />
-                  </div>
-                  <div>
-                    <label className="block font-bold mb-1">Peran Akun</label>
-                    <select
-                      value={newRole}
-                      onChange={(e) => setNewRole(e.target.value as Role)}
-                      className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-bold"
-                    >
-                      <option value="peserta">Peserta Umum</option>
-                      <option value="mentor">Mentor BISINDO</option>
-                      <option value="admin">Administrator</option>
-                    </select>
-                  </div>
-                </div>
-
                 <div>
-                  <label className="block font-bold mb-1">Kata Sandi Awal</label>
-                  <input
-                    type="password"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="Kata sandi (default jika kosong)"
-                    className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-semibold"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-bold mb-1">Instansi / Komunitas / Kota</label>
+                  <label className="block font-bold mb-1">User ID</label>
                   <input
                     type="text"
-                    value={newInstitution}
-                    onChange={(e) => setNewInstitution(e.target.value)}
-                    placeholder="Instansi / Komunitas / Umum"
-                    className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-semibold"
+                    value={editNpm}
+                    onChange={(e) => setEditNpm(e.target.value)}
+                    placeholder="User ID Pengguna"
+                    className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-mono font-semibold focus:outline-none focus:ring-2 focus:ring-syarat"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Peran & Status */}
+            <div className="space-y-2.5 pt-2 border-t border-slate-200 dark:border-slate-800">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                Hak Akses & Status
+              </span>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold mb-1">Peran Akun</label>
+                  <select
+                    value={editRole}
+                    onChange={(e) => setEditRole(e.target.value as Role)}
+                    className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-syarat"
+                  >
+                    <option value="peserta">Peserta Umum</option>
+                    <option value="mentor">Mentor BISINDO</option>
+                    <option value="admin">Administrator</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block font-bold mb-1">Status Akun</label>
+                  <select
+                    value={editStatus}
+                    onChange={(e) => setEditStatus(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-syarat"
+                  >
+                    <option value="Aktif">Aktif</option>
+                    <option value="Nonaktif">Nonaktif</option>
+                    <option value="Ditangguhkan">Ditangguhkan</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-bold mb-1">Instansi / Komunitas / Kota</label>
+                <input
+                  type="text"
+                  value={editInstitution}
+                  onChange={(e) => setEditInstitution(e.target.value)}
+                  placeholder="Instansi / Komunitas / Umum"
+                  className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-syarat"
+                />
+              </div>
+            </div>
+
+            {/* Nilai, Progress & Keamanan */}
+            <div className="space-y-2.5 pt-2 border-t border-slate-200 dark:border-slate-800">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                Akademik & Keamanan
+              </span>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold mb-1">Nilai / Skor Akhir</label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={editScore}
+                    onChange={(e) => setEditScore(Number(e.target.value))}
+                    className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-syarat"
                   />
                 </div>
 
-                <div className="flex justify-end gap-2 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setIsAddModalOpen(false)}
-                    className="px-4 py-2 rounded-xl font-bold border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800"
-                  >
-                    Batal
-                  </button>
-                  <button
-                    type="submit"
-                    className="btn-duotone px-5 py-2 rounded-xl font-bold shadow"
-                  >
-                    Simpan Pengguna
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
-
-        {/* Modal: Edit Pengguna */}
-        {isEditModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div
-              className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm"
-              onClick={() => setIsEditModalOpen(false)}
-            ></div>
-            <div className="glass-card p-6 sm:p-7 rounded-3xl max-w-lg w-full relative z-10 animate-slide-up space-y-4 max-h-[90vh] overflow-y-auto">
-              <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-3">
                 <div>
-                  <h3 className="font-extrabold text-base text-syarat dark:text-syarat-light flex items-center gap-2">
-                    <i className="fa-solid fa-user-pen text-tigpad"></i> Edit Data Pengguna
-                  </h3>
-                  <p className="text-[11px] text-slate-400 mt-0.5">
-                    User ID: <span className="font-mono font-bold text-syarat">{editNpm || `#${editingUserId}`}</span>
-                  </p>
+                  <label className="block font-bold mb-1">Progress (%)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={editProgress}
+                    onChange={(e) => setEditProgress(Number(e.target.value))}
+                    className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-syarat"
+                  />
                 </div>
-                <button
-                  onClick={() => setIsEditModalOpen(false)}
-                  className="p-1 text-slate-400 hover:text-red-500"
-                >
-                  <i className="fa-solid fa-xmark text-lg"></i>
-                </button>
               </div>
 
-              <form onSubmit={handleEditSubmit} className="space-y-3.5 text-xs">
-                {/* Preview Foto Profil Pengguna */}
-                <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-700">
-                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-syarat to-tigpad text-white font-bold text-sm flex items-center justify-center shadow overflow-hidden flex-shrink-0 border border-slate-200/50 dark:border-slate-700/50">
-                    {editingUser?.avatar_url || editingUser?.avatar ? (
-                      <img
-                        src={editingUser.avatar_url || editingUser.avatar}
-                        alt={editName}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <span>
-                        {editName
-                          .split(" ")
-                          .map((n) => n[0])
-                          .slice(0, 2)
-                          .join("")
-                          .toUpperCase()}
-                      </span>
-                    )}
-                  </div>
-                  <div className="min-w-0">
-                    <div className="font-bold text-slate-800 dark:text-slate-100 text-xs truncate">
-                      {editName || "Pengguna"}
-                    </div>
-                    <div className="text-[10px] text-slate-400 font-mono truncate">
-                      {editEmail}
-                    </div>
-                    {editingUser?.avatar_url || editingUser?.avatar ? (
-                      <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1 mt-0.5">
-                        <i className="fa-solid fa-circle-check text-[9px]"></i> Foto Profil Terpasang
-                      </span>
-                    ) : (
-                      <span className="text-[10px] text-slate-400 italic">Belum mengunggah foto profil</span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Informasi Identitas Akun */}
-                <div className="space-y-2.5">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                    Informasi Akun
-                  </span>
-                  <div>
-                    <label className="block font-bold mb-1">Nama Lengkap</label>
-                    <input
-                      type="text"
-                      required
-                      value={editName}
-                      onChange={(e) => setEditName(e.target.value)}
-                      placeholder="Nama lengkap pengguna"
-                      className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-syarat"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                      <label className="block font-bold mb-1">Alamat Email</label>
-                      <input
-                        type="email"
-                        required
-                        value={editEmail}
-                        onChange={(e) => setEditEmail(e.target.value)}
-                        placeholder="nama@email.com"
-                        className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-syarat"
-                      />
-                    </div>
-                    <div>
-                      <label className="block font-bold mb-1">User ID</label>
-                      <input
-                        type="text"
-                        value={editNpm}
-                        onChange={(e) => setEditNpm(e.target.value)}
-                        placeholder="User ID Pengguna"
-                        className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-mono font-semibold focus:outline-none focus:ring-2 focus:ring-syarat"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Peran & Status */}
-                <div className="space-y-2.5 pt-2 border-t border-slate-200 dark:border-slate-800">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                    Hak Akses & Status
-                  </span>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block font-bold mb-1">Peran Akun</label>
-                      <select
-                        value={editRole}
-                        onChange={(e) => setEditRole(e.target.value as Role)}
-                        className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-syarat"
-                      >
-                        <option value="peserta">Peserta Umum</option>
-                        <option value="mentor">Mentor BISINDO</option>
-                        <option value="admin">Administrator</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block font-bold mb-1">Status Akun</label>
-                      <select
-                        value={editStatus}
-                        onChange={(e) => setEditStatus(e.target.value)}
-                        className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-syarat"
-                      >
-                        <option value="Aktif">Aktif</option>
-                        <option value="Nonaktif">Nonaktif</option>
-                        <option value="Ditangguhkan">Ditangguhkan</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block font-bold mb-1">Instansi / Komunitas / Kota</label>
-                    <input
-                      type="text"
-                      value={editInstitution}
-                      onChange={(e) => setEditInstitution(e.target.value)}
-                      placeholder="Instansi / Komunitas / Umum"
-                      className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-syarat"
-                    />
-                  </div>
-                </div>
-
-                {/* Nilai, Progress & Keamanan */}
-                <div className="space-y-2.5 pt-2 border-t border-slate-200 dark:border-slate-800">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                    Nilai & Keamanan
-                  </span>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block font-bold mb-1">Nilai Kuis (0 - 100)</label>
-                      <input
-                        type="number"
-                        min="0"
-                        max="100"
-                        value={editScore}
-                        onChange={(e) => setEditScore(Number(e.target.value))}
-                        className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-syarat"
-                      />
-                    </div>
-                    <div>
-                      <label className="block font-bold mb-1">Progress Materi (%)</label>
-                      <input
-                        type="number"
-                        min="0"
-                        max="100"
-                        value={editProgress}
-                        onChange={(e) => setEditProgress(Number(e.target.value))}
-                        className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-syarat"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block font-bold mb-1">Ganti Kata Sandi (Opsional)</label>
-                    <input
-                      type="text"
-                      value={editPassword}
-                      onChange={(e) => setEditPassword(e.target.value)}
-                      placeholder="Biarkan kosong jika tidak ingin mengubah sandi"
-                      className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-syarat"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex justify-end gap-2 pt-3 border-t border-slate-200 dark:border-slate-800">
-                  <button
-                    type="button"
-                    onClick={() => setIsEditModalOpen(false)}
-                    className="px-4 py-2 rounded-xl font-bold border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                  >
-                    Batal
-                  </button>
-                  <button
-                    type="submit"
-                    className="btn-duotone px-5 py-2 rounded-xl font-bold shadow flex items-center gap-1.5 hover:scale-105 transition-all"
-                  >
-                    <i className="fa-solid fa-floppy-disk"></i>
-                    <span>Simpan Perubahan</span>
-                  </button>
-                </div>
-              </form>
+              <div>
+                <label className="block font-bold mb-1">Ubah Kata Sandi</label>
+                <input
+                  type="password"
+                  value={editPassword}
+                  onChange={(e) => setEditPassword(e.target.value)}
+                  placeholder="Biarkan kosong jika tidak ingin mengubah sandi"
+                  className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-syarat"
+                />
+              </div>
             </div>
-          </div>
-        )}
+
+            <div className="flex justify-end gap-2 pt-3 border-t border-slate-200 dark:border-slate-800">
+              <button
+                type="button"
+                onClick={() => setIsEditModalOpen(false)}
+                className="px-4 py-2 rounded-xl font-bold border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              >
+                Batal
+              </button>
+              <button
+                type="submit"
+                className="btn-duotone px-5 py-2 rounded-xl font-bold shadow flex items-center gap-1.5 hover:scale-105 transition-all"
+              >
+                <i className="fa-solid fa-floppy-disk"></i>
+                <span>Simpan Perubahan</span>
+              </button>
+            </div>
+          </form>
+        </Modal>
 
         {/* Modal: Konfirmasi Hapus Pengguna */}
-        {userToDelete && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div
-              className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm"
-              onClick={() => setUserToDelete(null)}
-            ></div>
-            <div className="glass-card p-6 sm:p-7 rounded-3xl max-w-sm w-full relative z-10 animate-slide-up space-y-4 text-center">
+        <Modal
+          isOpen={Boolean(userToDelete)}
+          onClose={() => setUserToDelete(null)}
+          title="Konfirmasi Hapus Pengguna"
+          icon="fa-solid fa-triangle-exclamation"
+          size="sm"
+        >
+          {userToDelete && (
+            <div className="space-y-4 text-center">
               <div className="w-14 h-14 rounded-2xl bg-red-500/15 text-red-500 flex items-center justify-center text-2xl mx-auto shadow-inner">
                 <i className="fa-solid fa-triangle-exclamation"></i>
               </div>
@@ -850,8 +856,8 @@ export default function UsersPage() {
                 </button>
               </div>
             </div>
-          </div>
-        )}
+          )}
+        </Modal>
       </div>
     </DashboardLayout>
   );

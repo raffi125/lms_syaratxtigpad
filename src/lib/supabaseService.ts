@@ -1113,6 +1113,127 @@ export const SupabaseService = {
     };
   },
 
+  async gradeAllEssayAnswers(
+    submissionId: string,
+    grades: Array<{ quizId: number; earnedPoints: number; mentorFeedback?: string }>,
+    gradedBy?: string
+  ): Promise<{ success: boolean; data?: QuizSubmission; message?: string }> {
+    if (!isSupabaseConfigured()) return { success: false, message: "Database tidak terhubung" };
+    const client = supabaseAdmin || supabase;
+
+    const submissions = await this.getQuizSubmissions();
+    const subIndex = submissions.findIndex((s) => s.id === submissionId);
+    if (subIndex === -1) {
+      return { success: false, message: "Data jawaban kuis tidak ditemukan" };
+    }
+
+    const targetSub = submissions[subIndex];
+    const now = new Date();
+    const formattedDate = now.toLocaleDateString("id-ID", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+    const gradeMap = new Map<string, { earnedPoints: number; mentorFeedback?: string }>();
+    grades.forEach((g) => {
+      gradeMap.set(String(g.quizId), {
+        earnedPoints: g.earnedPoints,
+        mentorFeedback: g.mentorFeedback,
+      });
+    });
+
+    const updatedAnswers = targetSub.answers.map((ans) => {
+      const g = gradeMap.get(String(ans.quizId));
+      if (g !== undefined) {
+        const maxPoints = ans.points && ans.points > 0 ? ans.points : 10;
+        const pointsGiven = Math.max(0, Math.min(Number(g.earnedPoints) || 0, maxPoints));
+        return {
+          ...ans,
+          earnedPoints: pointsGiven,
+          isCorrect: pointsGiven > 0,
+          isGraded: true,
+          mentorFeedback: g.mentorFeedback !== undefined ? String(g.mentorFeedback).trim() : (ans.mentorFeedback || ""),
+          gradedBy: String(gradedBy || "Mentor"),
+          gradedAt: `${formattedDate} WIB`,
+        };
+      }
+      return ans;
+    });
+
+    let totalEarned = 0;
+    let totalPossible = 0;
+    let hasUngraded = false;
+
+    updatedAnswers.forEach((ans) => {
+      const qPts = ans.points && ans.points > 0 ? ans.points : 10;
+      totalPossible += qPts;
+      if (ans.type === "essai") {
+        if (ans.isGraded) {
+          totalEarned += ans.earnedPoints ?? 0;
+        } else {
+          hasUngraded = true;
+        }
+      } else {
+        if (ans.isCorrect) {
+          totalEarned += qPts;
+        }
+      }
+    });
+
+    const calculatedScore = totalPossible > 0 ? Math.round((totalEarned / totalPossible) * 100) : 0;
+    const isPassed = calculatedScore >= 70;
+
+    const updatedSub: QuizSubmission = {
+      ...targetSub,
+      answers: updatedAnswers,
+      earnedPoints: totalEarned,
+      totalPossiblePoints: totalPossible,
+      score: calculatedScore,
+      passed: isPassed,
+      hasUngradedEssays: hasUngraded,
+    };
+
+    const payload: any = {
+      score: updatedSub.score,
+      earned_points: updatedSub.earnedPoints,
+      total_possible_points: updatedSub.totalPossiblePoints,
+      passed: updatedSub.passed,
+      answers: updatedSub.answers,
+      has_ungraded_essays: updatedSub.hasUngradedEssays,
+    };
+
+    const { error } = await client.from("quizzes_user").update(payload).eq("id", submissionId);
+    if (error && (error.code === "42P01" || error.message?.includes("does not exist"))) {
+      const updatedList = [...submissions];
+      updatedList[subIndex] = updatedSub;
+      try {
+        await supabaseAdmin.storage
+          .from("modul")
+          .upload("system/quiz_submissions.json", createJsonStoragePayload(updatedList), {
+            contentType: "application/json",
+            upsert: true,
+          });
+      } catch {}
+    }
+
+    try {
+      await this.updateUserScore(targetSub.userId, calculatedScore, targetSub.userEmail, targetSub.userName);
+    } catch (e) {
+      console.warn("Supabase gradeAllEssayAnswers updateUserScore error:", e);
+    }
+
+    return {
+      success: true,
+      data: updatedSub,
+      message: hasUngraded
+        ? `Nilai butir soal berhasil disimpan! Skor saat ini: ${calculatedScore}/100.`
+        : `Semua soal essai selesai dinilai! Skor resmi: ${calculatedScore}/100 (${isPassed ? "LULUS" : "REMEDIAL"}).`,
+    };
+  },
+
   async updateQuizSubmissionScore(
     submissionId: string,
     newScore: number,
@@ -1130,9 +1251,31 @@ export const SupabaseService = {
     const targetSub = submissions[subIndex];
     const cleanScore = Math.max(0, Math.min(100, Math.round(Number(newScore) || 0)));
     const isPassed = cleanScore >= 70;
+    const now = new Date();
+    const formattedDate = now.toLocaleDateString("id-ID", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+    const updatedAnswers = (targetSub.answers || []).map((ans) => {
+      if (ans.type === "essai" && !ans.isGraded) {
+        return {
+          ...ans,
+          isGraded: true,
+          isCorrect: isPassed,
+          gradedBy: String(gradedBy || "Mentor"),
+          gradedAt: `${formattedDate} WIB`,
+        };
+      }
+      return ans;
+    });
 
     const updatedSub: QuizSubmission = {
       ...targetSub,
+      answers: updatedAnswers,
       score: cleanScore,
       passed: isPassed,
       hasUngradedEssays: false,
@@ -1141,6 +1284,7 @@ export const SupabaseService = {
     const payload: any = {
       score: updatedSub.score,
       passed: updatedSub.passed,
+      answers: updatedSub.answers,
       has_ungraded_essays: false,
     };
 

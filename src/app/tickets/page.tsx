@@ -1,7 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
+import Modal from "@/components/Modal";
+import Pagination from "@/components/Pagination";
 import { useApp } from "@/context/AppContext";
 import type { SupportTicket } from "@/types";
 
@@ -35,6 +37,9 @@ export default function TicketsPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedTicket, setSelectedTicket] = useState<SupportTicket | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
+  const [ticketPage, setTicketPage] = useState(1);
+  const [ticketPageSize, setTicketPageSize] = useState(6);
 
   const isAdmin = currentRole === "admin";
 
@@ -103,6 +108,16 @@ export default function TicketsPage() {
     const matchStatus = statusFilter === "all" || t.status === statusFilter;
     return matchSearch && matchStatus;
   });
+
+  useEffect(() => {
+    setTicketPage(1);
+  }, [search, statusFilter]);
+
+  const ticketTotalPages = Math.max(1, Math.ceil(filtered.length / ticketPageSize));
+  const paginatedTickets = useMemo(() => {
+    const start = (ticketPage - 1) * ticketPageSize;
+    return filtered.slice(start, start + ticketPageSize);
+  }, [filtered, ticketPage, ticketPageSize]);
 
   if (!isAdmin) {
     return (
@@ -198,10 +213,13 @@ export default function TicketsPage() {
                 <p>Tidak ada tiket yang ditemukan.</p>
               </div>
             ) : (
-              filtered.map((t) => (
+              paginatedTickets.map((t) => (
                 <div
                   key={t.id}
-                  onClick={() => setSelectedTicket(t)}
+                  onClick={() => {
+                    setSelectedTicket(t);
+                    setIsTicketModalOpen(true);
+                  }}
                   className={`glass-card p-4 rounded-2xl border cursor-pointer transition-all hover:shadow-md space-y-2 ${
                     selectedTicket?.id === t.id
                       ? "border-syarat shadow-md"
@@ -227,10 +245,30 @@ export default function TicketsPage() {
                     </span>
                   </div>
                   <p className="text-[11px] text-slate-400 leading-snug line-clamp-2">{t.description}</p>
-                  <p className="text-[10px] text-slate-400">{t.createdAt}</p>
+                  <div className="flex items-center justify-between text-[10px] text-slate-400 pt-1">
+                    <span>{t.createdAt}</span>
+                    <span className="text-syarat font-bold hover:underline flex items-center gap-1">
+                      <span>Buka Detail (Pop-Up)</span>
+                      <i className="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>
+                    </span>
+                  </div>
                 </div>
               ))
             )}
+
+            {/* Pagination */}
+            <div className="glass-card p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
+              <Pagination
+                currentPage={ticketPage}
+                totalPages={ticketTotalPages}
+                totalItems={filtered.length}
+                pageSize={ticketPageSize}
+                pageSizeOptions={[4, 6, 12, 24]}
+                onPageChange={setTicketPage}
+                onPageSizeChange={setTicketPageSize}
+                itemLabel="tiket"
+              />
+            </div>
           </div>
 
           {/* Detail Panel */}
@@ -337,6 +375,108 @@ export default function TicketsPage() {
             )}
           </div>
         </div>
+
+        {/* POP-UP MODAL: TICKET DETAIL & ACTION */}
+        <Modal
+          isOpen={isTicketModalOpen && Boolean(selectedTicket)}
+          onClose={() => setIsTicketModalOpen(false)}
+          title={selectedTicket?.subject}
+          subtitle={
+            selectedTicket ? (
+              <span>
+                Tiket <strong className="font-mono text-syarat">{selectedTicket.id}</strong> · {selectedTicket.createdAt}
+              </span>
+            ) : undefined
+          }
+          icon="fa-solid fa-ticket"
+          badge={
+            selectedTicket ? (
+              <div className="flex items-center gap-1.5 flex-wrap mb-1">
+                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${STATUS_COLOR[selectedTicket.status] || ""}`}>
+                  {selectedTicket.status}
+                </span>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${PRIORITY_COLOR[selectedTicket.priority] || ""}`}>
+                  Prioritas {selectedTicket.priority}
+                </span>
+                <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 text-[10px] font-bold">
+                  {CATEGORY_LABELS[selectedTicket.category] || selectedTicket.category}
+                </span>
+              </div>
+            ) : undefined
+          }
+          size="md"
+        >
+          {selectedTicket && (
+            <div className="space-y-4 text-xs">
+              <div className="grid grid-cols-2 gap-3 p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/60">
+                <div>
+                  <div className="text-[10px] text-slate-400 font-bold uppercase">Pelapor</div>
+                  <div className="font-bold text-slate-800 dark:text-slate-100">{selectedTicket.name}</div>
+                  <div className="text-[11px] text-slate-500 truncate">{selectedTicket.email}</div>
+                </div>
+                <div>
+                  <div className="text-[10px] text-slate-400 font-bold uppercase">Kategori</div>
+                  <div className="font-bold text-slate-800 dark:text-slate-100">
+                    {CATEGORY_LABELS[selectedTicket.category] || selectedTicket.category}
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <div className="text-[10px] text-slate-400 font-bold uppercase mb-1.5">Isi Keluhan / Pertanyaan</div>
+                <p className="text-slate-700 dark:text-slate-300 leading-relaxed bg-slate-50 dark:bg-slate-900/50 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 whitespace-pre-wrap">
+                  {selectedTicket.description}
+                </p>
+              </div>
+
+              <div className="space-y-2 pt-2 border-t border-slate-200 dark:border-slate-800">
+                <div className="text-[10px] text-slate-400 font-bold uppercase">Perbarui Status Penanganan</div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  {(["Menunggu Peninjauan", "Diproses Tim IT", "Terselesaikan"] as const).map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      disabled={updatingId === selectedTicket.id}
+                      onClick={() => updateStatus(selectedTicket.id, s)}
+                      className={`py-2 px-2 rounded-xl text-[11px] font-bold border transition-all text-center ${
+                        selectedTicket.status === s
+                          ? (STATUS_COLOR[s] || "") + " border-current shadow-sm ring-1 ring-current/20"
+                          : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 hover:border-syarat"
+                      }`}
+                    >
+                      {updatingId === selectedTicket.id && selectedTicket.status !== s ? (
+                        <i className="fa-solid fa-spinner fa-spin mr-1"></i>
+                      ) : null}
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex items-center gap-2">
+                <a
+                  href={`mailto:${selectedTicket.email}?subject=[${encodeURIComponent(selectedTicket.id)}] Re: ${encodeURIComponent(selectedTicket.subject)}`}
+                  className="flex-1 py-2.5 rounded-xl bg-syarat text-white text-xs font-bold text-center hover:opacity-90 transition-opacity flex items-center justify-center gap-1.5 shadow"
+                >
+                  <i className="fa-solid fa-envelope"></i>
+                  <span>Balas via Email Peserta</span>
+                </a>
+                <button
+                  type="button"
+                  onClick={() => {
+                    deleteTicket(selectedTicket.id);
+                    setIsTicketModalOpen(false);
+                  }}
+                  className="px-3.5 py-2.5 rounded-xl text-red-500 border border-red-200 dark:border-red-900 hover:bg-red-500/10 transition-colors text-xs font-bold flex items-center gap-1"
+                  title="Hapus Tiket"
+                >
+                  <i className="fa-solid fa-trash-can"></i>
+                  <span>Hapus</span>
+                </button>
+              </div>
+            </div>
+          )}
+        </Modal>
       </div>
     </DashboardLayout>
   );

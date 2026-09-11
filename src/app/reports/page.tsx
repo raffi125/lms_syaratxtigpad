@@ -2,6 +2,8 @@
 
 import React, { useState, useMemo, useEffect } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
+import Modal from "@/components/Modal";
+import Pagination from "@/components/Pagination";
 import { useApp } from "@/context/AppContext";
 import { calculateAnalytics } from "@/lib/analytics";
 import { exportQuizReportToExcel } from "@/lib/excelExport";
@@ -15,6 +17,10 @@ export default function ReportsPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [pertemuanFilter, setPertemuanFilter] = useState<number | "all">("all");
   const [showFormulaModal, setShowFormulaModal] = useState(false);
+
+  // Pagination states for reports table
+  const [reportsPage, setReportsPage] = useState(1);
+  const [reportsPageSize, setReportsPageSize] = useState(10);
 
   useEffect(() => {
     refreshFromSupabase();
@@ -92,6 +98,16 @@ export default function ReportsPage() {
     const sum = filteredPeserta.reduce((acc, p) => acc + getPesertaScore(p, pertemuanFilter), 0);
     return +(sum / filteredPeserta.length).toFixed(1);
   }, [filteredPeserta, pertemuanFilter]);
+
+  useEffect(() => {
+    setReportsPage(1);
+  }, [search, statusFilter, pertemuanFilter]);
+
+  const reportsTotalPages = Math.max(1, Math.ceil(filteredPeserta.length / reportsPageSize));
+  const paginatedPeserta = useMemo(() => {
+    const start = (reportsPage - 1) * reportsPageSize;
+    return filteredPeserta.slice(start, start + reportsPageSize);
+  }, [filteredPeserta, reportsPage, reportsPageSize]);
 
   const handleExportQuizExcel = () => {
     if (filteredPeserta.length === 0) {
@@ -629,7 +645,7 @@ export default function ReportsPage() {
                     </td>
                   </tr>
                 ) : (
-                  filteredPeserta.map((p) => {
+                  paginatedPeserta.map((p) => {
                     const cert = certificates.find(
                       (c) =>
                         c.name.toLowerCase() === p.name.toLowerCase() ||
@@ -761,6 +777,20 @@ export default function ReportsPage() {
             </table>
           </div>
 
+          {/* Pagination */}
+          <div className="p-4 border-t border-slate-200 dark:border-slate-800">
+            <Pagination
+              currentPage={reportsPage}
+              totalPages={reportsTotalPages}
+              totalItems={filteredPeserta.length}
+              pageSize={reportsPageSize}
+              pageSizeOptions={[5, 10, 20, 50]}
+              onPageChange={setReportsPage}
+              onPageSizeChange={setReportsPageSize}
+              itemLabel="peserta"
+            />
+          </div>
+
           <div className="flex flex-col sm:flex-row justify-between items-center text-xs text-slate-400 pt-2 gap-2">
             <span>
               Menampilkan <strong>{filteredPeserta.length}</strong> dari total <strong>{analytics.totalPeserta}</strong> peserta evaluasi kuis • Rata-rata terfilter: <strong>{filteredAverageScore}/100</strong>
@@ -774,86 +804,74 @@ export default function ReportsPage() {
         {/* ========================================================================= */}
         {/* MODAL PENJELASAN RUMUS SISTEM ANALITIK KUIS                               */}
         {/* ========================================================================= */}
-        {showFormulaModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div
-              className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm animate-fade-in"
-              onClick={() => setShowFormulaModal(false)}
-            ></div>
-            <div className="glass-card p-6 sm:p-7 rounded-3xl max-w-lg w-full relative z-10 animate-slide-up space-y-4 border border-slate-200 dark:border-slate-800 shadow-2xl">
-              <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-3">
-                <h3 className="font-black text-base text-slate-800 dark:text-white flex items-center gap-2">
-                  <i className="fa-solid fa-calculator text-syarat dark:text-syarat-light"></i>
-                  <span>Rumus Sistem Analitik Nilai Kuis</span>
-                </h3>
-                <button
-                  onClick={() => setShowFormulaModal(false)}
-                  className="w-8 h-8 rounded-xl glass-card flex items-center justify-center text-slate-400 hover:text-red-500 transition-colors"
-                >
-                  <i className="fa-solid fa-xmark"></i>
-                </button>
+        <Modal
+          isOpen={showFormulaModal}
+          onClose={() => setShowFormulaModal(false)}
+          title="Rumus Sistem Analitik Nilai Kuis"
+          subtitle="Standar perhitungan akademik kelulusan evaluasi kuis"
+          icon="fa-solid fa-calculator"
+          size="md"
+          footer={
+            <div className="flex justify-end w-full">
+              <button
+                type="button"
+                onClick={() => setShowFormulaModal(false)}
+                className="btn-duotone px-5 py-2 rounded-xl font-bold text-xs shadow"
+              >
+                Tutup
+              </button>
+            </div>
+          }
+        >
+          <div className="space-y-3 text-xs text-slate-600 dark:text-slate-300 pr-1">
+            <div className="p-3.5 rounded-2xl bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-1">
+              <div className="font-black text-syarat dark:text-syarat-light">
+                1. Rata-Rata Nilai Kuis (Mean Score)
               </div>
+              <p className="font-mono text-[11px] bg-slate-100 dark:bg-slate-800 p-2 rounded-xl text-slate-700 dark:text-slate-300">
+                Rata-Rata = Σ(Nilai Kuis Seluruh Peserta) / Total Peserta
+              </p>
+            </div>
 
-              <div className="space-y-3 text-xs text-slate-600 dark:text-slate-300 max-h-[70vh] overflow-y-auto pr-1">
-                <div className="p-3.5 rounded-2xl bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-1">
-                  <div className="font-black text-syarat dark:text-syarat-light">
-                    1. Rata-Rata Nilai Kuis (Mean Score)
-                  </div>
-                  <p className="font-mono text-[11px] bg-slate-100 dark:bg-slate-800 p-2 rounded-xl text-slate-700 dark:text-slate-300">
-                    Rata-Rata = Σ(Nilai Kuis Seluruh Peserta) / Total Peserta
-                  </p>
-                </div>
-
-                <div className="p-3.5 rounded-2xl bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-1">
-                  <div className="font-black text-tigpad">
-                    2. Tingkat Kelulusan KKM (Passing Rate)
-                  </div>
-                  <p className="font-mono text-[11px] bg-slate-100 dark:bg-slate-800 p-2 rounded-xl text-slate-700 dark:text-slate-300">
-                    Passing Rate (%) = (Peserta Skor ≥ {analytics.kkm} / Total Peserta) × 100%
-                  </p>
-                </div>
-
-                <div className="p-3.5 rounded-2xl bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-1">
-                  <div className="font-black text-emerald-600 dark:text-emerald-400">
-                    3. Nilai Median Kuis (Median Score)
-                  </div>
-                  <p className="font-mono text-[11px] bg-slate-100 dark:bg-slate-800 p-2 rounded-xl text-slate-700 dark:text-slate-300">
-                    Nilai tengah (Q2) dari kumpulan skor kuis yang telah diurutkan ascending
-                  </p>
-                </div>
-
-                <div className="p-3.5 rounded-2xl bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-1">
-                  <div className="font-black text-purple-600 dark:text-purple-400">
-                    4. Distribusi Predikat Nilai Kuis
-                  </div>
-                  <div className="space-y-1 text-[11px] pt-0.5">
-                    <p>• <strong>Grade A (Sangat Baik)</strong>: Skor ≥ 85</p>
-                    <p>• <strong>Grade B (Lulus Memenuhi KKM)</strong>: Skor {analytics.kkm} s.d. 84</p>
-                    <p>• <strong>Grade C (Perlu Remedial)</strong>: Skor &lt; {analytics.kkm}</p>
-                  </div>
-                </div>
-
-                <div className="p-3.5 rounded-2xl bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-1">
-                  <div className="font-black text-amber-500">
-                    5. Pemisahan Total dari Poin Game
-                  </div>
-                  <p className="text-[11px] leading-relaxed">
-                    Evaluasi akademik kuis murni berpatokan pada capaian kuis kurikulum (skala 0–100, KKM {analytics.kkm}). Poin game ketangkasan (XP) tidak mempengaruhi nilai kuis ini dan ditempatkan secara khusus pada menu Ranking Game.
-                  </p>
-                </div>
+            <div className="p-3.5 rounded-2xl bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-1">
+              <div className="font-black text-tigpad">
+                2. Tingkat Kelulusan KKM (Passing Rate)
               </div>
+              <p className="font-mono text-[11px] bg-slate-100 dark:bg-slate-800 p-2 rounded-xl text-slate-700 dark:text-slate-300">
+                Passing Rate (%) = (Peserta Skor ≥ {analytics.kkm} / Total Peserta) × 100%
+              </p>
+            </div>
 
-              <div className="pt-2 flex justify-end">
-                <button
-                  onClick={() => setShowFormulaModal(false)}
-                  className="btn-duotone px-5 py-2 rounded-xl font-bold text-xs shadow"
-                >
-                  Tutup
-                </button>
+            <div className="p-3.5 rounded-2xl bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-1">
+              <div className="font-black text-emerald-600 dark:text-emerald-400">
+                3. Nilai Median Kuis (Median Score)
+              </div>
+              <p className="font-mono text-[11px] bg-slate-100 dark:bg-slate-800 p-2 rounded-xl text-slate-700 dark:text-slate-300">
+                Nilai tengah (Q2) dari kumpulan skor kuis yang telah diurutkan ascending
+              </p>
+            </div>
+
+            <div className="p-3.5 rounded-2xl bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-1">
+              <div className="font-black text-purple-600 dark:text-purple-400">
+                4. Distribusi Predikat Nilai Kuis
+              </div>
+              <div className="space-y-1 text-[11px] pt-0.5">
+                <p>• <strong>Grade A (Sangat Baik)</strong>: Skor ≥ 85</p>
+                <p>• <strong>Grade B (Lulus Memenuhi KKM)</strong>: Skor {analytics.kkm} s.d. 84</p>
+                <p>• <strong>Grade C (Perlu Remedial)</strong>: Skor &lt; {analytics.kkm}</p>
               </div>
             </div>
+
+            <div className="p-3.5 rounded-2xl bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-1">
+              <div className="font-black text-amber-500">
+                5. Pemisahan Total dari Poin Game
+              </div>
+              <p className="text-[11px] leading-relaxed">
+                Evaluasi akademik kuis murni berpatokan pada capaian kuis kurikulum (skala 0–100, KKM {analytics.kkm}). Poin game ketangkasan (XP) tidak mempengaruhi nilai kuis ini dan ditempatkan secara khusus pada menu Ranking Game.
+              </p>
+            </div>
           </div>
-        )}
+        </Modal>
       </div>
     </DashboardLayout>
   );

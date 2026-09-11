@@ -3,6 +3,8 @@
 import React, { useState, useMemo, useRef, useEffect } from "react";
 import Link from "next/link";
 import DashboardLayout from "@/components/DashboardLayout";
+import Modal from "@/components/Modal";
+import Pagination from "@/components/Pagination";
 import { useApp } from "@/context/AppContext";
 import { SupabaseStorageService } from "@/lib/supabaseStorage";
 import { SupabaseService } from "@/lib/supabaseService";
@@ -167,6 +169,20 @@ export default function PresensiPage() {
       return true;
     });
   }, [zoomData.attendanceLogs, attendanceSessionFilter, attendanceSearch, attendanceOnlyMe, isPeserta, currentUser, sessions]);
+
+  // Attendance Pagination states
+  const [attendancePage, setAttendancePage] = useState(1);
+  const [attendancePageSize, setAttendancePageSize] = useState(10);
+
+  useEffect(() => {
+    setAttendancePage(1);
+  }, [attendanceSessionFilter, attendanceSearch, attendanceOnlyMe]);
+
+  const attendanceTotalPages = Math.max(1, Math.ceil(filteredLogs.length / attendancePageSize));
+  const paginatedLogs = useMemo(() => {
+    const start = (attendancePage - 1) * attendancePageSize;
+    return filteredLogs.slice(start, start + attendancePageSize);
+  }, [filteredLogs, attendancePage, attendancePageSize]);
 
   const handleManualRefresh = async () => {
     setIsRefreshing(true);
@@ -708,7 +724,7 @@ export default function PresensiPage() {
                     </td>
                   </tr>
                 ) : (
-                  filteredLogs.map((log, idx) => {
+                  paginatedLogs.map((log, idx) => {
                     const matchedSession = sessions.find(
                       (s) => s.id === (log.sessionId || log.session_id)
                     );
@@ -739,7 +755,7 @@ export default function PresensiPage() {
                         className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors"
                       >
                         <td className="p-3.5 text-center font-mono text-slate-400">
-                          {idx + 1}
+                          {(attendancePage - 1) * attendancePageSize + idx + 1}
                         </td>
                         <td className="p-3.5">
                           <div className="flex items-center gap-2.5">
@@ -852,44 +868,40 @@ export default function PresensiPage() {
               </tbody>
             </table>
           </div>
+
+          {/* Pagination */}
+          <div className="p-4 border-t border-slate-200 dark:border-slate-800">
+            <Pagination
+              currentPage={attendancePage}
+              totalPages={attendanceTotalPages}
+              totalItems={filteredLogs.length}
+              pageSize={attendancePageSize}
+              pageSizeOptions={[5, 10, 20, 50]}
+              onPageChange={setAttendancePage}
+              onPageSizeChange={setAttendancePageSize}
+              itemLabel="catatan presensi"
+            />
+          </div>
         </div>
       </div>
 
       {/* MODAL PREVIEW SCREENSHOT BUKTI ZOOM */}
-      {previewProofModal && previewProofModal.open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-fade-in">
-          <div className="glass-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-2xl w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-syarat/10 text-syarat flex items-center justify-center text-sm font-bold">
-                  <i className="fa-solid fa-camera"></i>
-                </div>
-                <div>
-                  <h3 className="font-extrabold text-sm text-slate-800 dark:text-white">
-                    Bukti Tangkapan Layar (SS) Zoom
-                  </h3>
-                  <p className="text-[11px] text-slate-400">
-                    Peserta: <strong>{previewProofModal.participantName}</strong> • {previewProofModal.time}
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={() => setPreviewProofModal(null)}
-                className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 flex items-center justify-center transition-colors"
-              >
-                <i className="fa-solid fa-xmark text-sm"></i>
-              </button>
-            </div>
-
-            <div className="p-2 rounded-2xl bg-slate-950 flex items-center justify-center border border-slate-800 overflow-hidden min-h-[250px]">
-              <img
-                src={previewProofModal.url}
-                alt={`Bukti Zoom ${previewProofModal.participantName}`}
-                className="max-h-[60vh] max-w-full object-contain rounded-xl"
-              />
-            </div>
-
-            <div className="flex items-center justify-between pt-2">
+      <Modal
+        isOpen={Boolean(previewProofModal && previewProofModal.open)}
+        onClose={() => setPreviewProofModal(null)}
+        title="Bukti Tangkapan Layar (SS) Zoom"
+        subtitle={
+          previewProofModal ? (
+            <span>
+              Peserta: <strong>{previewProofModal.participantName}</strong> • {previewProofModal.time}
+            </span>
+          ) : undefined
+        }
+        icon="fa-solid fa-camera"
+        size="lg"
+        footer={
+          previewProofModal ? (
+            <div className="flex items-center justify-between w-full">
               <a
                 href={previewProofModal.url}
                 target="_blank"
@@ -900,100 +912,94 @@ export default function PresensiPage() {
                 <span>Buka Gambar Ukuran Penuh</span>
               </a>
               <button
+                type="button"
                 onClick={() => setPreviewProofModal(null)}
                 className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-bold transition-colors"
               >
                 Tutup
               </button>
             </div>
+          ) : undefined
+        }
+      >
+        {previewProofModal && (
+          <div className="p-2 rounded-2xl bg-slate-950 flex items-center justify-center border border-slate-800 overflow-hidden min-h-[250px]">
+            <img
+              src={previewProofModal.url}
+              alt={`Bukti Zoom ${previewProofModal.participantName}`}
+              className="max-h-[60vh] max-w-full object-contain rounded-xl"
+            />
           </div>
-        </div>
-      )}
+        )}
+      </Modal>
 
       {/* MODAL INPUT PRESENSI MANUAL */}
-      {manualModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
-          <div className="glass-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center text-sm font-bold">
-                  <i className="fa-solid fa-user-check"></i>
-                </div>
-                <div>
-                  <h3 className="font-extrabold text-sm text-slate-800 dark:text-white">
-                    Tandai Kehadiran Manual
-                  </h3>
-                  <p className="text-[11px] text-slate-400">Simpan status hadir langsung ke tabel absen</p>
-                </div>
-              </div>
-              <button
-                onClick={() => setManualModalOpen(false)}
-                className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 flex items-center justify-center transition-colors"
-              >
-                <i className="fa-solid fa-xmark text-xs"></i>
-              </button>
-            </div>
-
-            <form onSubmit={handleManualAttendanceSubmit} className="space-y-3.5 text-xs">
-              <div>
-                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  Pilih Sesi Zoom:
-                </label>
-                <select
-                  value={manualSessionId}
-                  onChange={(e) => setManualSessionId(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 font-bold"
-                >
-                  {sessions.map((ses) => (
-                    <option key={ses.id} value={ses.id}>
-                      {ses.title}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  Pilih Peserta:
-                </label>
-                <select
-                  value={selectedPesertaId}
-                  onChange={(e) => setSelectedPesertaId(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 font-bold"
-                  required
-                >
-                  <option value="">-- Pilih Nama Peserta --</option>
-                  {users
-                    .filter((u) => u.role === "peserta")
-                    .map((user) => (
-                      <option key={user.id} value={user.id}>
-                        {user.name} ({user.user_id || user.npm || user.email})
-                      </option>
-                    ))}
-                </select>
-              </div>
-
-              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
-                <button
-                  type="button"
-                  onClick={() => setManualModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold transition-colors"
-                >
-                  Batal
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmittingManual || !selectedPesertaId}
-                  className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold flex items-center gap-1.5 transition-all shadow-md disabled:opacity-50"
-                >
-                  <i className={`fa-solid ${isSubmittingManual ? "fa-spinner fa-spin" : "fa-check"}`}></i>
-                  <span>Simpan Kehadiran</span>
-                </button>
-              </div>
-            </form>
+      <Modal
+        isOpen={manualModalOpen}
+        onClose={() => setManualModalOpen(false)}
+        title="Tandai Kehadiran Manual"
+        subtitle="Simpan status hadir langsung ke tabel absen database"
+        icon="fa-solid fa-user-check"
+        size="md"
+      >
+        <form onSubmit={handleManualAttendanceSubmit} className="space-y-3.5 text-xs">
+          <div>
+            <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
+              Pilih Sesi Zoom:
+            </label>
+            <select
+              value={manualSessionId}
+              onChange={(e) => setManualSessionId(e.target.value)}
+              className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 font-bold"
+            >
+              {sessions.map((ses) => (
+                <option key={ses.id} value={ses.id}>
+                  {ses.title}
+                </option>
+              ))}
+            </select>
           </div>
-        </div>
-      )}
+
+          <div>
+            <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
+              Pilih Peserta:
+            </label>
+            <select
+              value={selectedPesertaId}
+              onChange={(e) => setSelectedPesertaId(e.target.value)}
+              className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 font-bold"
+              required
+            >
+              <option value="">-- Pilih Nama Peserta --</option>
+              {users
+                .filter((u) => u.role === "peserta")
+                .map((user) => (
+                  <option key={user.id} value={user.id}>
+                    {user.name} ({user.user_id || user.npm || user.email})
+                  </option>
+                ))}
+            </select>
+          </div>
+
+          <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+            <button
+              type="button"
+              onClick={() => setManualModalOpen(false)}
+              className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold transition-colors"
+            >
+              Batal
+            </button>
+            <button
+              type="submit"
+              disabled={isSubmittingManual || !selectedPesertaId}
+              className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold flex items-center gap-1.5 transition-all shadow-md disabled:opacity-50"
+            >
+              <i className={`fa-solid ${isSubmittingManual ? "fa-spinner fa-spin" : "fa-check"}`}></i>
+              <span>Simpan Kehadiran</span>
+            </button>
+          </div>
+        </form>
+      </Modal>
     </DashboardLayout>
   );
 }

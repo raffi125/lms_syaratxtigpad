@@ -3,10 +3,11 @@
 import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import DashboardLayout from "@/components/DashboardLayout";
+import Pagination from "@/components/Pagination";
 import { useApp } from "@/context/AppContext";
 import { SupabaseService } from "@/lib/supabaseService";
 import { SupabaseStorageService } from "@/lib/supabaseStorage";
-import { QuizItem, QuizAnswerRecord } from "@/types";
+import { QuizItem, QuizAnswerRecord, QuizSubmission } from "@/types";
 
 interface PertemuanQuizCategory {
   id: number;
@@ -151,36 +152,57 @@ export default function KuisPage() {
   const [earnedPoints, setEarnedPoints] = useState<number>(0);
   const [totalPossiblePoints, setTotalPossiblePoints] = useState<number>(100);
   const [validationError, setValidationError] = useState(false);
-  const [showReviewDetail, setShowReviewDetail] = useState(false);
+  const [showReviewDetail, setShowReviewDetail] = useState(true);
   const [openHints, setOpenHints] = useState<{ [key: number]: boolean }>({});
   const [essayAnswers, setEssayAnswers] = useState<{ [key: number]: string }>({});
   const [isScoreConfidential, setIsScoreConfidential] = useState(false);
-  const [pendingSubmission, setPendingSubmission] = useState<{
-    hasPending: boolean;
-    score?: number;
-    quizTitle?: string;
-    submittedAt?: string;
-  }>({ hasPending: false });
+  const [userSubmissions, setUserSubmissions] = useState<QuizSubmission[]>([]);
 
-  // Check if current user has an ungraded submission in database
+  // LMS Quiz Engine: Pagination, Navigation & Modal state
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
+  const [flaggedQuestions, setFlaggedQuestions] = useState<{ [key: number]: boolean }>({});
+  const [quizViewMode, setQuizViewMode] = useState<"single" | "all">("single");
+  const [isSubmitModalOpen, setIsSubmitModalOpen] = useState<boolean>(false);
+  const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
+
+  // Bank Soal Modal Pagination
+  const [bankPage, setBankPage] = useState<number>(1);
+  const bankPageSize = 6;
+
+  // Check user quiz submissions in database
   useEffect(() => {
-    if (!currentUser?.id) return;
+    if (!currentUser?.id && !currentUser?.name) return;
     SupabaseService.getQuizSubmissions(currentUser.id)
       .then((subs) => {
         if (subs && subs.length > 0) {
-          const latest = subs[0];
-          setPendingSubmission({
-            hasPending: Boolean(latest.hasUngradedEssays),
-            score: latest.hasUngradedEssays ? undefined : latest.score,
-            quizTitle: latest.quizTitle,
-            submittedAt: latest.submittedAt,
-          });
+          setUserSubmissions(subs);
         } else {
-          setPendingSubmission({ hasPending: false });
+          // Fallback search across all submissions if id format differed
+          SupabaseService.getQuizSubmissions()
+            .then((all) => {
+              const matched = all.filter(
+                (s) =>
+                  (currentUser.id && s.userId === currentUser.id) ||
+                  (currentUser.email && s.userEmail && s.userEmail.toLowerCase() === currentUser.email.toLowerCase()) ||
+                  (currentUser.name && s.userName && s.userName.toLowerCase().trim() === currentUser.name.toLowerCase().trim())
+              );
+              setUserSubmissions(matched);
+            })
+            .catch(() => {});
         }
       })
       .catch(() => {});
-  }, [currentUser?.id, screen]);
+  }, [currentUser?.id, currentUser?.name, currentUser?.email, screen]);
+
+  // Status kuis: nilai diprivasi dari peserta, hanya menampilkan status selesai
+  const hasCompletedAny =
+    userSubmissions.length > 0 || (currentUser?.score !== undefined && currentUser.score > 0);
+
+  const isCategoryCompleted = (catKey: string) => {
+    return userSubmissions.some((s) =>
+      matchQuizCategory({ category: s.category, meeting: s.quizTitle } as any, catKey)
+    );
+  };
 
   // Key for storing category lock statuses
   const STORAGE_KEY_QUIZ_LOCKS = "kolab_quiz_locked_status";
@@ -408,6 +430,11 @@ export default function KuisPage() {
     setEssayAnswers({});
     setValidationError(false);
     setOpenHints({});
+    setCurrentQuestionIndex(0);
+    setFlaggedQuestions({});
+    setIsSubmitModalOpen(false);
+    setPreviewImageUrl(null);
+    setQuizViewMode("single");
 
     // Dynamic timer: 2.5 minutes per question, min 5 mins, max 30 mins
     const dynamicMinutes = Math.min(30, Math.max(5, Math.ceil(targetQuestions.length * 2.5)));
@@ -437,6 +464,25 @@ export default function KuisPage() {
 
   const toggleHint = (qId: number) => {
     setOpenHints((prev) => ({ ...prev, [qId]: !prev[qId] }));
+  };
+
+  const handlePrevQuestion = () => {
+    setCurrentQuestionIndex((prev) => Math.max(0, prev - 1));
+  };
+
+  const handleNextQuestion = () => {
+    setCurrentQuestionIndex((prev) => Math.min(currentQuizQuestions.length - 1, prev + 1));
+  };
+
+  const handleToggleFlag = (quizId: number) => {
+    setFlaggedQuestions((prev) => ({
+      ...prev,
+      [quizId]: !prev[quizId],
+    }));
+  };
+
+  const handleOpenSubmitModal = () => {
+    setIsSubmitModalOpen(true);
   };
 
   // Submit Quiz Calculation
@@ -469,37 +515,27 @@ export default function KuisPage() {
 
     const calculated = totalPossible > 0 ? Math.round((totalEarned / totalPossible) * 100) : 0;
     
-    // PENTING: Jika ada soal essai, nilai dirahasiakan & status pending sampai dinilai mentor!
-    if (hasEssays) {
-      setFinalScore(0);
-      setIsScoreConfidential(true);
-      setPendingSubmission({
-        hasPending: true,
-        quizTitle: activeQuizTitle,
-        submittedAt: "Baru saja",
-      });
-      // JANGAN updateProfile({ score: calculated }) karena belum dinilai mentor
-    } else {
-      setFinalScore(calculated);
-      setIsScoreConfidential(false);
+    // Nilai diprivasi dari peserta di antarmuka kuis, status tercatat Selesai
+    setFinalScore(calculated);
+    setIsScoreConfidential(true);
+    if (!hasEssays) {
       updateProfile({ score: calculated });
     }
 
     setEarnedPoints(totalEarned);
     setTotalPossiblePoints(totalPossible);
+    setIsSubmitModalOpen(false);
     setScreen("completed");
 
     const quizLabel = activeCategory ? `Kuis ${activeCategory}` : "Kuis Evaluasi BISINDO";
 
     logActivity({
       title: `Menyelesaikan ${quizLabel}`,
-      description: hasEssays
-        ? `${activeQuizTitle} selesai dikumpulkan (${currentQuizQuestions.length} butir soal, termasuk ${currentQuizQuestions.filter((q) => q.type === "essai").length} butir soal essai). Nilai dirahasiakan & menunggu koreksi mentor.`
-        : `${activeQuizTitle} selesai dengan perolehan skor ${calculated}/100 (${correctCount}/${currentQuizQuestions.length} soal tuntas, ${totalEarned}/${totalPossible} poin)`,
+      description: `${activeQuizTitle} selesai dikerjakan dan tersimpan di database (${currentQuizQuestions.length} butir soal). Nilai diprivasi mentor.`,
       category: "kuis",
-      statusText: hasEssays ? "Menunggu Penilaian" : (calculated >= 70 ? `Lulus (${calculated})` : `Remedial (${calculated})`),
-      statusBadge: hasEssays ? "amber" : (calculated >= 70 ? "green" : "amber"),
-      icon: hasEssays ? "fa-solid fa-lock text-amber-500" : "fa-solid fa-stopwatch-20 text-tigpad",
+      statusText: "Selesai",
+      statusBadge: "green",
+      icon: "fa-solid fa-circle-check text-emerald-500",
     });
 
     // Save answer detail to cloud so admin/mentor can review and grade
@@ -529,7 +565,7 @@ export default function KuisPage() {
       };
     });
 
-    SupabaseService.saveQuizSubmission({
+    const newSubRecord: QuizSubmission = {
       id: `sub_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
       userId: currentUser.id,
       userName: currentUser.name,
@@ -544,19 +580,20 @@ export default function KuisPage() {
       answers: answerRecords,
       submittedAt: new Date().toISOString(),
       hasUngradedEssays: hasEssays,
-    }).catch((err) => console.error("[Quiz Submit Error]:", err));
+    };
 
-    if (hasEssays) {
-      showToast(
-        `${quizLabel} berhasil dikumpulkan! Nilai dirahasiakan karena masih ada soal essai yang perlu dinilai oleh mentor.`,
-        "info"
-      );
-    } else {
-      showToast(
-        `${quizLabel} selesai! Nilai Anda: ${calculated}/100`,
-        calculated >= 70 ? "success" : "warning"
-      );
-    }
+    SupabaseService.saveQuizSubmission(newSubRecord).catch((err) => console.error("[Quiz Submit Error]:", err));
+
+    // Segera perbarui state userSubmissions lokal agar badge Selesai langsung aktif
+    setUserSubmissions((prev) => [
+      newSubRecord,
+      ...prev.filter((s) => s.category !== (activeCategory || "Pertemuan 1")),
+    ]);
+
+    showToast(
+      `${quizLabel} berhasil diselesaikan! Status: Selesai (Nilai diprivasi mentor)`,
+      "success"
+    );
   };
 
 
@@ -731,6 +768,12 @@ export default function KuisPage() {
     return matchMeeting && matchSearch;
   });
 
+  const bankTotalPages = Math.max(1, Math.ceil(filteredBankQuizzes.length / bankPageSize));
+  const paginatedBankQuizzes = useMemo(() => {
+    const start = (bankPage - 1) * bankPageSize;
+    return filteredBankQuizzes.slice(start, start + bankPageSize);
+  }, [filteredBankQuizzes, bankPage, bankPageSize]);
+
   // Calculate Total Available Points
   const totalQuizPoints = quizzes.reduce((sum, q) => sum + (q.points || 10), 0);
   const totalImageQuizzes = quizzes.filter((q) => q.imageUrl && q.imageUrl.trim() !== "").length;
@@ -847,24 +890,28 @@ export default function KuisPage() {
 
               <div className="glass-card p-4 rounded-2xl border border-slate-200 dark:border-slate-800 flex items-center gap-3 shadow-sm">
                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg ${
-                  pendingSubmission.hasPending
-                    ? "bg-amber-500/10 text-amber-500"
-                    : currentUser.score !== undefined && currentUser.score > 0
+                  hasCompletedAny
                     ? "bg-emerald-500/10 text-emerald-500"
                     : "bg-slate-500/10 text-slate-400"
                 }`}>
-                  <i className={`fa-solid ${pendingSubmission.hasPending ? "fa-lock" : "fa-award"}`}></i>
+                  <i className={`fa-solid ${hasCompletedAny ? "fa-circle-check" : "fa-clipboard-check"}`}></i>
                 </div>
                 <div>
-                  <div className="text-[10px] uppercase font-bold text-slate-400">Nilai Anda</div>
-                  {pendingSubmission.hasPending ? (
-                    <div className="text-xs sm:text-sm font-black text-amber-600 dark:text-amber-400 flex items-center gap-1.5 mt-0.5">
-                      <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
-                      <span>Dirahasiakan (Perlu Koreksi)</span>
+                  <div className="text-[10px] uppercase font-bold text-slate-400">Status Kuis</div>
+                  {hasCompletedAny ? (
+                    <div>
+                      <div className="text-sm sm:text-base font-black text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5 mt-0.5">
+                        <i className="fa-solid fa-circle-check text-emerald-500 text-xs"></i>
+                        <span>Selesai</span>
+                      </div>
+                      <div className="text-[10px] text-slate-400 font-medium">Nilai diprivasi mentor</div>
                     </div>
                   ) : (
-                    <div className="text-lg font-black text-slate-800 dark:text-white">
-                      {currentUser.score !== undefined && currentUser.score > 0 ? `${currentUser.score}/100` : "Belum Ujian"}
+                    <div>
+                      <div className="text-sm sm:text-base font-bold text-slate-500 dark:text-slate-400 mt-0.5">
+                        Belum Dikerjakan
+                      </div>
+                      <div className="text-[10px] text-slate-400 font-medium">Siap dievaluasi</div>
                     </div>
                   )}
                 </div>
@@ -992,6 +1039,13 @@ export default function KuisPage() {
                               {p.shortTitle}
                             </span>
                             <div className="flex items-center gap-1.5 flex-wrap">
+                              {/* Status Selesai Badge */}
+                              {isCategoryCompleted(p.categoryKey) && (
+                                <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/15 px-2 py-0.5 rounded-md flex items-center gap-1 border border-emerald-500/30 shadow-sm">
+                                  <i className="fa-solid fa-circle-check text-emerald-500"></i> Selesai
+                                </span>
+                              )}
+
                               {/* Status Lock/Unlock Badge */}
                               {isLocked ? (
                                 <span className="text-[10px] font-bold text-rose-500 bg-rose-500/10 px-2 py-0.5 rounded-md flex items-center gap-1 border border-rose-500/20">
@@ -1078,12 +1132,18 @@ export default function KuisPage() {
                           ) : (
                             <button
                               onClick={() => startQuizForCategory(p.categoryKey, p.title, p.description)}
-                              className="btn-duotone w-full py-2.5 rounded-2xl text-xs font-bold flex items-center justify-center gap-2 shadow-md hover:scale-[1.02] transition-all"
+                              className={`w-full py-2.5 rounded-2xl text-xs font-bold flex items-center justify-center gap-2 shadow-md hover:scale-[1.02] transition-all ${
+                                isCategoryCompleted(p.categoryKey)
+                                  ? "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700"
+                                  : "btn-duotone"
+                              }`}
                             >
-                              <i className="fa-solid fa-play"></i>
+                              <i className={`fa-solid ${isCategoryCompleted(p.categoryKey) ? "fa-rotate-right text-emerald-500" : "fa-play"}`}></i>
                               <span>
                                 {isManager && isLocked
                                   ? `Preview Kuis ${p.shortTitle} (Mentor)`
+                                  : isCategoryCompleted(p.categoryKey)
+                                  ? `Kerjakan Ulang ${p.shortTitle} (Selesai)`
                                   : `Mulai Kuis ${p.shortTitle}`}
                               </span>
                             </button>
@@ -1129,6 +1189,13 @@ export default function KuisPage() {
                               Kategori Kustom
                             </span>
                             <div className="flex items-center gap-1.5 flex-wrap">
+                              {/* Status Selesai Badge */}
+                              {isCategoryCompleted(cName) && (
+                                <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/15 px-2 py-0.5 rounded-md flex items-center gap-1 border border-emerald-500/30 shadow-sm">
+                                  <i className="fa-solid fa-circle-check text-emerald-500"></i> Selesai
+                                </span>
+                              )}
+
                               {/* Status Lock/Unlock Badge */}
                               {isLocked ? (
                                 <span className="text-[10px] font-bold text-rose-500 bg-rose-500/10 px-2 py-0.5 rounded-md flex items-center gap-1 border border-rose-500/20">
@@ -1209,12 +1276,18 @@ export default function KuisPage() {
                           ) : (
                             <button
                               onClick={() => startQuizForCategory(cName, `Kuis Evaluasi: ${cName}`, `Topik ${cName}`)}
-                              className="btn-duotone w-full py-2.5 rounded-2xl text-xs font-bold flex items-center justify-center gap-2 shadow-md hover:scale-[1.02] transition-all"
+                              className={`w-full py-2.5 rounded-2xl text-xs font-bold flex items-center justify-center gap-2 shadow-md hover:scale-[1.02] transition-all ${
+                                isCategoryCompleted(cName)
+                                  ? "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700"
+                                  : "btn-duotone"
+                              }`}
                             >
-                              <i className="fa-solid fa-play"></i>
+                              <i className={`fa-solid ${isCategoryCompleted(cName) ? "fa-rotate-right text-emerald-500" : "fa-play"}`}></i>
                               <span>
                                 {isManager && isLocked
                                   ? `Preview Kuis ${cName} (Mentor)`
+                                  : isCategoryCompleted(cName)
+                                  ? `Kerjakan Ulang ${cName} (Selesai)`
                                   : `Mulai Kuis ${cName}`}
                               </span>
                             </button>
@@ -1278,7 +1351,13 @@ export default function KuisPage() {
                 <li className="flex items-start gap-2">
                   <i className="fa-solid fa-award text-amber-500 mt-0.5"></i>
                   <span>
-                    <strong>Kelulusan Sertifikat:</strong> Dapatkan minimal nilai 70 poin untuk memenuhi syarat evaluasi kompetensi BISINDO.
+                    <strong>Kelulusan & Sertifikat:</strong> Ambang batas kelulusan kompetensi BISINDO adalah 70 poin.
+                  </span>
+                </li>
+                <li className="flex items-start gap-2 text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 p-2 rounded-xl border border-emerald-500/20">
+                  <i className="fa-solid fa-user-shield text-emerald-500 mt-0.5 shrink-0"></i>
+                  <span>
+                    <strong>Privasi Nilai:</strong> Nilai numerik diprivasi dan direkap langsung oleh mentor. Setelah pengerjaan selesai, status kuis Anda akan tercatat <strong>Selesai</strong>.
                   </span>
                 </li>
                 <li className="flex items-start gap-2">
@@ -1294,10 +1373,10 @@ export default function KuisPage() {
                   </span>
                 </li>
                 {currentQuizQuestions.some((q) => q.type === "essai") && (
-                  <li className="flex items-start gap-2 text-amber-700 dark:text-amber-300 bg-amber-500/10 p-2.5 rounded-xl border border-amber-500/20">
-                    <i className="fa-solid fa-lock text-amber-500 mt-0.5 shrink-0"></i>
+                  <li className="flex items-start gap-2 text-purple-700 dark:text-purple-300 bg-purple-500/10 p-2.5 rounded-xl border border-purple-500/20">
+                    <i className="fa-solid fa-user-pen text-purple-500 mt-0.5 shrink-0"></i>
                     <span>
-                      <strong>Terdapat {currentQuizQuestions.filter((q) => q.type === "essai").length} Soal Essai:</strong> Lembar jawaban uraian Anda akan diperiksa dan dinilai manual oleh mentor pengajar. Nilai akhir kuis dirahasiakan sampai seluruh essai selesai dinilai.
+                      <strong>Terdapat {currentQuizQuestions.filter((q) => q.type === "essai").length} Soal Essai:</strong> Lembar jawaban uraian Anda akan diperiksa dan dinilai secara manual oleh mentor pengajar.
                     </span>
                   </li>
                 )}
@@ -1325,61 +1404,110 @@ export default function KuisPage() {
         )}
 
         {/* SCREEN 3: ACTIVE QUIZ ENGINE */}
+        {/* SCREEN 3: ACTIVE QUIZ ENGINE (LMS CBT EXPERIENCE) */}
         {screen === "active" && (
           <div className="space-y-6 animate-slide-up quiz-no-copy">
-            {/* Quiz Header Card */}
-            <div className="glass-card p-6 rounded-3xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-2 border-tigpad/40 shadow-xl">
-              <div>
+            {/* LMS CBT Header Bar */}
+            <div className="glass-card p-5 sm:p-6 rounded-3xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-2 border-tigpad/40 shadow-xl bg-white/95 dark:bg-slate-900/90 backdrop-blur-md">
+              <div className="space-y-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="px-2.5 py-1 rounded-full bg-syarat text-white text-[10px] font-bold">
-                    Ujian Berlangsung
+                  <span className="px-2.5 py-0.5 rounded-full bg-syarat text-white text-[10px] font-bold flex items-center gap-1 shadow-sm">
+                    <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span>
+                    <span>Ujian Berlangsung</span>
                   </span>
-                  <span className="px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold border border-emerald-500/30 flex items-center gap-1.5 shadow-sm">
-                    <i className="fa-solid fa-shield-halved"></i> Mode Ujian Aktif
+                  <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold border border-emerald-500/30 flex items-center gap-1 shadow-sm">
+                    <i className="fa-solid fa-shield-halved"></i>
+                    <span>Mode CBT Mandiri</span>
                   </span>
                   {activeCategory && (
-                    <span className="px-2.5 py-1 rounded-full bg-tigpad/15 text-tigpad text-[10px] font-bold border border-tigpad/30">
+                    <span className="px-2.5 py-0.5 rounded-full bg-tigpad/15 text-tigpad text-[10px] font-bold border border-tigpad/30">
                       {activeCategory}
                     </span>
                   )}
                 </div>
-                <h1 className="text-xl font-black mt-1">
+                <h1 className="text-lg sm:text-xl font-black text-slate-800 dark:text-white">
                   {activeQuizTitle}
                 </h1>
                 {activeQuizSubtitle && (
-                  <p className="text-xs text-slate-500 font-medium">
+                  <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
                     {activeQuizSubtitle}
                   </p>
                 )}
               </div>
 
-              {/* Quiz Countdown Timer */}
-              <div className="p-3 rounded-2xl bg-white dark:bg-slate-900 text-slate-800 dark:text-white font-mono flex items-center gap-3 border border-slate-200 dark:border-slate-800 shadow-sm">
-                <i className={`fa-solid fa-stopwatch text-lg ${timeLeft < 180 ? "text-red-500 animate-bounce" : "text-tigpad animate-pulse"}`}></i>
-                <div>
-                  <div className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-sans font-bold">
-                    Sisa Waktu Timer
-                  </div>
-                  <div className={`text-lg font-black ${timeLeft < 180 ? "text-red-500" : "text-tigpad"}`}>
-                    {formatTimer(timeLeft)}
+              {/* Header Right Actions: View Mode Switcher & Timer */}
+              <div className="flex items-center gap-3 flex-wrap">
+                {/* LMS View Mode Switcher: Mode Per Soal vs Tampilkan Semua */}
+                <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-2xl border border-slate-200 dark:border-slate-700 text-xs font-bold shadow-inner">
+                  <button
+                    type="button"
+                    onClick={() => setQuizViewMode("single")}
+                    className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
+                      quizViewMode === "single"
+                        ? "bg-white dark:bg-slate-900 text-syarat dark:text-syarat-light shadow-sm font-black"
+                        : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+                    }`}
+                    title="Kerjakan soal satu per satu layaknya ujian CBT LMS modern"
+                  >
+                    <i className="fa-solid fa-file-lines"></i>
+                    <span>Mode CBT (Per Soal)</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setQuizViewMode("all")}
+                    className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
+                      quizViewMode === "all"
+                        ? "bg-white dark:bg-slate-900 text-syarat dark:text-syarat-light shadow-sm font-black"
+                        : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+                    }`}
+                    title="Tampilkan seluruh lembar soal dalam satu halaman bergulir"
+                  >
+                    <i className="fa-solid fa-list-check"></i>
+                    <span>Semua Soal</span>
+                  </button>
+                </div>
+
+                {/* Countdown Timer */}
+                <div className="p-2.5 sm:p-3 rounded-2xl bg-white dark:bg-slate-900 text-slate-800 dark:text-white font-mono flex items-center gap-2.5 border border-slate-200 dark:border-slate-800 shadow-sm">
+                  <i className={`fa-solid fa-stopwatch text-lg ${timeLeft < 180 ? "text-red-500 animate-bounce" : "text-tigpad animate-pulse"}`}></i>
+                  <div>
+                    <div className="text-[9px] text-slate-400 uppercase font-sans font-bold leading-tight">
+                      Sisa Waktu
+                    </div>
+                    <div className={`text-base sm:text-lg font-black leading-tight ${timeLeft < 180 ? "text-red-500" : "text-tigpad"}`}>
+                      {formatTimer(timeLeft)}
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
+            {/* Main Quiz Area: Questions (Left) & CBT Palette Navigator (Right) */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-              {/* Questions Area */}
-              <div className="lg:col-span-8 glass-card p-6 sm:p-8 rounded-3xl space-y-8 shadow-xl">
-                <div className="space-y-2">
-                  <div className="flex justify-between text-xs font-bold">
-                    <span>Progress Jawaban Terisi</span>
-                    <span className="text-tigpad">
-                      {answeredCount} / {currentQuizQuestions.length} Soal ({progressPercent}%)
+              {/* Question Workspace (8 cols) */}
+              <div className="lg:col-span-8 space-y-4">
+                {/* Progress Bar & Status Pill */}
+                <div className="glass-card p-4 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-2 shadow-sm">
+                  <div className="flex flex-wrap items-center justify-between text-xs font-bold gap-2">
+                    <span className="text-slate-600 dark:text-slate-300 flex items-center gap-1.5">
+                      <i className="fa-solid fa-chart-pie text-syarat"></i>
+                      <span>Progres Lembar Jawaban:</span>
                     </span>
+                    <div className="flex items-center gap-3 text-xs">
+                      <span className="text-emerald-600 dark:text-emerald-400 font-extrabold">
+                        ✓ {answeredCount} / {currentQuizQuestions.length} Terjawab ({progressPercent}%)
+                      </span>
+                      {Object.values(flaggedQuestions).filter(Boolean).length > 0 && (
+                        <span className="text-amber-500 font-bold flex items-center gap-1">
+                          <i className="fa-solid fa-bookmark"></i>
+                          <span>{Object.values(flaggedQuestions).filter(Boolean).length} Ragu-ragu</span>
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <div className="w-full bg-slate-200 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden">
                     <div
-                      className="bg-gradient-to-r from-syarat to-tigpad h-full transition-all duration-300"
+                      className="bg-gradient-to-r from-syarat to-tigpad h-full transition-all duration-300 rounded-full"
                       style={{ width: `${progressPercent}%` }}
                     ></div>
                   </div>
@@ -1392,116 +1520,156 @@ export default function KuisPage() {
                   </div>
                 )}
 
-                <div className="space-y-8">
-                  {currentQuizQuestions.map((q, qIndex) => {
-                    const optionLabels = ["A", "B", "C", "D", "E"];
-                    const questionPoints = q.points || 10;
-                    const isHintOpen = openHints[q.id];
+                {/* VIEW MODE A: SINGLE QUESTION (LMS CBT PAGINATION) */}
+                {quizViewMode === "single" && (() => {
+                  const safeIndex = Math.min(Math.max(0, currentQuestionIndex), currentQuizQuestions.length - 1);
+                  const q = currentQuizQuestions[safeIndex] || currentQuizQuestions[0];
+                  if (!q) return null;
 
-                    return (
-                      <div
-                        key={q.id}
-                        id={`question_box_${q.id}`}
-                        className="p-5 sm:p-6 rounded-2xl bg-white/95 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 space-y-4 shadow-sm"
-                      >
-                        {/* Question Metadata Header */}
-                        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <span className="px-2.5 py-1 rounded-full bg-syarat text-white text-[10px] font-bold">
-                              Soal #{qIndex + 1}
-                            </span>
-                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
-                              q.type === "essai"
-                                ? "bg-purple-500/10 text-purple-600 border-purple-200 dark:border-purple-800"
-                                : "bg-blue-500/10 text-blue-600 border-blue-200 dark:border-blue-800"
-                            }`}>
-                              {q.type === "essai" ? "Soal Essai" : "Pilihan Ganda"}
-                            </span>
-                            <span className="px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold text-[10px] border border-slate-200 dark:border-slate-700">
-                              <i className="fa-solid fa-bookmark mr-1 text-tigpad"></i>
-                              {q.meeting || "Umum"}
-                            </span>
-                            <span
-                              className={`px-2 py-0.5 rounded-full text-[10px] font-bold capitalize ${
-                                q.difficulty === "mudah"
-                                  ? "bg-emerald-500/10 text-emerald-600"
-                                  : q.difficulty === "sulit"
-                                  ? "bg-rose-500/10 text-rose-600"
-                                  : "bg-amber-500/10 text-amber-600"
-                              }`}
-                            >
-                              Tingkat: {q.difficulty || "sedang"}
-                            </span>
-                          </div>
+                  const isEssay = q.type === "essai";
+                  const questionPoints = q.points || 10;
+                  const isHintOpen = openHints[q.id];
+                  const isFlagged = Boolean(flaggedQuestions[q.id]);
+                  const isFirst = safeIndex === 0;
+                  const isLast = safeIndex === currentQuizQuestions.length - 1;
+                  const optionLabels = ["A", "B", "C", "D", "E"];
 
-                          <div className="px-2.5 py-1 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 font-mono text-xs font-bold">
+                  return (
+                    <div className="glass-card p-6 sm:p-8 rounded-3xl space-y-6 shadow-xl border-2 border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-900/90">
+                      {/* Question Top Header */}
+                      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-800 pb-4">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="px-3 py-1 rounded-xl bg-syarat text-white text-xs font-black shadow-sm">
+                            Soal #{safeIndex + 1}
+                          </span>
+                          <span className="text-xs text-slate-400 font-semibold">
+                            dari {currentQuizQuestions.length} Butir
+                          </span>
+                          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
+                            isEssay
+                              ? "bg-purple-500/10 text-purple-600 border-purple-200 dark:border-purple-800"
+                              : "bg-blue-500/10 text-blue-600 border-blue-200 dark:border-blue-800"
+                          }`}>
+                            {isEssay ? "Soal Essai / Uraian" : "Pilihan Ganda"}
+                          </span>
+                          <span className="px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold text-[10px] border border-slate-200 dark:border-slate-700">
+                            {q.meeting || activeCategory || "Umum"}
+                          </span>
+                          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold capitalize ${
+                            q.difficulty === "mudah"
+                              ? "bg-emerald-500/10 text-emerald-600"
+                              : q.difficulty === "sulit"
+                              ? "bg-rose-500/10 text-rose-600"
+                              : "bg-amber-500/10 text-amber-600"
+                          }`}>
+                            Tingkat: {q.difficulty || "sedang"}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          {isFlagged && (
+                            <span className="px-2.5 py-1 rounded-xl bg-amber-500 text-white font-bold text-xs flex items-center gap-1 shadow-sm animate-pulse">
+                              <i className="fa-solid fa-bookmark"></i>
+                              <span>Ragu-Ragu</span>
+                            </span>
+                          )}
+                          <div className="px-3 py-1 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 font-mono text-xs font-black border border-amber-500/20">
                             ★ {questionPoints} Poin
                           </div>
                         </div>
+                      </div>
 
-                        {/* Question Text */}
-                        <h3 className="font-extrabold text-sm sm:text-base leading-relaxed text-slate-800 dark:text-slate-100">
+                      {/* Question Text */}
+                      <div className="space-y-3">
+                        <h2 className="font-extrabold text-base sm:text-lg leading-relaxed text-slate-800 dark:text-slate-100">
                           {q.question}
-                        </h3>
+                        </h2>
 
-                        {/* Sign Gesture Image Illustration (if provided) */}
+                        {/* Sign Gesture Image Illustration (with Pop Up Zoom Preview) */}
                         {q.imageUrl && q.imageUrl.trim() !== "" && (
-                          <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 space-y-2">
-                            <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-500">
-                              <i className="fa-solid fa-camera text-syarat"></i>
-                              <span>Foto / Ilustrasi Gestur Isyarat:</span>
+                          <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 space-y-2">
+                            <div className="flex items-center justify-between text-[11px] font-bold text-slate-500">
+                              <span className="flex items-center gap-1.5">
+                                <i className="fa-solid fa-camera text-syarat"></i>
+                                <span>Foto / Ilustrasi Gestur Isyarat:</span>
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => setPreviewImageUrl(q.imageUrl || null)}
+                                className="text-syarat hover:underline flex items-center gap-1"
+                              >
+                                <i className="fa-solid fa-magnifying-glass-plus"></i>
+                                <span>Klik Perbesar Gambar</span>
+                              </button>
                             </div>
-                            <div className="relative rounded-xl overflow-hidden max-w-sm border border-slate-200 dark:border-slate-700">
+                            <div
+                              onClick={() => setPreviewImageUrl(q.imageUrl || null)}
+                              className="group relative rounded-2xl overflow-hidden max-w-sm border border-slate-200 dark:border-slate-700 cursor-pointer shadow-sm hover:shadow-md transition-all"
+                              title="Klik untuk membuka popup gambar gestur resolusi penuh"
+                            >
                               <img
                                 src={q.imageUrl}
                                 alt="Ilustrasi Gestur Isyarat Soal"
-                                className="w-full max-h-64 object-contain bg-white dark:bg-slate-900"
+                                className="w-full max-h-72 object-contain bg-white dark:bg-slate-900 group-hover:scale-105 transition-transform duration-300"
                               />
+                              <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-bold gap-1.5 backdrop-blur-[2px]">
+                                <i className="fa-solid fa-magnifying-glass-plus text-base"></i>
+                                <span>Buka Pop Up Foto</span>
+                              </div>
                             </div>
                           </div>
                         )}
 
-                        {/* Question Hint Toggle (if available) */}
+                        {/* Question Hint Toggle */}
                         {q.hint && q.hint.trim() !== "" && (
-                          <div className="text-xs">
+                          <div className="text-xs pt-1">
                             <button
                               type="button"
                               onClick={() => toggleHint(q.id)}
-                              className="px-3 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 font-bold text-[11px] inline-flex items-center gap-1.5 transition-colors"
+                              className="px-3.5 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 font-bold text-xs inline-flex items-center gap-1.5 transition-colors border border-amber-500/20"
                             >
                               <i className="fa-solid fa-lightbulb"></i>
                               <span>{isHintOpen ? "Tutup Petunjuk Soal" : "💡 Butuh Petunjuk Soal?"}</span>
                             </button>
                             {isHintOpen && (
-                              <div className="mt-2 p-3 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 text-[11px] text-amber-800 dark:text-amber-200 animate-slide-up">
-                                <strong>Petunjuk:</strong> {q.hint}
+                              <div className="mt-2.5 p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 text-xs text-amber-800 dark:text-amber-200 animate-slide-up space-y-1">
+                                <div className="font-bold flex items-center gap-1.5">
+                                  <i className="fa-solid fa-lightbulb text-amber-500"></i>
+                                  <span>Petunjuk Resmi Mentor:</span>
+                                </div>
+                                <p className="leading-relaxed">{q.hint}</p>
                               </div>
                             )}
                           </div>
                         )}
+                      </div>
 
-                        {/* Question Input: Essay Textarea OR Multiple Choice Options */}
-                        {q.type === "essai" ? (
-                          <div className="space-y-2 pt-1">
+                      {/* Question Answer Inputs */}
+                      <div className="pt-2">
+                        {isEssay ? (
+                          <div className="space-y-2">
                             <div className="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-300">
                               <span className="flex items-center gap-1.5">
                                 <i className="fa-solid fa-pen-fancy text-purple-600"></i>
                                 <span>Lembar Jawaban Essai / Uraian:</span>
                               </span>
-                              <span className="text-[10px] text-slate-400 font-normal">
+                              <span className="text-[11px] text-slate-400 font-mono">
                                 {(essayAnswers[q.id] || "").length} Karakter
                               </span>
                             </div>
                             <textarea
-                              rows={4}
+                              rows={5}
                               value={essayAnswers[q.id] || ""}
                               onChange={(e) => handleEssayChange(q.id, e.target.value)}
-                              placeholder="Tuliskan uraian jawaban Anda di sini secara lengkap..."
-                              className="w-full p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs font-medium focus:ring-2 focus:ring-purple-500 outline-none transition-all leading-relaxed"
+                              placeholder="Ketikkan uraian jawaban Anda secara komprehensif di sini..."
+                              className="w-full p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-medium focus:ring-2 focus:ring-purple-500 outline-none transition-all leading-relaxed placeholder:text-slate-400 shadow-inner"
                             />
                           </div>
                         ) : (
-                          <div className="space-y-2.5 text-xs pt-1">
+                          <div className="space-y-2.5 text-xs sm:text-sm">
+                            <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wide mb-1">
+                              Pilih Salah Satu Jawaban:
+                            </div>
                             {q.options.map((optText, optIdx) => {
                               const isChecked = answers[q.id] === optIdx;
                               const label = optionLabels[optIdx] || String.fromCharCode(65 + optIdx);
@@ -1510,75 +1678,292 @@ export default function KuisPage() {
                                 <label
                                   key={optIdx}
                                   onClick={() => handleSelectAnswer(q.id, optIdx)}
-                                  className={`flex items-center gap-3 p-3.5 rounded-xl border cursor-pointer transition-all ${
+                                  className={`flex items-center gap-3.5 p-4 rounded-2xl border-2 cursor-pointer transition-all ${
                                     isChecked
-                                      ? "bg-syarat/10 border-syarat text-syarat dark:text-syarat-light font-bold ring-1 ring-syarat/20 shadow-sm"
-                                      : "bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700 hover:border-tigpad"
+                                      ? "bg-syarat/10 border-syarat text-syarat dark:text-syarat-light font-bold ring-2 ring-syarat/30 shadow-md transform translate-x-1"
+                                      : "bg-white dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 hover:border-tigpad hover:bg-slate-50 dark:hover:bg-slate-800/80"
                                   }`}
                                 >
                                   <span
-                                    className={`w-7 h-7 rounded-lg flex items-center justify-center font-bold text-xs flex-shrink-0 transition-colors ${
+                                    className={`w-8 h-8 rounded-xl flex items-center justify-center font-black text-xs sm:text-sm flex-shrink-0 transition-all ${
                                       isChecked
-                                        ? "bg-syarat text-white"
-                                        : "bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300"
+                                        ? "bg-syarat text-white shadow-md shadow-syarat/30 scale-105"
+                                        : "bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300"
                                     }`}
                                   >
                                     {label}
                                   </span>
-                                  <span className="flex-1 leading-relaxed">{optText}</span>
+                                  <span className="flex-1 leading-relaxed text-xs sm:text-sm">{optText}</span>
+                                  {isChecked && (
+                                    <i className="fa-solid fa-circle-check text-syarat text-base"></i>
+                                  )}
                                 </label>
                               );
                             })}
                           </div>
                         )}
                       </div>
-                    );
-                  })}
-                </div>
+
+                      {/* LMS CBT Bottom Pagination Toolbar */}
+                      <div className="pt-6 border-t border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
+                        <button
+                          type="button"
+                          onClick={handlePrevQuestion}
+                          disabled={isFirst}
+                          className={`px-4 py-2.5 rounded-2xl font-bold text-xs flex items-center gap-2 transition-all ${
+                            isFirst
+                              ? "opacity-35 cursor-not-allowed bg-slate-100 dark:bg-slate-800 text-slate-400 border border-transparent"
+                              : "bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 shadow-sm"
+                          }`}
+                        >
+                          <i className="fa-solid fa-chevron-left"></i>
+                          <span>Soal Sebelumnya</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => handleToggleFlag(q.id)}
+                          className={`px-4 py-2.5 rounded-2xl font-bold text-xs flex items-center gap-2 transition-all border ${
+                            isFlagged
+                              ? "bg-amber-500 text-white border-amber-600 shadow-md shadow-amber-500/20"
+                              : "bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-500/30"
+                          }`}
+                          title="Tandai nomor soal ini jika Anda masih ragu"
+                        >
+                          <i className={`fa-solid ${isFlagged ? "fa-bookmark" : "fa-regular fa-bookmark"}`}></i>
+                          <span>{isFlagged ? "Hapus Tanda Ragu" : "Tandai Ragu-Ragu"}</span>
+                        </button>
+
+                        {!isLast ? (
+                          <button
+                            type="button"
+                            onClick={handleNextQuestion}
+                            className="btn-duotone px-5 py-2.5 rounded-2xl font-bold text-xs flex items-center gap-2 shadow-md hover:scale-[1.02] transition-all"
+                          >
+                            <span>Soal Selanjutnya</span>
+                            <i className="fa-solid fa-chevron-right"></i>
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={handleOpenSubmitModal}
+                            className="px-6 py-2.5 rounded-2xl font-black text-xs bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-600/30 flex items-center gap-2 hover:scale-105 transition-all"
+                          >
+                            <i className="fa-solid fa-circle-check"></i>
+                            <span>Selesai & Kumpulkan Kuis ✨</span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* VIEW MODE B: ALL QUESTIONS SEQUENTIAL */}
+                {quizViewMode === "all" && (
+                  <div className="glass-card p-6 sm:p-8 rounded-3xl space-y-8 shadow-xl">
+                    <div className="space-y-8">
+                      {currentQuizQuestions.map((q, qIndex) => {
+                        const optionLabels = ["A", "B", "C", "D", "E"];
+                        const questionPoints = q.points || 10;
+                        const isFlagged = Boolean(flaggedQuestions[q.id]);
+
+                        return (
+                          <div
+                            key={q.id}
+                            id={`question_box_${q.id}`}
+                            className="p-5 sm:p-6 rounded-2xl bg-white/95 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 space-y-4 shadow-sm"
+                          >
+                            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span className="px-2.5 py-1 rounded-full bg-syarat text-white text-[10px] font-bold">
+                                  Soal #{qIndex + 1}
+                                </span>
+                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+                                  q.type === "essai"
+                                    ? "bg-purple-500/10 text-purple-600 border-purple-200 dark:border-purple-800"
+                                    : "bg-blue-500/10 text-blue-600 border-blue-200 dark:border-blue-800"
+                                }`}>
+                                  {q.type === "essai" ? "Soal Essai" : "Pilihan Ganda"}
+                                </span>
+                                <span className="px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold text-[10px] border border-slate-200 dark:border-slate-700">
+                                  {q.meeting || "Umum"}
+                                </span>
+                              </div>
+
+                              <div className="flex items-center gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => handleToggleFlag(q.id)}
+                                  className={`px-2.5 py-1 rounded-lg text-[10px] font-bold flex items-center gap-1 border ${
+                                    isFlagged
+                                      ? "bg-amber-500 text-white border-amber-600"
+                                      : "bg-amber-500/10 text-amber-600 border-amber-500/20"
+                                  }`}
+                                >
+                                  <i className="fa-solid fa-bookmark"></i>
+                                  <span>{isFlagged ? "Ragu-Ragu" : "Tandai"}</span>
+                                </button>
+                                <div className="px-2.5 py-1 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 font-mono text-xs font-bold">
+                                  ★ {questionPoints} Poin
+                                </div>
+                              </div>
+                            </div>
+
+                            <h3 className="font-extrabold text-sm sm:text-base leading-relaxed text-slate-800 dark:text-slate-100">
+                              {q.question}
+                            </h3>
+
+                            {q.imageUrl && q.imageUrl.trim() !== "" && (
+                              <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 space-y-2">
+                                <div
+                                  onClick={() => setPreviewImageUrl(q.imageUrl || null)}
+                                  className="relative rounded-xl overflow-hidden max-w-sm border border-slate-200 dark:border-slate-700 cursor-pointer"
+                                >
+                                  <img
+                                    src={q.imageUrl}
+                                    alt="Ilustrasi"
+                                    className="w-full max-h-64 object-contain bg-white dark:bg-slate-900"
+                                  />
+                                </div>
+                              </div>
+                            )}
+
+                            {q.type === "essai" ? (
+                              <textarea
+                                rows={4}
+                                value={essayAnswers[q.id] || ""}
+                                onChange={(e) => handleEssayChange(q.id, e.target.value)}
+                                placeholder="Tuliskan uraian jawaban Anda di sini secara lengkap..."
+                                className="w-full p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs font-medium focus:ring-2 focus:ring-purple-500 outline-none transition-all"
+                              />
+                            ) : (
+                              <div className="space-y-2 text-xs">
+                                {q.options.map((optText, optIdx) => {
+                                  const isChecked = answers[q.id] === optIdx;
+                                  const label = optionLabels[optIdx] || String.fromCharCode(65 + optIdx);
+                                  return (
+                                    <label
+                                      key={optIdx}
+                                      onClick={() => handleSelectAnswer(q.id, optIdx)}
+                                      className={`flex items-center gap-3 p-3.5 rounded-xl border cursor-pointer transition-all ${
+                                        isChecked
+                                          ? "bg-syarat/10 border-syarat text-syarat font-bold ring-1 ring-syarat/20"
+                                          : "bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700 hover:border-tigpad"
+                                      }`}
+                                    >
+                                      <span className={`w-7 h-7 rounded-lg flex items-center justify-center font-bold text-xs ${
+                                        isChecked ? "bg-syarat text-white" : "bg-slate-200 dark:bg-slate-700"
+                                      }`}>
+                                        {label}
+                                      </span>
+                                      <span className="flex-1">{optText}</span>
+                                    </label>
+                                  );
+                                })}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    <div className="pt-4 border-t border-slate-200 dark:border-slate-800 text-center">
+                      <button
+                        type="button"
+                        onClick={handleOpenSubmitModal}
+                        className="btn-duotone px-8 py-3.5 rounded-2xl text-xs font-black shadow-xl"
+                      >
+                        <i className="fa-solid fa-paper-plane mr-2"></i>
+                        <span>Kirim Jawaban Evaluasi Kuis</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
 
-              {/* Navigator Sidebar */}
+              {/* Navigator Sidebar: Palet Nomor Soal CBT (4 cols) */}
               <div className="lg:col-span-4 space-y-4">
-                <div className="glass-card p-6 rounded-3xl space-y-4 shadow-xl sticky top-6">
-                  <h3 className="font-extrabold text-sm flex items-center gap-2">
-                    <i className="fa-solid fa-list-ol text-tigpad"></i>
-                    <span>Navigasi Butir Soal</span>
-                  </h3>
-                  <div className="grid grid-cols-4 gap-2">
+                <div className="glass-card p-5 sm:p-6 rounded-3xl space-y-4 shadow-xl sticky top-6 border border-slate-200 dark:border-slate-800">
+                  <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+                    <h3 className="font-extrabold text-sm flex items-center gap-2">
+                      <i className="fa-solid fa-table-cells text-syarat"></i>
+                      <span>Palet Nomor Soal CBT</span>
+                    </h3>
+                    <span className="text-[11px] font-bold text-syarat bg-syarat/10 px-2 py-0.5 rounded-md">
+                      #{currentQuestionIndex + 1} Aktif
+                    </span>
+                  </div>
+
+                  {/* Grid Buttons 1, 2, 3... */}
+                  <div className="grid grid-cols-4 sm:grid-cols-5 lg:grid-cols-4 gap-2">
                     {currentQuizQuestions.map((q, idx) => {
+                      const isCurrent = currentQuestionIndex === idx;
                       const isFilled = q.type === "essai"
                         ? (essayAnswers[q.id] || "").trim().length > 0
                         : answers[q.id] !== undefined;
+                      const isFlagged = Boolean(flaggedQuestions[q.id]);
+
+                      let btnClass = "relative p-2.5 rounded-xl text-center text-xs font-black transition-all border shadow-sm ";
+                      if (isCurrent) {
+                        btnClass += "bg-syarat text-white border-syarat ring-2 ring-syarat/40 shadow-md scale-105 z-10";
+                      } else if (isFlagged) {
+                        btnClass += "bg-amber-500 text-white border-amber-600 shadow-sm";
+                      } else if (isFilled) {
+                        btnClass += "bg-emerald-500/15 border-emerald-500/40 text-emerald-700 dark:text-emerald-300";
+                      } else {
+                        btnClass += "bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 hover:border-syarat";
+                      }
+
                       return (
-                        <a
+                        <button
                           key={q.id}
-                          href={`#question_box_${q.id}`}
-                          className={`p-2.5 rounded-xl text-center text-xs font-bold transition-all border ${
-                            isFilled
-                              ? "bg-green-500/15 border-green-500/40 text-green-700 dark:text-green-300 font-black shadow-sm"
-                              : "bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 hover:border-syarat"
-                          }`}
+                          type="button"
+                          onClick={() => {
+                            setCurrentQuestionIndex(idx);
+                            if (quizViewMode === "all") {
+                              document.getElementById(`question_box_${q.id}`)?.scrollIntoView({ behavior: "smooth" });
+                            }
+                          }}
+                          className={btnClass}
+                          title={`Buka Soal #${idx + 1} (${isFilled ? "Sudah Dijawab" : "Belum Dijawab"}${isFlagged ? ", Ditandai Ragu" : ""})`}
                         >
-                          #{idx + 1}
-                        </a>
+                          <span>{idx + 1}</span>
+                          {isFlagged && (
+                            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-amber-400 rounded-full border border-white dark:border-slate-900"></span>
+                          )}
+                        </button>
                       );
                     })}
                   </div>
 
-                  <div className="pt-2 border-t border-slate-200 dark:border-slate-800 text-[11px] text-slate-500 space-y-1">
-                    <div className="flex justify-between">
-                      <span>Sudah dijawab:</span>
-                      <strong className="text-green-600">{answeredCount} soal</strong>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Belum dijawab:</span>
-                      <strong className="text-amber-500">{currentQuizQuestions.length - answeredCount} soal</strong>
+                  {/* Legend Keterangan Warna Palet CBT */}
+                  <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-1.5 text-[11px]">
+                    <div className="font-bold text-slate-400 text-[10px] uppercase">Keterangan Palet Soal:</div>
+                    <div className="grid grid-cols-2 gap-1.5 font-semibold">
+                      <div className="flex items-center gap-1.5 text-emerald-700 dark:text-emerald-400">
+                        <span className="w-3 h-3 rounded-md bg-emerald-500/20 border border-emerald-500/40 flex-shrink-0"></span>
+                        <span>Terjawab ({answeredCount})</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400">
+                        <span className="w-3 h-3 rounded-md bg-amber-500 border border-amber-600 flex-shrink-0"></span>
+                        <span>Ragu ({Object.values(flaggedQuestions).filter(Boolean).length})</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-slate-500">
+                        <span className="w-3 h-3 rounded-md bg-slate-200 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 flex-shrink-0"></span>
+                        <span>Belum ({currentQuizQuestions.length - answeredCount})</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-syarat dark:text-syarat-light">
+                        <span className="w-3 h-3 rounded-md bg-syarat border border-syarat flex-shrink-0"></span>
+                        <span>Aktif Dibuka</span>
+                      </div>
                     </div>
                   </div>
 
+                  {/* Trigger Pop Up Submit */}
                   <button
-                    onClick={handleSubmitQuiz}
-                    className="btn-duotone w-full py-3.5 rounded-2xl text-xs font-bold flex items-center justify-center gap-2 shadow-lg mt-4"
+                    type="button"
+                    onClick={handleOpenSubmitModal}
+                    className="btn-duotone w-full py-3.5 rounded-2xl text-xs font-black flex items-center justify-center gap-2 shadow-lg mt-2 hover:scale-[1.02] transition-all"
                   >
                     <i className="fa-solid fa-paper-plane"></i>
                     <span>Kirim Jawaban Evaluasi</span>
@@ -1586,92 +1971,195 @@ export default function KuisPage() {
                 </div>
               </div>
             </div>
+
+            {/* POP UP 1: LMS MODAL KONFIRMASI PENGUMPULAN KUIS */}
+            {isSubmitModalOpen && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                <div
+                  className="fixed inset-0 bg-slate-950/70 backdrop-blur-md transition-opacity"
+                  onClick={() => setIsSubmitModalOpen(false)}
+                ></div>
+                <div className="glass-card p-6 sm:p-8 rounded-3xl max-w-lg w-full relative z-10 animate-scale-up space-y-6 shadow-2xl border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-center">
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-syarat to-tigpad text-white flex items-center justify-center text-3xl mx-auto shadow-xl shadow-syarat/30">
+                    <i className="fa-solid fa-clipboard-check"></i>
+                  </div>
+
+                  <div className="space-y-2">
+                    <h3 className="text-xl sm:text-2xl font-black text-slate-800 dark:text-white">
+                      Konfirmasi Pengumpulan Kuis
+                    </h3>
+                    <p className="text-xs text-slate-500 leading-relaxed">
+                      Pastikan seluruh lembar jawaban telah Anda periksa dengan saksama sebelum mengumpulkan ke sistem evaluasi.
+                    </p>
+                  </div>
+
+                  {/* Ringkasan Status Soal Kuis */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                    <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-center">
+                      <div className="text-[10px] uppercase font-bold text-slate-400">Total Soal</div>
+                      <div className="text-base font-black text-slate-800 dark:text-white">
+                        {currentQuizQuestions.length}
+                      </div>
+                    </div>
+                    <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 text-center">
+                      <div className="text-[10px] uppercase font-bold text-emerald-600 dark:text-emerald-400">Terjawab</div>
+                      <div className="text-base font-black text-emerald-600 dark:text-emerald-400">
+                        {answeredCount}
+                      </div>
+                    </div>
+                    <div className={`p-3 rounded-2xl border text-center ${
+                      currentQuizQuestions.length - answeredCount > 0
+                        ? "bg-rose-500/10 border-rose-500/25 text-rose-600 dark:text-rose-400"
+                        : "bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 text-slate-400"
+                    }`}>
+                      <div className="text-[10px] uppercase font-bold">Belum Diisi</div>
+                      <div className="text-base font-black">
+                        {currentQuizQuestions.length - answeredCount}
+                      </div>
+                    </div>
+                    <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/25 text-center">
+                      <div className="text-[10px] uppercase font-bold text-amber-600 dark:text-amber-400">Ragu-Ragu</div>
+                      <div className="text-base font-black text-amber-600 dark:text-amber-400">
+                        {Object.values(flaggedQuestions).filter(Boolean).length}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Warning Callout If Any Unanswered */}
+                  {currentQuizQuestions.length - answeredCount > 0 ? (
+                    <div className="p-3.5 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-800 dark:text-amber-200 text-xs font-medium text-left flex items-start gap-2.5">
+                      <i className="fa-solid fa-triangle-exclamation text-amber-500 mt-0.5 text-base shrink-0"></i>
+                      <div className="space-y-0.5">
+                        <span className="font-bold block">Masih ada {currentQuizQuestions.length - answeredCount} butir soal yang belum dijawab!</span>
+                        <span className="opacity-90 leading-relaxed text-[11px]">
+                          Jawaban yang dikosongkan tidak akan mendapatkan poin. Anda disarankan memeriksa kembali nomor soal tersebut.
+                        </span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-xs font-semibold flex items-center justify-center gap-2">
+                      <i className="fa-solid fa-circle-check text-emerald-500"></i>
+                      <span>Seluruh butir soal telah berhasil Anda isi!</span>
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-center gap-2 text-xs text-slate-500 font-mono">
+                    <i className="fa-solid fa-stopwatch text-tigpad"></i>
+                    <span>Sisa Waktu Ujian: <strong>{formatTimer(timeLeft)}</strong></span>
+                  </div>
+
+                  {/* Modal Action Buttons */}
+                  <div className="flex flex-col sm:flex-row items-center gap-3 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setIsSubmitModalOpen(false)}
+                      className="w-full sm:flex-1 py-3 rounded-2xl font-bold text-xs border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all text-slate-700 dark:text-slate-300"
+                    >
+                      ← Periksa Kembali Soal
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleSubmitQuiz}
+                      className="btn-duotone w-full sm:flex-1 py-3 rounded-2xl font-black text-xs shadow-xl flex items-center justify-center gap-2"
+                    >
+                      <i className="fa-solid fa-paper-plane"></i>
+                      <span>Ya, Kumpulkan Sekarang</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* POP UP 2: LIGHTBOX ZOOM PREVIEW FOTO GESTUR */}
+            {previewImageUrl && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                <div
+                  className="fixed inset-0 bg-slate-950/80 backdrop-blur-md transition-opacity"
+                  onClick={() => setPreviewImageUrl(null)}
+                ></div>
+                <div className="glass-card p-4 rounded-3xl max-w-2xl w-full relative z-10 animate-scale-up space-y-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl">
+                  <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2 px-1">
+                    <span className="text-xs font-extrabold text-slate-700 dark:text-slate-200 flex items-center gap-2">
+                      <i className="fa-solid fa-camera text-syarat"></i>
+                      <span>Pratinjau Foto Gestur Isyarat BISINDO</span>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setPreviewImageUrl(null)}
+                      className="p-1 rounded-lg text-slate-400 hover:text-red-500 transition-colors"
+                    >
+                      <i className="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                  </div>
+                  <div className="rounded-2xl overflow-hidden bg-slate-950 flex items-center justify-center max-h-[75vh]">
+                    <img
+                      src={previewImageUrl}
+                      alt="Pratinjau Gestur Isyarat"
+                      className="w-full h-auto max-h-[75vh] object-contain"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
         {/* SCREEN 4: COMPLETED RESULT SCREEN & DETAILED REVIEW */}
         {screen === "completed" && (
           <div className="space-y-6 animate-slide-up max-w-3xl mx-auto">
-            <div className={`glass-card p-8 sm:p-10 rounded-3xl space-y-6 text-center border-2 shadow-2xl ${
-              isScoreConfidential
-                ? "border-amber-500/40 bg-gradient-to-b from-amber-500/[0.03] to-transparent"
-                : "border-green-500/40"
-            }`}>
-              {isScoreConfidential ? (
-                <>
-                  <div className="w-16 h-16 rounded-2xl bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center text-3xl font-bold mx-auto shadow-xl border border-amber-500/30 animate-pulse">
-                    <i className="fa-solid fa-lock"></i>
-                  </div>
+            <div className="glass-card p-8 sm:p-10 rounded-3xl space-y-6 text-center border-2 border-emerald-500/40 bg-gradient-to-b from-emerald-500/[0.04] to-transparent shadow-2xl">
+              <div className="w-16 h-16 rounded-2xl bg-emerald-500 text-white flex items-center justify-center text-3xl font-bold mx-auto shadow-xl shadow-emerald-500/20">
+                <i className="fa-solid fa-circle-check"></i>
+              </div>
 
-                  <div className="space-y-3 max-w-lg mx-auto">
-                    <div>
-                      <span className="px-3 py-1 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 text-xs font-bold inline-flex items-center gap-1.5 border border-amber-500/30">
-                        <i className="fa-solid fa-hourglass-half"></i>
-                        <span>Jawaban Berhasil Dikumpulkan</span>
-                      </span>
-                    </div>
-
-                    <h2 className="text-2xl sm:text-3xl font-black text-slate-800 dark:text-white">
-                      Nilai Dirahasiakan Sementara
-                    </h2>
-
-                    <div className="p-4 sm:p-5 rounded-2xl bg-amber-500/10 border-2 border-dashed border-amber-500/30 text-left space-y-2.5">
-                      <div className="flex items-center gap-2 text-amber-800 dark:text-amber-300 font-bold text-xs">
-                        <i className="fa-solid fa-user-pen text-amber-500"></i>
-                        <span>Menunggu Penilaian Soal Essai oleh Mentor</span>
-                      </div>
-                      <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-                        Kuis evaluasi ini memuat <strong>{currentQuizQuestions.filter((q) => q.type === "essai").length} butir soal essai</strong> yang memerlukan pemeriksaan dan penilaian manual dari mentor pengajar.
-                      </p>
-                      <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-                        Nilai total kuis dirahasiakan terlebih dahulu dan tidak dikeluarkan secara otomatis, agar hasil evaluasi mencerminkan akumulasi menyeluruh (Pilihan Ganda & Essai).
-                      </p>
-                      <div className="pt-2 border-t border-amber-500/20 flex flex-wrap items-center justify-between gap-2 text-[11px] font-semibold text-amber-700 dark:text-amber-400">
-                        <span>✓ {currentQuizQuestions.filter((q) => q.type !== "essai").length} Soal PG Terjawab</span>
-                        <span>⏳ {currentQuizQuestions.filter((q) => q.type === "essai").length} Soal Essai Menunggu Penilaian</span>
-                      </div>
-                    </div>
-
-                    <p className="text-xs text-slate-500 pt-1 leading-relaxed">
-                      Status: <strong className="text-amber-600 dark:text-amber-400">Menunggu Koreksi Mentor</strong> • Nilai resmi dan sertifikat kompetensi akan diterbitkan setelah mentor selesai memeriksa seluruh jawaban Anda.
-                    </p>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="w-16 h-16 rounded-2xl bg-green-500 text-white flex items-center justify-center text-3xl font-bold mx-auto shadow-xl">
+              <div className="space-y-3 max-w-lg mx-auto">
+                <div>
+                  <span className="px-3.5 py-1.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 text-xs font-bold inline-flex items-center gap-1.5 border border-emerald-500/30">
                     <i className="fa-solid fa-circle-check"></i>
+                    <span>Jawaban Berhasil Dikumpulkan</span>
+                  </span>
+                </div>
+
+                <h2 className="text-2xl sm:text-3xl font-black text-slate-800 dark:text-white">
+                  Kuis Telah Selesai
+                </h2>
+                <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium">
+                  {activeQuizTitle}
+                </p>
+
+                {/* Status Selesai Box (Nilai Diprivasi) */}
+                <div className="p-6 rounded-3xl bg-emerald-500/10 border-2 border-dashed border-emerald-500/30 text-center space-y-3.5">
+                  <div className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-2xl bg-emerald-600 text-white text-base font-extrabold shadow-lg shadow-emerald-600/20">
+                    <i className="fa-solid fa-circle-check text-lg"></i>
+                    <span>Status: Selesai</span>
                   </div>
 
-                  <div className="space-y-2">
-                    <span className="px-3 py-1 rounded-full bg-green-500/15 text-green-600 dark:text-green-400 text-xs font-bold">
-                      Ujian Kuis Selesai
+                  <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed max-w-md mx-auto">
+                    Seluruh lembar jawaban kuis Anda telah berhasil dikirim dan tersimpan aman di database cloud. Demi menjaga objektivitas dan kerahasiaan evaluasi, <strong>rincian nilai kuis diprivasi</strong> dan akan direkap serta ditinjau langsung oleh mentor pengajar.
+                  </p>
+
+                  <div className="pt-2.5 border-t border-emerald-500/20 flex flex-wrap items-center justify-center gap-4 text-xs font-semibold text-emerald-700 dark:text-emerald-400">
+                    <span className="flex items-center gap-1.5">
+                      <i className="fa-solid fa-database text-syarat"></i>
+                      <span>{currentQuizQuestions.length} Soal Berhasil Terkirim</span>
                     </span>
-                    <h2 className="text-2xl sm:text-3xl font-black">Hasil Evaluasi: {activeQuizTitle}</h2>
-                    <div className="text-5xl font-black text-syarat dark:text-syarat-light pt-2">
-                      {finalScore} / 100
-                    </div>
-                    <div className="flex justify-center gap-4 text-xs font-semibold text-slate-600 dark:text-slate-300 pt-1">
-                      <span>Poin Diperoleh: <strong>{earnedPoints} / {totalPossiblePoints} Pts</strong></span>
-                      <span>•</span>
-                      <span>
-                        Benar: <strong>{currentQuizQuestions.filter((q) => q.type !== "essai" && answers[q.id] === q.correctAnswer).length} / {currentQuizQuestions.filter((q) => q.type !== "essai").length || currentQuizQuestions.length} PG</strong>
-                      </span>
-                    </div>
-
-                    <p className="text-xs text-slate-500 max-w-md mx-auto pt-2 leading-relaxed">
-                      Status:{" "}
-                      <strong className={finalScore >= 70 ? "text-green-500" : "text-amber-500"}>
-                        {finalScore >= 70 ? "LULUS (≥ 70)" : "REMEDIAL (< 70)"}
-                      </strong>{" "}
-                      •{" "}
-                      {finalScore >= 70
-                        ? "Selamat! Anda memenuhi kualifikasi kompetensi BISINDO dan sertifikat kelulusan siap diterbitkan."
-                        : "Belum mencapai batas nilai minimal 70. Silakan tinjau kembali materi modul dan ikuti ujian remedial."}
-                    </p>
+                    <span>•</span>
+                    <span className="flex items-center gap-1.5">
+                      <i className="fa-solid fa-user-shield text-emerald-500"></i>
+                      <span>Nilai Diprivasi Mentor</span>
+                    </span>
+                    <span>•</span>
+                    <span className="flex items-center gap-1.5">
+                      <i className="fa-solid fa-clipboard-check text-indigo-500"></i>
+                      <span>Status Terverifikasi Selesai</span>
+                    </span>
                   </div>
-                </>
-              )}
+                </div>
+
+                <p className="text-xs text-slate-500 max-w-md mx-auto pt-1 leading-relaxed">
+                  Terima kasih atas partisipasi Anda dalam evaluasi pembelajaran BISINDO. Anda dapat meninjau kembali lembar jawaban atau kembali ke daftar kuis.
+                </p>
+              </div>
 
               <div className="pt-2 flex justify-center gap-3 flex-wrap">
                 <button
@@ -1681,26 +2169,26 @@ export default function KuisPage() {
                     setIsScoreConfidential(false);
                     setScreen("list");
                   }}
-                  className="px-5 py-2.5 rounded-xl font-bold text-xs border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                  className="btn-duotone px-6 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 shadow-lg"
                 >
-                  ← Kembali Ke Daftar Kuis
+                  <i className="fa-solid fa-arrow-left"></i>
+                  <span>← Kembali Ke Daftar Kuis</span>
                 </button>
                 <button
+                  type="button"
                   onClick={() => setShowReviewDetail(!showReviewDetail)}
-                  className="px-5 py-2.5 rounded-xl font-bold text-xs bg-syarat/10 text-syarat border border-syarat/30 hover:bg-syarat/20 transition-colors flex items-center gap-2"
+                  className="btn-primary px-5 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 shadow-lg transition-all"
                 >
-                  <i className={`fa-solid ${showReviewDetail ? "fa-chevron-up" : "fa-chevron-down"}`}></i>
-                  <span>{showReviewDetail ? "Sembunyikan Pembahasan" : "Lihat Lembar Jawaban & Pembahasan"}</span>
+                  <i className={`fa-solid ${showReviewDetail ? "fa-eye-slash" : "fa-list-check"}`}></i>
+                  <span>{showReviewDetail ? "Sembunyikan Pembahasan Soal" : "Lihat Pembahasan Soal"}</span>
                 </button>
-                {!isScoreConfidential && finalScore >= 70 && (
-                  <Link
-                    href="/sertifikat"
-                    className="btn-duotone px-6 py-2.5 rounded-xl font-bold text-xs inline-flex items-center gap-2 shadow-lg"
-                  >
-                    <i className="fa-solid fa-award"></i>
-                    <span>Lihat Sertifikat Saya →</span>
-                  </Link>
-                )}
+                <Link
+                  href="/sertifikat"
+                  className="px-5 py-2.5 rounded-xl font-bold text-xs bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 hover:bg-amber-500/20 transition-colors inline-flex items-center gap-2"
+                >
+                  <i className="fa-solid fa-award"></i>
+                  <span>Cek Status Sertifikat Saya →</span>
+                </Link>
               </div>
             </div>
 
@@ -1863,6 +2351,7 @@ export default function KuisPage() {
                 </div>
               </div>
             )}
+
           </div>
         )}
       </div>
@@ -2356,7 +2845,10 @@ export default function KuisPage() {
                 <input
                   type="text"
                   value={bankSearch}
-                  onChange={(e) => setBankSearch(e.target.value)}
+                  onChange={(e) => {
+                    setBankSearch(e.target.value);
+                    setBankPage(1);
+                  }}
                   placeholder="Cari pertanyaan, opsi, atau topik..."
                   className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs"
                 />
@@ -2364,7 +2856,10 @@ export default function KuisPage() {
 
               <select
                 value={bankFilterMeeting}
-                onChange={(e) => setBankFilterMeeting(e.target.value)}
+                onChange={(e) => {
+                  setBankFilterMeeting(e.target.value);
+                  setBankPage(1);
+                }}
                 className="px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-semibold"
               >
                 <option value="Semua">Semua Kategori & Pertemuan</option>
@@ -2391,7 +2886,9 @@ export default function KuisPage() {
                   <p>Tidak ada butir soal yang sesuai dengan kriteria filter.</p>
                 </div>
               ) : (
-                filteredBankQuizzes.map((q, idx) => (
+                paginatedBankQuizzes.map((q, idx) => {
+                  const globalIdx = (bankPage - 1) * bankPageSize + idx;
+                  return (
                   <div
                     key={q.id}
                     className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-3 shadow-sm hover:border-syarat transition-all"
@@ -2399,7 +2896,7 @@ export default function KuisPage() {
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="px-2.5 py-0.5 rounded-md bg-syarat/10 text-syarat font-bold text-[10px]">
-                          Soal #{idx + 1}
+                          Soal #{globalIdx + 1}
                         </span>
                         <span className={`px-2 py-0.5 rounded-md font-bold text-[10px] border ${
                           q.type === "essai"
@@ -2516,12 +3013,26 @@ export default function KuisPage() {
                       </div>
                     )}
                   </div>
-                ))
-              )}
-            </div>
+                );
+              })
+            )}
+          </div>
 
-            {/* Modal Footer */}
-            <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center">
+          {/* Pagination Controls */}
+          {bankTotalPages > 1 && (
+            <div className="pt-2 border-t border-slate-200 dark:border-slate-800">
+              <Pagination
+                currentPage={bankPage}
+                totalPages={bankTotalPages}
+                onPageChange={setBankPage}
+                totalItems={filteredBankQuizzes.length}
+                compact={true}
+              />
+            </div>
+          )}
+
+          {/* Modal Footer */}
+          <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center">
               <button
                 onClick={() => {
                   setManageModalOpen(false);

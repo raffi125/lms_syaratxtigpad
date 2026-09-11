@@ -1,7 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
+import Modal from "@/components/Modal";
+import Pagination from "@/components/Pagination";
 import { useApp } from "@/context/AppContext";
 import { CertificateItem } from "@/types";
 import { SupabaseStorageService } from "@/lib/supabaseStorage";
@@ -54,6 +56,16 @@ export default function SertifikatPage() {
       activeParticipants.push(c);
     }
   });
+
+  // Pagination states for sertifikat peserta
+  const [certPage, setCertPage] = useState(1);
+  const [certPageSize, setCertPageSize] = useState(10);
+
+  const certTotalPages = Math.max(1, Math.ceil(activeParticipants.length / certPageSize));
+  const paginatedParticipants = useMemo(() => {
+    const start = (certPage - 1) * certPageSize;
+    return activeParticipants.slice(start, start + certPageSize);
+  }, [activeParticipants, certPage, certPageSize]);
 
   // Quick Direct Upload Form States
   const [directFile, setDirectFile] = useState<File | null>(null);
@@ -581,7 +593,7 @@ export default function SertifikatPage() {
                       </td>
                     </tr>
                   ) : (
-                    activeParticipants.map((c) => (
+                    paginatedParticipants.map((c) => (
                       <tr key={c.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
                         <td className="p-3.5 font-bold">
                           <div className="text-slate-800 dark:text-white font-extrabold">{c.name}</div>
@@ -684,95 +696,110 @@ export default function SertifikatPage() {
                 </tbody>
               </table>
             </div>
-          </div>
-        )}
 
-        {/* MODAL: UPLOAD FILE PER PESERTA */}
-        {uploadModalUser && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div
-              className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm"
-              onClick={() => setUploadModalUser(null)}
-            ></div>
-            <div className="glass-card p-6 rounded-3xl max-w-md w-full relative z-10 animate-slide-up space-y-4">
-              <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-3">
-                <h3 className="font-extrabold text-base text-tigpad flex items-center gap-2">
-                  <i className="fa-solid fa-upload"></i> Upload File Sertifikat
-                </h3>
-                <button
-                  onClick={() => setUploadModalUser(null)}
-                  className="p-1 text-slate-400 hover:text-red-500"
-                >
-                  <i className="fa-solid fa-xmark text-lg"></i>
-                </button>
-              </div>
-
-              <div className="text-xs space-y-1">
-                <div>
-                  Penerima: <strong>{uploadModalUser.name}</strong>
-                </div>
-                <div className="text-slate-400 font-mono">User ID: {uploadModalUser.user_id || uploadModalUser.npm}</div>
-              </div>
-
-              <form onSubmit={handleModalUploadSubmit} className="space-y-4 text-xs">
-                <div>
-                  <label className="block font-bold mb-1">Pilih Berkas Sertifikat (PDF/JPG/PNG)</label>
-                  <input
-                    type="file"
-                    required
-                    accept=".pdf,.jpg,.jpeg,.png"
-                    onChange={(e) => setModalFile(e.target.files?.[0] || null)}
-                    className="w-full text-xs file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:bg-syarat file:text-white rounded-xl border p-1"
-                  />
-                </div>
-
-                <div className="flex justify-end gap-2 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setUploadModalUser(null)}
-                    className="px-4 py-2 rounded-xl font-bold border border-slate-300 dark:border-slate-700"
-                  >
-                    Batal
-                  </button>
-                  <button
-                    type="submit"
-                    className="btn-duotone px-5 py-2 rounded-xl font-bold shadow"
-                  >
-                    Simpan & Terbitkan
-                  </button>
-                </div>
-              </form>
+            {/* Pagination */}
+            <div className="p-4 border-t border-slate-200 dark:border-slate-800">
+              <Pagination
+                currentPage={certPage}
+                totalPages={certTotalPages}
+                totalItems={activeParticipants.length}
+                pageSize={certPageSize}
+                pageSizeOptions={[5, 10, 20, 50]}
+                onPageChange={setCertPage}
+                onPageSizeChange={setCertPageSize}
+                itemLabel="peserta"
+              />
             </div>
           </div>
         )}
 
-        {/* MODAL: PRATINJAU BERKAS DOKUMEN SERTIFIKAT */}
-        {previewUser && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div
-              className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm"
-              onClick={() => setPreviewUser(null)}
-            ></div>
-            <div className="glass-card p-6 sm:p-8 rounded-3xl max-w-4xl w-full max-h-[92vh] overflow-y-auto relative z-10 animate-slide-up space-y-4 shadow-2xl border border-slate-300 dark:border-slate-700">
-              <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-3">
-                <div className="space-y-0.5">
-                  <div className="font-extrabold text-sm text-syarat dark:text-syarat-light flex items-center gap-2">
-                    <i className="fa-solid fa-file-lines text-amber-500"></i>
-                    <span>Pratinjau Berkas Sertifikat Resmi</span>
-                  </div>
-                  <div className="text-xs text-slate-500">
-                    Peserta: <strong>{previewUser.name}</strong> • User ID:{" "}
-                    <span className="font-mono">{previewUser.user_id || previewUser.npm}</span>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setPreviewUser(null)}
-                  className="p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-red-500 transition-colors"
-                >
-                  <i className="fa-solid fa-xmark text-lg"></i>
-                </button>
+        {/* MODAL: UPLOAD FILE PER PESERTA */}
+        <Modal
+          isOpen={Boolean(uploadModalUser)}
+          onClose={() => setUploadModalUser(null)}
+          title="Upload File Sertifikat"
+          subtitle={
+            uploadModalUser ? (
+              <span>
+                Penerima: <strong>{uploadModalUser.name}</strong> • User ID:{" "}
+                <span className="font-mono text-syarat">{uploadModalUser.user_id || uploadModalUser.npm}</span>
+              </span>
+            ) : undefined
+          }
+          icon="fa-solid fa-upload"
+          size="md"
+        >
+          {uploadModalUser && (
+            <form onSubmit={handleModalUploadSubmit} className="space-y-4 text-xs">
+              <div>
+                <label className="block font-bold mb-1">Pilih Berkas Sertifikat (PDF/JPG/PNG)</label>
+                <input
+                  type="file"
+                  required
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  onChange={(e) => setModalFile(e.target.files?.[0] || null)}
+                  className="w-full text-xs file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:bg-syarat file:text-white rounded-xl border p-1"
+                />
               </div>
 
+              <div className="flex justify-end gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setUploadModalUser(null)}
+                  className="px-4 py-2 rounded-xl font-bold border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  className="btn-duotone px-5 py-2 rounded-xl font-bold shadow"
+                >
+                  Simpan & Terbitkan
+                </button>
+              </div>
+            </form>
+          )}
+        </Modal>
+
+        {/* MODAL: PRATINJAU BERKAS DOKUMEN SERTIFIKAT */}
+        <Modal
+          isOpen={Boolean(previewUser)}
+          onClose={() => setPreviewUser(null)}
+          title="Pratinjau Berkas Sertifikat Resmi"
+          subtitle={
+            previewUser ? (
+              <span>
+                Peserta: <strong>{previewUser.name}</strong> • User ID:{" "}
+                <span className="font-mono text-syarat">{previewUser.user_id || previewUser.npm}</span>
+              </span>
+            ) : undefined
+          }
+          icon="fa-solid fa-file-lines"
+          size="xl"
+          footer={
+            previewUser ? (
+              <div className="flex justify-end gap-2 w-full">
+                <button
+                  type="button"
+                  onClick={() => setPreviewUser(null)}
+                  className="px-4 py-2 rounded-xl text-xs font-bold border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                >
+                  Tutup
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleDownload(previewUser)}
+                  className="btn-duotone px-5 py-2 rounded-xl text-xs font-bold shadow-md flex items-center gap-2"
+                >
+                  <i className="fa-solid fa-download"></i>
+                  <span>Unduh Berkas Asli</span>
+                </button>
+              </div>
+            ) : undefined
+          }
+        >
+          {previewUser && (
+            <div className="space-y-3">
               {/* File Info Bar */}
               <div className="p-3.5 rounded-2xl bg-slate-100 dark:bg-slate-800/80 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 text-xs">
                 <div className="flex items-center gap-2 font-mono">
@@ -819,27 +846,9 @@ export default function SertifikatPage() {
                   </div>
                 )}
               </div>
-
-              {/* Modal Actions */}
-              <div className="flex justify-end gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
-                <button
-                  type="button"
-                  onClick={() => setPreviewUser(null)}
-                  className="px-4 py-2 rounded-xl text-xs font-bold border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                >
-                  Tutup
-                </button>
-                <button
-                  onClick={() => handleDownload(previewUser)}
-                  className="btn-duotone px-5 py-2 rounded-xl text-xs font-bold shadow-md flex items-center gap-2"
-                >
-                  <i className="fa-solid fa-download"></i>
-                  <span>Unduh Berkas Asli</span>
-                </button>
-              </div>
             </div>
-          </div>
-        )}
+          )}
+        </Modal>
       </div>
     </DashboardLayout>
   );

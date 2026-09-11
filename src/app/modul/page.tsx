@@ -1,7 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
+import Modal from "@/components/Modal";
+import Pagination from "@/components/Pagination";
 import { useApp } from "@/context/AppContext";
 import { SupabaseStorageService } from "@/lib/supabaseStorage";
 
@@ -46,6 +48,16 @@ export default function ModulPage() {
   const completedCount = modules.filter((m) => m.completed).length;
   const totalCount = modules.length;
   const percent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+
+  // Pagination states for modules
+  const [modulPage, setModulPage] = useState(1);
+  const [modulPageSize, setModulPageSize] = useState(6);
+
+  const modulTotalPages = Math.max(1, Math.ceil(modules.length / modulPageSize));
+  const paginatedModules = useMemo(() => {
+    const start = (modulPage - 1) * modulPageSize;
+    return modules.slice(start, start + modulPageSize);
+  }, [modules, modulPage, modulPageSize]);
 
   const currentModalModule = modules[activeModuleIndex] || modules[0];
 
@@ -278,7 +290,8 @@ export default function ModulPage() {
           </div>
         ) : (
           <div id="modulesContainer" className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {modules.map((m, idx) => {
+            {paginatedModules.map((m, idx) => {
+              const realIdx = (modulPage - 1) * modulPageSize + idx;
               const isCompleted = !isManager && m.completed;
               return (
                 <div
@@ -298,7 +311,7 @@ export default function ModulPage() {
                   <div className="space-y-3">
                     <div className="flex items-center gap-2 text-xs text-slate-500 font-semibold">
                       <span className="px-2.5 py-0.5 rounded-md bg-syarat/10 text-syarat dark:text-syarat-light font-bold">
-                        Modul {idx + 1}
+                        Modul {realIdx + 1}
                       </span>
                       <span>
                         <i className="fa-solid fa-circle-play text-syarat"></i> Video HD
@@ -320,10 +333,10 @@ export default function ModulPage() {
                     </p>
 
                     {(m.date || m.time) && (
-                      <div className="flex items-center gap-2 text-[11px] font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/80 px-2.5 py-1 rounded-xl w-fit">
+                      <div className="flex items-center gap-2 text-xs text-slate-500 font-semibold pt-1">
                         {m.date && (
-                          <span className="flex items-center gap-1 text-syarat dark:text-syarat-light">
-                            <i className="fa-regular fa-calendar text-xs"></i> {m.date}
+                          <span className="flex items-center gap-1">
+                            <i className="fa-regular fa-calendar text-xs text-syarat"></i> {m.date}
                           </span>
                         )}
                         {m.date && m.time && <span>•</span>}
@@ -399,64 +412,107 @@ export default function ModulPage() {
             })}
           </div>
         )}
+
+        {/* Modul Pagination */}
+        {modules.length > 0 && (
+          <div className="pt-4">
+            <Pagination
+              currentPage={modulPage}
+              totalPages={modulTotalPages}
+              onPageChange={setModulPage}
+              pageSize={modulPageSize}
+              onPageSizeChange={(newSize) => {
+                setModulPageSize(newSize);
+                setModulPage(1);
+              }}
+              totalItems={modules.length}
+            />
+          </div>
+        )}
       </div>
 
       {/* MODAL PEMBELAJARAN INTERAKTIF */}
-      {modalOpen && currentModalModule && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div
-            className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm"
-            onClick={() => setModalOpen(false)}
-          ></div>
+      <Modal
+        isOpen={modalOpen && !!currentModalModule}
+        onClose={() => setModalOpen(false)}
+        size="2xl"
+        title={currentModalModule?.title}
+        badge={
+          <span className="px-2.5 py-0.5 rounded-full bg-syarat text-white text-[10px] font-bold">
+            LMS Video Player • Modul {activeModuleIndex + 1}
+          </span>
+        }
+        headerActions={
+          <div className="flex items-center bg-slate-200/80 dark:bg-slate-800/80 p-1 rounded-2xl border border-slate-300 dark:border-slate-700">
+            <button
+              onClick={() => setPlayerMode("video")}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+                playerMode === "video"
+                  ? "bg-syarat text-white shadow"
+                  : "text-slate-600 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-700"
+              }`}
+            >
+              <i className="fa-solid fa-circle-play"></i>
+              <span>Video Tutorial</span>
+            </button>
+            <button
+              onClick={() => setPlayerMode("pdf")}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+                playerMode === "pdf"
+                  ? "bg-syarat text-white shadow"
+                  : "text-slate-600 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-700"
+              }`}
+            >
+              <i className="fa-solid fa-file-pdf"></i>
+              <span>Dokumen PDF</span>
+            </button>
+          </div>
+        }
+        footer={
+          <div className="flex justify-between items-center w-full">
+            {!isManager ? (
+              <button
+                type="button"
+                onClick={() => toggleModuleComplete(currentModalModule.id)}
+                className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 ${
+                  currentModalModule?.completed
+                    ? "bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300"
+                    : "bg-green-500 text-white shadow hover:bg-green-600"
+                }`}
+              >
+                <i className="fa-solid fa-circle-check"></i>
+                <span>
+                  {currentModalModule?.completed
+                    ? "Batalkan Status Selesai"
+                    : "Tandai Modul Ini Selesai"}
+                </span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  setModalOpen(false);
+                  handleOpenEditModal(activeModuleIndex);
+                }}
+                className="px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 bg-syarat text-white shadow hover:bg-syarat-light"
+              >
+                <i className="fa-solid fa-pen-to-square"></i>
+                <span>Edit Materi Ini</span>
+              </button>
+            )}
 
-          <div className="glass-card p-6 rounded-3xl max-w-4xl w-full space-y-4 max-h-[90vh] overflow-y-auto relative z-10 animate-slide-up">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="px-2.5 py-0.5 rounded-full bg-syarat text-white text-[10px] font-bold">
-                    LMS Video Player
-                  </span>
-                  <span
-                    id="playerModuleIdBadge"
-                    className="text-xs text-slate-500 font-semibold"
-                  >
-                    • Modul {activeModuleIndex + 1}
-                  </span>
-                </div>
-                <h3
-                  id="playerModuleTitle"
-                  className="font-extrabold text-lg tracking-tight mt-1"
-                >
-                  {currentModalModule.title}
-                </h3>
-              </div>
-
-              <div className="flex items-center bg-slate-200/80 dark:bg-slate-800/80 p-1 rounded-2xl border border-slate-300 dark:border-slate-700">
-                <button
-                  onClick={() => setPlayerMode("video")}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
-                    playerMode === "video"
-                      ? "bg-syarat text-white shadow"
-                      : "text-slate-600 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-700"
-                  }`}
-                >
-                  <i className="fa-solid fa-circle-play"></i>
-                  <span>Video Tutorial</span>
-                </button>
-                <button
-                  onClick={() => setPlayerMode("pdf")}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
-                    playerMode === "pdf"
-                      ? "bg-syarat text-white shadow"
-                      : "text-slate-600 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-700"
-                  }`}
-                >
-                  <i className="fa-solid fa-file-pdf"></i>
-                  <span>Dokumen PDF</span>
-                </button>
-              </div>
-            </div>
-
+            <button
+              type="button"
+              onClick={() => setModalOpen(false)}
+              className="px-5 py-2.5 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded-2xl font-bold text-xs hover:bg-slate-300"
+            >
+              Tutup Player
+            </button>
+          </div>
+        }
+      >
+        {currentModalModule && (
+          <div className="space-y-4">
             {/* MODE 1: VIDEO PLAYER */}
             {playerMode === "video" && (
               <div id="playerView_video" className="space-y-4">
@@ -554,77 +610,23 @@ export default function ModulPage() {
                 </div>
               </div>
             )}
-
-            {/* Modal Footer Actions */}
-            <div className="modal-action border-t border-slate-200 dark:border-slate-800 pt-3 flex justify-between items-center">
-              {!isManager ? (
-                <button
-                  type="button"
-                  onClick={() => toggleModuleComplete(currentModalModule.id)}
-                  className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 ${
-                    currentModalModule.completed
-                      ? "bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300"
-                      : "bg-green-500 text-white shadow hover:bg-green-600"
-                  }`}
-                >
-                  <i className="fa-solid fa-circle-check"></i>
-                  <span>
-                    {currentModalModule.completed
-                      ? "Batalkan Status Selesai"
-                      : "Tandai Modul Ini Selesai"}
-                  </span>
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setModalOpen(false);
-                    handleOpenEditModal(activeModuleIndex);
-                  }}
-                  className="px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 bg-syarat text-white shadow hover:bg-syarat-light"
-                >
-                  <i className="fa-solid fa-pen-to-square"></i>
-                  <span>Edit Materi Ini</span>
-                </button>
-              )}
-
-              <button
-                type="button"
-                onClick={() => setModalOpen(false)}
-                className="px-5 py-2.5 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded-2xl font-bold text-xs hover:bg-slate-300"
-              >
-                Tutup Player
-              </button>
-            </div>
           </div>
-        </div>
-      )}
+        )}
+      </Modal>
 
       {/* MODAL: TAMBAH / EDIT MODUL */}
-      {uploadModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div
-            className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm"
-            onClick={() => setUploadModalOpen(false)}
-          ></div>
-
-          <div className="glass-card p-6 sm:p-7 rounded-3xl max-w-lg w-full relative z-10 animate-slide-up">
-            <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-3">
-              <h3 className="font-extrabold text-base text-tigpad flex items-center gap-2">
-                <i className="fa-solid fa-folder-plus"></i>{" "}
-                {editingModuleId !== null
-                  ? "Edit Modul Pembelajaran"
-                  : "Upload & Kelola Modul Pembelajaran Baru"}
-              </h3>
-              <button
-                onClick={() => setUploadModalOpen(false)}
-                className="p-2 text-slate-500 hover:text-red-500"
-              >
-                <i className="fa-solid fa-xmark text-lg"></i>
-              </button>
-            </div>
-
-            <form onSubmit={handleSaveModule} className="space-y-4 mt-4 text-xs">
+      <Modal
+        isOpen={uploadModalOpen}
+        onClose={() => setUploadModalOpen(false)}
+        size="lg"
+        title={
+          editingModuleId !== null
+            ? "Edit Modul Pembelajaran"
+            : "Upload & Kelola Modul Pembelajaran Baru"
+        }
+        icon="fa-solid fa-folder-plus"
+      >
+        <form onSubmit={handleSaveModule} className="space-y-4 text-xs">
               <div>
                 <label className="block font-bold mb-1">Judul Modul Pembelajaran</label>
                 <input
@@ -779,9 +781,7 @@ export default function ModulPage() {
                 </button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
+      </Modal>
     </DashboardLayout>
   );
 }
