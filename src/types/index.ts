@@ -99,6 +99,7 @@ export interface QuizItem {
   difficulty?: "mudah" | "sedang" | "sulit";
   points?: number;
   imageUrl?: string;
+  videoUrl?: string;
   hint?: string;
   type?: "pilihan_ganda" | "essai";
 }

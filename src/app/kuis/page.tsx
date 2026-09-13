@@ -125,6 +125,47 @@ export default function KuisPage() {
 
   const isManager = currentRole === "mentor" || currentRole === "admin";
 
+  // Parser Tautan Video (YouTube / HTML5 MP4/WebM)
+  const parseYouTubeVideo = (url?: string): { isYouTube: boolean; embedUrl: string; videoId?: string } => {
+    if (!url) return { isYouTube: false, embedUrl: "" };
+    const raw = url.trim();
+    if (!raw) return { isYouTube: false, embedUrl: "" };
+
+    const normalized = raw.startsWith("http://") || raw.startsWith("https://") ? raw : `https://${raw}`;
+
+    if (normalized.includes("youtube.com/embed/") || normalized.includes("youtube-nocookie.com/embed/")) {
+      return { isYouTube: true, embedUrl: normalized };
+    }
+
+    const regExp = /(?:youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/|live\/|embed\/|v\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/i;
+    const match = normalized.match(regExp);
+
+    if (match && match[1]) {
+      const videoId = match[1];
+      let startSeconds = 0;
+      const timeMatch = normalized.match(/[?&]t=([0-9hms]+)/i);
+      if (timeMatch && timeMatch[1]) {
+        const tVal = timeMatch[1];
+        if (/^\d+$/.test(tVal)) {
+          startSeconds = parseInt(tVal, 10);
+        } else {
+          const hours = (tVal.match(/(\d+)h/i) || [])[1] || "0";
+          const mins = (tVal.match(/(\d+)m/i) || [])[1] || "0";
+          const secs = (tVal.match(/(\d+)s/i) || [])[1] || "0";
+          startSeconds = parseInt(hours, 10) * 3600 + parseInt(mins, 10) * 60 + parseInt(secs, 10);
+        }
+      }
+      const startParam = startSeconds > 0 ? `&start=${startSeconds}` : "";
+      return {
+        isYouTube: true,
+        videoId,
+        embedUrl: `https://www.youtube-nocookie.com/embed/${videoId}?rel=0&modestbranding=1&playsinline=1${startParam}`,
+      };
+    }
+
+    return { isYouTube: false, embedUrl: normalized };
+  };
+
   const [isSyncing, setIsSyncing] = useState(false);
 
   // Auto-sync bank soal dari cloud Supabase saat halaman dibuka
@@ -346,11 +387,13 @@ export default function KuisPage() {
   const [newDifficulty, setNewDifficulty] = useState<"mudah" | "sedang" | "sulit">("sedang");
   const [newPoints, setNewPoints] = useState<number>(10);
   const [newImageUrl, setNewImageUrl] = useState("");
+  const [newVideoUrl, setNewVideoUrl] = useState("");
   const [newHint, setNewHint] = useState("");
   const [newOptions, setNewOptions] = useState<string[]>(["", "", "", ""]);
   const [newCorrectAnswer, setNewCorrectAnswer] = useState<number>(0);
   const [newExplanation, setNewExplanation] = useState("");
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [isUploadingVideo, setIsUploadingVideo] = useState(false);
 
   // Bank Soal Filter & Search States
   const [bankFilterMeeting, setBankFilterMeeting] = useState("Semua");
@@ -609,6 +652,7 @@ export default function KuisPage() {
     setNewDifficulty("sedang");
     setNewPoints(10);
     setNewImageUrl("");
+    setNewVideoUrl("");
     setNewHint("");
     setNewOptions(["", "", "", ""]);
     setNewCorrectAnswer(0);
@@ -628,6 +672,7 @@ export default function KuisPage() {
     setNewDifficulty(q.difficulty || "sedang");
     setNewPoints(q.points ?? 10);
     setNewImageUrl(q.imageUrl || "");
+    setNewVideoUrl(q.videoUrl || "");
     setNewHint(q.hint || "");
     setNewOptions(q.options && q.options.length >= 2 ? [...q.options] : ["", "", "", ""]);
     setNewCorrectAnswer(q.correctAnswer ?? 0);
@@ -665,6 +710,39 @@ export default function KuisPage() {
       showToast(`Terjadi kesalahan: ${err.message || err}`, "error");
     } finally {
       setIsUploadingImage(false);
+    }
+  };
+
+  // Video File Upload to Supabase Storage
+  const handleVideoFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const isVideo = file.type.startsWith("video/") || /\.(mp4|webm|ogg|mov)$/i.test(file.name);
+    if (!isVideo) {
+      showToast("Berkas harus berupa video (MP4, WebM, MOV)!", "warning");
+      return;
+    }
+
+    if (file.size > 15 * 1024 * 1024) {
+      showToast("Ukuran video maksimal 15 MB!", "warning");
+      return;
+    }
+
+    try {
+      setIsUploadingVideo(true);
+      showToast("Mengunggah video soal ke Supabase Storage...", "info");
+      const result = await SupabaseStorageService.uploadFile("quizzes", file);
+      if (result.error) {
+        showToast(`Gagal mengunggah: ${result.error}`, "warning");
+      } else {
+        setNewVideoUrl(result.url);
+        showToast("Video pembantu soal berhasil diunggah!", "success");
+      }
+    } catch (err: any) {
+      showToast(`Terjadi kesalahan: ${err.message || err}`, "error");
+    } finally {
+      setIsUploadingVideo(false);
     }
   };
 
@@ -720,6 +798,7 @@ export default function KuisPage() {
       difficulty: newDifficulty,
       points: Number(newPoints) || 10,
       imageUrl: newImageUrl.trim(),
+      videoUrl: newVideoUrl.trim(),
       hint: newHint.trim(),
       type: newType,
     };
@@ -1620,6 +1699,56 @@ export default function KuisPage() {
                           </div>
                         )}
 
+                        {/* Question Support Video (YouTube / HTML5) */}
+                        {q.videoUrl && q.videoUrl.trim() !== "" && (() => {
+                          const ytData = parseYouTubeVideo(q.videoUrl);
+                          return (
+                            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 space-y-2">
+                              <div className="flex items-center justify-between text-[11px] font-bold text-slate-500">
+                                <span className="flex items-center gap-1.5">
+                                  <i className="fa-solid fa-video text-red-500"></i>
+                                  <span>Video Pembantu Soal:</span>
+                                </span>
+                                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
+                                  ytData.isYouTube
+                                    ? "bg-red-500/10 text-red-600 border-red-500/20"
+                                    : "bg-syarat/10 text-syarat border-syarat/20"
+                                }`}>
+                                  {ytData.isYouTube ? (
+                                    <span className="inline-flex items-center gap-1">
+                                      <i className="fa-brands fa-youtube text-red-600"></i> YouTube
+                                    </span>
+                                  ) : (
+                                    <span className="inline-flex items-center gap-1">
+                                      <i className="fa-solid fa-file-video"></i> Video HTML5
+                                    </span>
+                                  )}
+                                </span>
+                              </div>
+                              <div className="aspect-video w-full max-w-2xl rounded-2xl overflow-hidden bg-black border border-slate-200 dark:border-slate-700 shadow-sm">
+                                {ytData.isYouTube ? (
+                                  <iframe
+                                    src={ytData.embedUrl}
+                                    title="Video Pembantu Soal"
+                                    className="w-full h-full border-0"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                    allowFullScreen
+                                  ></iframe>
+                                ) : (
+                                  <video
+                                    className="w-full h-full"
+                                    controls
+                                    preload="metadata"
+                                    src={q.videoUrl}
+                                  >
+                                    Browser Anda tidak mendukung pemutar video HTML5.
+                                  </video>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })()}
+
                         {/* Question Hint Toggle */}
                         {q.hint && q.hint.trim() !== "" && (
                           <div className="text-xs pt-1">
@@ -1827,6 +1956,47 @@ export default function KuisPage() {
                                 </div>
                               </div>
                             )}
+
+                            {q.videoUrl && q.videoUrl.trim() !== "" && (() => {
+                              const ytData = parseYouTubeVideo(q.videoUrl);
+                              return (
+                                <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 space-y-2">
+                                  <div className="flex items-center justify-between text-[11px] font-bold text-slate-500">
+                                    <span className="flex items-center gap-1.5">
+                                      <i className="fa-solid fa-video text-red-500"></i>
+                                      <span>Video Pembantu Soal</span>
+                                    </span>
+                                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+                                      ytData.isYouTube
+                                        ? "bg-red-500/10 text-red-600 border-red-500/20"
+                                        : "bg-syarat/10 text-syarat border-syarat/20"
+                                    }`}>
+                                      {ytData.isYouTube ? "YouTube" : "HTML5"}
+                                    </span>
+                                  </div>
+                                  <div className="aspect-video w-full max-w-xl rounded-xl overflow-hidden bg-black border border-slate-200 dark:border-slate-700">
+                                    {ytData.isYouTube ? (
+                                      <iframe
+                                        src={ytData.embedUrl}
+                                        title="Video Pembantu Soal"
+                                        className="w-full h-full border-0"
+                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                        allowFullScreen
+                                      ></iframe>
+                                    ) : (
+                                      <video
+                                        className="w-full h-full"
+                                        controls
+                                        preload="metadata"
+                                        src={q.videoUrl}
+                                      >
+                                        Browser Anda tidak mendukung pemutar video HTML5.
+                                      </video>
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            })()}
 
                             {q.type === "essai" ? (
                               <textarea
@@ -2666,6 +2836,100 @@ export default function KuisPage() {
                     </div>
                   </div>
                 )}
+              </div>
+
+              {/* SECTION 3.5: VIDEO PEMBANTU SOAL (YOUTUBE / MP4 / WEBM) */}
+              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-3">
+                <div className="flex justify-between items-center">
+                  <div className="font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1.5 text-xs">
+                    <i className="fa-solid fa-video text-red-500"></i>
+                    <span>Video Pembantu Soal (Opsional)</span>
+                  </div>
+                  {newVideoUrl && (
+                    <button
+                      type="button"
+                      onClick={() => setNewVideoUrl("")}
+                      className="text-[10px] text-red-500 hover:underline font-bold"
+                    >
+                      Hapus Video
+                    </button>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
+                  {/* File Upload Trigger */}
+                  <div>
+                    <label className="block text-[11px] text-slate-500 mb-1">
+                      Unggah berkas video langsung ke Supabase Storage:
+                    </label>
+                    <input
+                      type="file"
+                      accept="video/*,.mp4,.webm,.ogg,.mov"
+                      disabled={isUploadingVideo}
+                      onChange={handleVideoFileChange}
+                      className="block w-full text-[11px] text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-red-500/10 file:text-red-600 hover:file:bg-red-500/20 cursor-pointer"
+                    />
+                    {isUploadingVideo && (
+                      <p className="text-[10px] text-tigpad font-bold mt-1 flex items-center gap-1">
+                        <i className="fa-solid fa-spinner fa-spin"></i>
+                        <span>Mengunggah ke Supabase Storage (kolab/quizzes)...</span>
+                      </p>
+                    )}
+                    <p className="text-[10px] text-slate-400 mt-1">
+                      Maks. 15 MB. Format MP4, WebM, MOV.
+                    </p>
+                  </div>
+
+                  {/* Or Video URL Input */}
+                  <div>
+                    <label className="block text-[11px] text-slate-500 mb-1">
+                      Atau tautan YouTube / URL video eksternal:
+                    </label>
+                    <input
+                      type="url"
+                      value={newVideoUrl}
+                      onChange={(e) => setNewVideoUrl(e.target.value)}
+                      placeholder="https://www.youtube.com/watch?v=... atau https://.../video.mp4"
+                      className="w-full px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs"
+                    />
+                  </div>
+                </div>
+
+                {/* YouTube/Video URL Detected Hint */}
+                {newVideoUrl && (() => {
+                  const parsed = parseYouTubeVideo(newVideoUrl);
+                  return (
+                    <div className="mt-2 flex items-center gap-3 p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+                      <div className="w-16 h-10 rounded-lg bg-black flex items-center justify-center overflow-hidden flex-shrink-0">
+                        {parsed.isYouTube ? (
+                          <iframe
+                            src={parsed.embedUrl}
+                            title="Preview YouTube"
+                            className="w-full h-full border-0"
+                          ></iframe>
+                        ) : (
+                          <i className="fa-solid fa-video text-slate-400"></i>
+                        )}
+                      </div>
+                      <div className="flex-1 overflow-hidden">
+                        <div className="text-[11px] font-bold text-slate-700 dark:text-slate-200 truncate">
+                          {parsed.isYouTube ? (
+                            <span className="inline-flex items-center gap-1.5">
+                              <i className="fa-brands fa-youtube text-red-600"></i>
+                              Tautan YouTube Terdeteksi
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1.5">
+                              <i className="fa-solid fa-file-video text-syarat"></i>
+                              Video Eksternal / HTML5
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-[10px] text-slate-400 truncate">{newVideoUrl}</div>
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
 
               {/* SECTION 4: PILIHAN JAWABAN DINAMIS (PILIHAN GANDA) ATAU INFO ESSAI */}

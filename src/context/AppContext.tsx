@@ -305,6 +305,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           let difficulty: "mudah" | "sedang" | "sulit" = "sedang";
           let points = 10;
           let imageUrl = "";
+          let videoUrl = "";
           let hint = "";
           let type: "pilihan_ganda" | "essai" = "pilihan_ganda";
 
@@ -317,6 +318,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
               difficulty = parsed.difficulty || difficulty;
               points = parsed.points ?? points;
               imageUrl = parsed.imageUrl || "";
+              videoUrl = parsed.videoUrl || "";
               hint = parsed.hint || "";
               type = parsed.type === "essai" ? "essai" : "pilihan_ganda";
             } catch {
@@ -335,6 +337,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             difficulty,
             points,
             imageUrl,
+            videoUrl,
             hint,
             type,
           };
@@ -1448,6 +1451,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       difficulty: quizData.difficulty || "sedang",
       points: quizData.points ?? 10,
       imageUrl: quizData.imageUrl || "",
+      videoUrl: quizData.videoUrl || "",
       hint: quizData.hint || "",
       type: qType,
     });
@@ -1463,6 +1467,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       difficulty: quizData.difficulty || "sedang",
       points: quizData.points ?? 10,
       imageUrl: quizData.imageUrl || "",
+      videoUrl: quizData.videoUrl || "",
       hint: quizData.hint || "",
       type: qType,
     };
@@ -1489,6 +1494,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const difficulty = updated.difficulty ?? existing?.difficulty ?? "sedang";
     const points = updated.points ?? existing?.points ?? 10;
     const imageUrl = updated.imageUrl ?? existing?.imageUrl ?? "";
+    const videoUrl = updated.videoUrl ?? existing?.videoUrl ?? "";
     const hint = updated.hint ?? existing?.hint ?? "";
     const qType = updated.type ?? existing?.type ?? "pilihan_ganda";
     const rawText = updated.explanation !== undefined ? updated.explanation : (existing?.explanation || "");
@@ -1500,12 +1506,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       difficulty,
       points,
       imageUrl,
+      videoUrl,
       hint,
       type: qType,
     });
 
     setQuizzes((prev) =>
-      prev.map((q) => (q.id === id ? { ...q, ...updated, explanation: rawText, category, meeting, difficulty, points, imageUrl, hint, type: qType } : q))
+      prev.map((q) => (q.id === id ? { ...q, ...updated, explanation: rawText, category, meeting, difficulty, points, imageUrl, videoUrl, hint, type: qType } : q))
     );
 
     if (isSupabaseConfigured()) {
