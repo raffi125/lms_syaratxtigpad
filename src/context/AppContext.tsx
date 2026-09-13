@@ -739,6 +739,26 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const query = emailOrId.trim().toLowerCase();
     const cleanPass = (password || "").trim();
 
+    // 0. Server-authoritative: buat sesi HttpOnly di server. Jika server menolak → login gagal.
+    //    (Jika server unreachable, fallback ke logika lokal agar aplikasi tetap berfungsi saat API hiccup.)
+    let serverResult: { success?: boolean; message?: string } | null = null;
+    let serverReachable = true;
+    try {
+      const res = await fetch("/api/auth/session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query, password: cleanPass }),
+      });
+      serverResult = await res.json();
+    } catch {
+      serverReachable = false;
+      serverResult = null;
+    }
+    if (serverResult && serverResult.success === false) {
+      showToast(serverResult.message || "Login gagal. Silakan periksa kembali.", "error");
+      return false;
+    }
+
     // 1. Admin login check (hardcoded, tidak perlu DB)
     if (
       query === "admin@kolab.id" ||
@@ -746,8 +766,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       query === "admin-01" ||
       query === "administrator"
     ) {
-      if (cleanPass && cleanPass !== "admin" && cleanPass !== "admin123") {
-        showToast("Kata sandi Administrator salah! (Gunakan: admin)", "error");
+      if (cleanPass !== "admin" && cleanPass !== "admin123") {
+        showToast("Kata sandi Administrator salah! Silakan periksa kembali.", "error");
         return false;
       }
       setCurrentUserId(INITIAL_ADMIN.id);
@@ -761,14 +781,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       return true;
     }
 
-    // 2. Mentor login check (hardcoded, tidak perlu DB)
+    // 2. Mentor login check
     if (
       query === "mentor@kolab.id" ||
       query === "mentor" ||
       query === "mentor-01"
     ) {
-      if (cleanPass && cleanPass !== "mentor" && cleanPass !== "mentor123") {
-        showToast("Kata sandi Mentor salah! (Gunakan: mentor)", "error");
+      if (cleanPass !== "mentor" && cleanPass !== "mentor123") {
+        showToast("Kata sandi Mentor salah! Silakan periksa kembali.", "error");
         return false;
       }
       setCurrentUserId(INITIAL_MENTOR.id);
@@ -790,6 +810,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         (u.npm && u.npm.toLowerCase() === query) ||
         u.name.toLowerCase() === query
     );
+
+    // 3b. Jika server menyetujui peserta, sesuaikan peran jika state lokal tertinggal.
+    if (serverResult && serverResult.success && found) {
+      // skip — peran peserta sudah valid; hindari ambiguitas dengan data server.
+    }
 
     // 4. Fallback: query langsung ke Supabase jika belum ada di state (race condition saat page load)
     if (!found && isSupabaseConfigured()) {
@@ -878,6 +903,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           institution: userData.institution?.trim() || "Masyarakat Umum",
           score: 0,
           progress: 0,
+          password: userData.password, // di-hash oleh gateway; NULL → login tetap permisif
         });
 
         if (created && created.id) {
@@ -892,6 +918,18 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             cert_file_name: "",
             issue_date: "-",
           }).catch(() => {});
+        }
+
+        // Auto-login server: buat sesi HttpOnly agar operasi gateway berikutnya terotorisasi
+        try {
+          await fetch("/api/auth/session", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ query: emailNorm, password: userData.password }),
+          });
+        } catch {
+          // sesi server gagal dibuat → operasi tulis peserta berikutnya akan ditolak gateway (fail-closed)
+          console.warn("Server session creation failed for new peserta:", emailNorm);
         }
       } catch (err: any) {
         console.warn("Supabase register error:", err);
@@ -945,6 +983,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (typeof window !== "undefined") {
       sessionStorage.removeItem("currentUserId");
       sessionStorage.removeItem("currentRole");
+      // Bersihkan sesi server (HttpOnly cookie)
+      fetch("/api/auth/session", { method: "DELETE" }).catch(() => {});
     }
     showToast("Anda telah keluar dari akun.", "info");
   };
@@ -1651,10 +1691,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         institution: newUser.institution,
         score: newUser.score,
         progress: newUser.progress,
+        password: newUser.password, // di-hash oleh gateway; NULL → login tetap permisif
       });
     }
 
-    showToast("Pengguna \"" + newUser.name + "\" berhasil ditambahkan!", "success");
+    const oncePwd = newUser.password
+      ? ` Kata sandi awal: ${newUser.password} (hanya ditampilkan sekali, segera bagikan ke pengguna).`
+      : "";
+    showToast("Pengguna \"" + newUser.name + "\" berhasil ditambahkan!" + oncePwd, "success");
   };
 
   const updateUser = async (id: number, userData: Partial<User>) => {
@@ -1697,6 +1741,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         institution: userData.institution,
         score: userData.score,
         progress: userData.progress,
+        password: userData.password, // reset sandi: di-hash oleh gateway
       });
     }
 
@@ -1709,7 +1754,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       icon: "fa-solid fa-user-pen text-syarat",
     });
 
-    showToast("Data pengguna \"" + (userData.name || "User") + "\" berhasil diperbarui!", "success");
+    const oncePwd = userData.password
+      ? ` Kata sandi baru: ${userData.password} (hanya ditampilkan sekali, segera bagikan ke pengguna).`
+      : "";
+    showToast("Data pengguna \"" + (userData.name || "User") + "\" berhasil diperbarui!" + oncePwd, "success");
   };
 
   const deleteUser = async (id: number) => {

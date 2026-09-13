@@ -1,0 +1,121 @@
+- generic [active] [ref=e1]:
+  - alert [ref=e47]
+  - generic [ref=e48]:
+    - banner [ref=e49]:
+      - generic [ref=e50]:
+        - link "Logo SYARAT X TIGPAD SYARAT X TIGPAD KOLAB BISINDO" [ref=e52] [cursor=pointer]:
+          - /url: /
+          - img "Logo SYARAT X TIGPAD" [ref=e53]
+          - generic [ref=e54]:
+            - generic [ref=e55]: SYARAT X TIGPAD
+            - generic [ref=e56]: KOLAB BISINDO
+        - generic [ref=e57]:
+          - generic [ref=e58]: Administrator
+          - button "Notifikasi LMS" [ref=e62] [cursor=pointer]:
+            - generic [ref=e65]: "1"
+          - button "Ubah Tema Display" [ref=e66] [cursor=pointer]
+          - button "A admin Administrator" [ref=e69] [cursor=pointer]:
+            - generic [ref=e70]: A
+            - generic [ref=e72]:
+              - generic [ref=e73]: admin
+              - generic [ref=e74]: Administrator
+    - generic [ref=e75]:
+      - complementary [ref=e76]:
+        - complementary [ref=e77]:
+          - generic [ref=e81]:
+            - heading "admin" [level=3] [ref=e82]
+            - paragraph [ref=e83]: Manajemen Sistem
+          - navigation [ref=e84]:
+            - generic [ref=e85]: Menu Utama
+            - link "Overview" [ref=e86] [cursor=pointer]:
+              - /url: /dashboard
+            - link "Kelola Modul" [ref=e89] [cursor=pointer]:
+              - /url: /modul
+            - link "Kelola Jadwal Zoom" [ref=e92] [cursor=pointer]:
+              - /url: /zoom
+            - link "Kelola Presensi" [ref=e95] [cursor=pointer]:
+              - /url: /presensi
+            - link "Kelola Kuis & Soal" [ref=e98] [cursor=pointer]:
+              - /url: /kuis
+            - link "Game BISINDO" [ref=e101] [cursor=pointer]:
+              - /url: /game
+            - link "Ranking Game" [ref=e104] [cursor=pointer]:
+              - /url: /ranking-game
+            - link "Kelola Sertifikat" [ref=e107] [cursor=pointer]:
+              - /url: /sertifikat
+            - link "Kelola Notifikasi 1" [ref=e110] [cursor=pointer]:
+              - /url: /notifikasi
+              - generic [ref=e111]: Kelola Notifikasi
+              - generic [ref=e114]: "1"
+            - generic [ref=e115]:
+              - generic [ref=e116]: Khusus Admin
+              - link "Kelola User" [ref=e118] [cursor=pointer]:
+                - /url: /users
+              - link "Tiket Bantuan" [ref=e121] [cursor=pointer]:
+                - /url: /tickets
+            - generic [ref=e124]:
+              - link "Laporan & Analitik" [ref=e125] [cursor=pointer]:
+                - /url: /reports
+              - link "Jawaban Kuis" [ref=e128] [cursor=pointer]:
+                - /url: /jawaban-kuis
+          - generic [ref=e131]:
+            - generic [ref=e132]: Pusat Bantuan LMS
+            - paragraph [ref=e134]: Kendala presensi atau verifikasi sertifikat? Hubungi helpdesk layanan.
+      - main [ref=e135]:
+        - generic [ref=e137]:
+          - generic [ref=e138]: Selamat Sore • Pertemuan Aktif BISINDO 2026
+          - heading "Halo, admin (Admin)! 👋" [level=1] [ref=e139]:
+            - text: Halo,
+            - generic [ref=e140]: admin (Admin)
+            - text: "! 👋"
+          - paragraph [ref=e141]: Pantau integritas sistem LMS, manajemen pengguna umum, dan rekapitulasi analitik komprehensif.
+        - generic [ref=e142]:
+          - link "Lulus 100 / 100 Nilai Kuis Terbaru →" [ref=e143] [cursor=pointer]:
+            - /url: /kuis
+            - generic [ref=e144]: Lulus
+            - generic [ref=e148]:
+              - generic [ref=e149]: 100 / 100
+              - generic [ref=e150]: Nilai Kuis Terbaru →
+          - link "3 Hadir 1 Sesi Presensi Zoom Tuntas →" [ref=e151] [cursor=pointer]:
+            - /url: /zoom
+            - generic [ref=e152]: 3 Hadir
+            - generic [ref=e156]:
+              - generic [ref=e157]: 1 Sesi
+              - generic [ref=e158]: Presensi Zoom Tuntas →
+          - link "280 XP Ranking Game Klasemen & Poin Game →" [ref=e159] [cursor=pointer]:
+            - /url: /ranking-game
+            - generic [ref=e160]: 280 XP
+            - generic [ref=e164]:
+              - generic [ref=e165]: Ranking Game
+              - generic [ref=e166]: Klasemen & Poin Game →
+          - link "Proses Verifikasi Menunggu Status Sertifikat Resmi →" [ref=e167] [cursor=pointer]:
+            - /url: /sertifikat
+            - generic [ref=e168]: Proses Verifikasi
+            - generic [ref=e172]:
+              - generic [ref=e173]: Menunggu
+              - generic [ref=e174]: Status Sertifikat Resmi →
+        - generic [ref=e175]:
+          - generic [ref=e176]:
+            - heading "Aktivitas Pembelajaran Terbaru" [level=3] [ref=e178]
+            - generic [ref=e182]:
+              - generic [ref=e185]:
+                - paragraph [ref=e186]: Belum Ada Aktivitas Pembelajaran
+                - paragraph [ref=e187]: Selesaikan materi modul, ikuti evaluasi kuis, atau presensi sesi Zoom untuk mencatat riwayat belajar Anda secara otomatis.
+              - link "Mulai Belajar Modul" [ref=e189] [cursor=pointer]:
+                - /url: /modul
+          - generic [ref=e192]:
+            - generic [ref=e193]:
+              - generic [ref=e194]:
+                - heading "Sesi Live Zoom" [level=3] [ref=e195]
+                - generic [ref=e197]: Mendatang
+              - generic [ref=e198]:
+                - generic [ref=e199]: Pertemuan 1
+                - paragraph [ref=e200]: "Sesi tatap muka interaktif bersama Host: admin."
+                - generic [ref=e201]:
+                  - generic [ref=e202]: 2026-09-07
+                  - generic [ref=e204]: "ID: 895 7957 0073"
+            - link "Buka Jadwal & Presensi Zoom" [ref=e205] [cursor=pointer]:
+              - /url: /zoom
+  - generic [ref=e209]:
+    - generic [ref=e213]: Selamat datang, Administrator!
+    - button [ref=e214] [cursor=pointer]

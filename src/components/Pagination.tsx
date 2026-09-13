@@ -31,14 +31,11 @@ export default function Pagination({
   compact = false,
   itemLabel = "data",
 }: PaginationProps) {
-  if (totalPages <= 1 && (!totalItems || totalItems <= (pageSize || 10))) {
-    // If only 1 page and no need for pagination controls, show simple info if requested
-    if (showInfo && totalItems !== undefined && totalItems > 0) {
+  if (totalItems === 0) {
+    if (showInfo) {
       return (
         <div className={`flex items-center justify-between py-2 text-xs text-slate-500 dark:text-slate-400 ${className}`}>
-          <span>
-            Menampilkan seluruh <strong>{totalItems}</strong> {itemLabel}
-          </span>
+          <span>Tidak ada data {itemLabel}</span>
         </div>
       );
     }
@@ -47,11 +44,12 @@ export default function Pagination({
 
   // Calculate item range for information
   const currentSize = pageSize || 10;
-  const startItem = (currentPage - 1) * currentSize + 1;
+  const startItem = totalItems === 0 ? 0 : (currentPage - 1) * currentSize + 1;
   const endItem = totalItems !== undefined ? Math.min(currentPage * currentSize, totalItems) : currentPage * currentSize;
 
   // Generate page numbers with ellipsis
   const getPageNumbers = (): (number | string)[] => {
+    if (totalPages <= 0) return [1];
     if (totalPages <= 7) {
       return Array.from({ length: totalPages }, (_, i) => i + 1);
     }

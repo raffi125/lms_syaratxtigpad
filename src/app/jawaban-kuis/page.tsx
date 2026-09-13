@@ -29,7 +29,7 @@ export default function JawabanKuisPage() {
 
   // Pagination Submissions List (LMS View)
   const [subPage, setSubPage] = useState<number>(1);
-  const subPageSize = 7;
+  const [subPageSize, setSubPageSize] = useState<number>(5);
 
   // Paginasi Butir Soal & Mode Tampilan LMS SpeedGrader
   const [currentAnswerIdx, setCurrentAnswerIdx] = useState(0);
@@ -726,7 +726,7 @@ export default function JawabanKuisPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* List submissions (kiri) */}
-          <div className="lg:col-span-1 space-y-3">
+          <div className="lg:col-span-1 space-y-3 min-w-0 relative z-10">
             {/* Filters */}
             <div className="glass-card p-3 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-2">
               <div className="relative">
@@ -895,14 +895,19 @@ export default function JawabanKuisPage() {
             )}
 
             {/* Pagination Controls */}
-            {subTotalPages > 1 && (
+            {filtered.length > 0 && (
               <div className="pt-2">
                 <Pagination
                   currentPage={subPage}
                   totalPages={subTotalPages}
-                  onPageChange={setSubPage}
                   totalItems={filtered.length}
-                  compact={true}
+                  pageSize={subPageSize}
+                  pageSizeOptions={[5, 10, 20]}
+                  onPageChange={setSubPage}
+                  onPageSizeChange={setSubPageSize}
+                  itemLabel="jawaban"
+                  showPageSizeSelector={true}
+                  showInfo={true}
                 />
               </div>
             )}

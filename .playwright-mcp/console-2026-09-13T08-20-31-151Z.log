@@ -1,0 +1,6 @@
+[     303ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/hot-reloader-client.js:186
+[    2551ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:38559
+[   95324ms] [ERROR] Access to fetch at 'https://msoernjqqpnywtdplxfp.supabase.co/rest/v1/quizzes_user?select=*&order=created_at.desc&user_id=eq.68' from origin 'http://localhost:3000' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://localhost:3000/kuis:0
+[   95324ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://msoernjqqpnywtdplxfp.supabase.co/rest/v1/quizzes_user?select=*&order=created_at.desc&user_id=eq.68:0
+[  150063ms] [ERROR] Failed to load resource: the server responded with a status of 401 () @ https://msoernjqqpnywtdplxfp.supabase.co/rest/v1/quizzes_user?select=id&limit=1&user_id=eq.68:0
+[  161863ms] [ERROR] Failed to load resource: the server responded with a status of 405 (Method Not Allowed) @ http://localhost:3000/api/db:0

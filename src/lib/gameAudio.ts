@@ -1,4 +1,4 @@
-﻿// Web Audio API Synthesizer for BISINDO Arcade Game
+// Web Audio API Synthesizer for BISINDO Arcade Game
 class GameAudioManager {
   private ctx: AudioContext | null = null;
   public enabled: boolean = true;

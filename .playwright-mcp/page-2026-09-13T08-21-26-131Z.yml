@@ -1,0 +1,96 @@
+- generic [active] [ref=f4e1]:
+  - alert [ref=f4e2]
+  - generic [ref=f4e3]:
+    - banner [ref=f4e4]:
+      - generic [ref=f4e5]:
+        - link "Logo SYARAT X TIGPAD SYARAT X TIGPAD KOLAB BISINDO" [ref=f4e7] [cursor=pointer]:
+          - /url: /
+          - img "Logo SYARAT X TIGPAD" [ref=f4e8]
+          - generic [ref=f4e9]:
+            - generic [ref=f4e10]: SYARAT X TIGPAD
+            - generic [ref=f4e11]: KOLAB BISINDO
+        - generic [ref=f4e12]:
+          - generic [ref=f4e13]: Peserta Umum
+          - button "Notifikasi LMS" [ref=f4e17] [cursor=pointer]:
+            - generic [ref=f4e20]: "1"
+          - button "Ubah Tema Display" [ref=f4e21] [cursor=pointer]
+          - button "PQ Peserta QA Browser Peserta Umum" [ref=f4e24] [cursor=pointer]:
+            - generic [ref=f4e25]: PQ
+            - generic [ref=f4e27]:
+              - generic [ref=f4e28]: Peserta QA Browser
+              - generic [ref=f4e29]: Peserta Umum
+    - generic [ref=f4e30]:
+      - complementary [ref=f4e31]:
+        - complementary [ref=f4e32]:
+          - generic [ref=f4e36]:
+            - heading "Peserta QA Browser" [level=3] [ref=f4e37]
+            - paragraph [ref=f4e38]: Peserta Umum Aktif
+          - navigation [ref=f4e39]:
+            - generic [ref=f4e40]: Menu Utama
+            - link "Overview" [ref=f4e41] [cursor=pointer]:
+              - /url: /dashboard
+            - link "Profil Saya & Foto" [ref=f4e44] [cursor=pointer]:
+              - /url: /profile
+            - link "Modul Video & PDF" [ref=f4e47] [cursor=pointer]:
+              - /url: /modul
+            - link "Jadwal Zoom" [ref=f4e50] [cursor=pointer]:
+              - /url: /zoom
+            - link "Presensi & Absen" [ref=f4e53] [cursor=pointer]:
+              - /url: /presensi
+            - link "Kuis Evaluasi" [ref=f4e56] [cursor=pointer]:
+              - /url: /kuis
+            - link "Game BISINDO" [ref=f4e59] [cursor=pointer]:
+              - /url: /game
+            - link "Ranking Game" [ref=f4e62] [cursor=pointer]:
+              - /url: /ranking-game
+            - link "Verifikasi Sertifikat" [ref=f4e65] [cursor=pointer]:
+              - /url: /sertifikat
+            - link "Pusat Notifikasi 1" [ref=f4e68] [cursor=pointer]:
+              - /url: /notifikasi
+              - generic [ref=f4e69]: Pusat Notifikasi
+              - generic [ref=f4e72]: "1"
+          - generic [ref=f4e73]:
+            - generic [ref=f4e74]: Pusat Bantuan LMS
+            - paragraph [ref=f4e76]: Kendala presensi atau verifikasi sertifikat? Hubungi helpdesk layanan.
+      - main [ref=f4e77]:
+        - generic [ref=f4e79]:
+          - generic [ref=f4e82]:
+            - generic [ref=f4e83]: Evaluasi Pembelajaran Resmi
+            - 'heading "Pertemuan 1: Komunikasi, Inklusi & Budaya Tuli" [level=1] [ref=f4e84]'
+            - paragraph [ref=f4e85]:
+              - text: Terdapat
+              - strong [ref=f4e86]: 10 butir soal
+              - text: (105 poin maksimal) yang bersumber langsung dari bank soal resmi database cloud.
+            - paragraph [ref=f4e87]: Evaluasi pemahaman dasar identitas Tuli, sejarah bahasa isyarat, etika berinteraksi, dan pengantar inklusi.
+          - generic [ref=f4e88]:
+            - generic [ref=f4e89]: "Petunjuk Pengerjaan Ujian:"
+            - list [ref=f4e91]:
+              - listitem [ref=f4e92]:
+                - generic [ref=f4e94]:
+                  - strong [ref=f4e95]: "Timer Otomatis:"
+                  - text: Durasi pengerjaan adalah 25 Menit. Jawaban akan tersimpan otomatis saat waktu habis.
+              - listitem [ref=f4e96]:
+                - generic [ref=f4e98]:
+                  - strong [ref=f4e99]: "Kelulusan & Sertifikat:"
+                  - text: Ambang batas kelulusan kompetensi BISINDO adalah 70 poin.
+              - listitem [ref=f4e100]:
+                - generic [ref=f4e102]:
+                  - strong [ref=f4e103]: "Privasi Nilai:"
+                  - text: Nilai numerik diprivasi dan direkap langsung oleh mentor. Setelah pengerjaan selesai, status kuis Anda akan tercatat
+                  - strong [ref=f4e104]: Selesai
+                  - text: .
+              - listitem [ref=f4e105]:
+                - generic [ref=f4e107]:
+                  - strong [ref=f4e108]: "Soal Ilustrasi Gestur:"
+                  - text: Perhatikan foto/ilustrasi bentuk tangan dan ekspresi wajah pada soal bergambar.
+              - listitem [ref=f4e109]:
+                - generic [ref=f4e111]:
+                  - strong [ref=f4e112]: "Petunjuk Soal:"
+                  - text: Jika mentor menyertakan petunjuk, Anda dapat membuka tips soal untuk membantu mengingat materi.
+              - listitem [ref=f4e113]:
+                - generic [ref=f4e115]:
+                  - strong [ref=f4e116]: "Terdapat 3 Soal Essai:"
+                  - text: Lembar jawaban uraian Anda akan diperiksa dan dinilai secara manual oleh mentor pengajar.
+          - generic [ref=f4e117]:
+            - button "← Kembali" [ref=f4e118] [cursor=pointer]
+            - button "Saya Siap • Mulai Kuis Sekarang" [ref=f4e119] [cursor=pointer]

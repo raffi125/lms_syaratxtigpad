@@ -1,0 +1,41 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e3]:
+      - link "Beranda" [ref=e4] [cursor=pointer]:
+        - /url: /
+      - button "Ubah Tema Display" [ref=e7] [cursor=pointer]
+    - main [ref=e9]:
+      - generic [ref=e10]:
+        - link [ref=e11] [cursor=pointer]:
+          - /url: /
+          - img "Logo SYARAT X TIGPAD" [ref=e12]
+        - generic [ref=e13]:
+          - heading "SYARAT X TIGPAD" [level=1] [ref=e14]
+          - paragraph [ref=e15]: Platform Pembelajaran & Kolaborasi BISINDO
+      - generic [ref=e16]:
+        - generic [ref=e17]:
+          - heading "Masuk ke Portal Belajar" [level=2] [ref=e18]
+          - paragraph [ref=e19]: Silakan masukkan email atau User ID Anda
+        - generic [ref=e20]:
+          - generic [ref=e21]:
+            - generic [ref=e22]: Email atau User ID
+            - textbox "nama@email.com atau User ID Anda" [ref=e24]
+          - generic [ref=e25]:
+            - generic [ref=e26]:
+              - generic [ref=e27]: Kata Sandi
+              - button "Lupa Sandi?" [ref=e28] [cursor=pointer]
+            - generic [ref=e29]:
+              - textbox "••••••••" [ref=e30]
+              - button "Lihat Password" [ref=e31] [cursor=pointer]
+          - generic [ref=e34] [cursor=pointer]:
+            - checkbox "Ingat Sesi Login Saya" [checked] [ref=e35]
+            - generic [ref=e36]: Ingat Sesi Login Saya
+          - button "Masuk ke Dashboard" [ref=e37] [cursor=pointer]
+        - paragraph [ref=e41]:
+          - text: Belum memiliki akun?
+          - link "Daftar Akun Peserta Baru" [ref=e42] [cursor=pointer]:
+            - /url: /register
+      - paragraph [ref=e45]:
+        - text: Kendala Akun? Hubungi
+        - button "Pusat Bantuan & Helpdesk" [ref=e46] [cursor=pointer]
+  - alert [ref=e47]

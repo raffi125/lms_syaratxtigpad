@@ -1,4 +1,5 @@
 import { supabase, supabaseAdmin, isSupabaseConfigured } from "./supabase";
+import { dbGateway } from "./dbGateway";
 import type { QuizSubmission, DBQuizUser } from "@/types";
 
 export interface DBUser {
@@ -13,6 +14,8 @@ export interface DBUser {
   score: number;
   progress: number;
   avatar_url?: string;
+  /** Kata sandi mentah sesaat (dikirim ke gateway; server hanya menyimpan hash). */
+  password?: string;
 }
 
 export interface DBModule {
@@ -110,9 +113,10 @@ export const SupabaseService = {
   // 1. Users
   async getUsers(): Promise<DBUser[]> {
     if (!isSupabaseConfigured()) return [];
+    // Kolom eksplisit TANPA password_hash — anon key hanya boleh membaca profil publik.
     const { data, error } = await supabase
       .from("users")
-      .select("*")
+      .select("id, name, email, user_id, role, status, institution, score, progress, avatar_url")
       .order("id", { ascending: true });
     if (error) {
       console.warn("Supabase getUsers error:", error.message);
@@ -137,8 +141,9 @@ export const SupabaseService = {
     if (user.score !== undefined) payload.score = user.score;
     if (user.progress !== undefined) payload.progress = user.progress;
     if (user.avatar_url) payload.avatar_url = user.avatar_url;
-    
-    const { data, error } = await supabase.from("users").insert([payload]).select().single();
+    if (user.password) payload.password = user.password; // di-hash server-side oleh gateway
+
+    const { data, error } = await dbGateway<DBUser>({ table: "users", op: "insert", payload, select: "single" });
     if (error) {
       console.error("Supabase addUser error:", error.message);
       return null;
@@ -164,8 +169,9 @@ export const SupabaseService = {
     if (updates.score !== undefined) payload.score = updates.score;
     if (updates.progress !== undefined) payload.progress = updates.progress;
     if (updates.avatar_url !== undefined) payload.avatar_url = updates.avatar_url;
+    if (updates.password !== undefined) payload.password = updates.password; // di-hash server-side oleh gateway
 
-    const { error } = await supabase.from("users").update(payload).eq("id", id);
+    const { error } = await dbGateway({ table: "users", op: "update", payload, match: { id } });
     if (error) {
       console.warn("Supabase updateUser error:", error.message);
       return false;
@@ -180,26 +186,25 @@ export const SupabaseService = {
     userName?: string
   ): Promise<boolean> {
     if (!isSupabaseConfigured() || score === undefined) return false;
-    const client = supabaseAdmin || supabase;
     const cleanScore = Math.max(0, Math.min(100, Math.round(Number(score) || 0)));
 
     let updated = false;
 
     // 1. Update by numeric id
     if (userId && typeof userId === "number" && userId > 0) {
-      const { error } = await client.from("users").update({ score: cleanScore }).eq("id", userId);
+      const { error } = await dbGateway({ table: "users", op: "update", payload: { score: cleanScore }, match: { id: userId } });
       if (!error) updated = true;
     }
 
     // 2. Fallback / supplementary update by email
     if (!updated && userEmail && userEmail.trim()) {
-      const { error } = await client.from("users").update({ score: cleanScore }).ilike("email", userEmail.trim());
+      const { error } = await dbGateway({ table: "users", op: "update", payload: { score: cleanScore }, ilike: { email: userEmail.trim() } });
       if (!error) updated = true;
     }
 
     // 3. Fallback / supplementary update by name
     if (!updated && userName && userName.trim()) {
-      const { error } = await client.from("users").update({ score: cleanScore }).ilike("name", userName.trim());
+      const { error } = await dbGateway({ table: "users", op: "update", payload: { score: cleanScore }, ilike: { name: userName.trim() } });
       if (!error) updated = true;
     }
 
@@ -208,7 +213,7 @@ export const SupabaseService = {
 
   async deleteUser(id: number): Promise<boolean> {
     if (!isSupabaseConfigured()) return false;
-    const { error } = await supabase.from("users").delete().eq("id", id);
+    const { error } = await dbGateway({ table: "users", op: "delete", match: { id } });
     return !error;
   },
 
@@ -235,11 +240,7 @@ export const SupabaseService = {
     if (mod.video_url) payload.video_url = mod.video_url;
     if (mod.pdf_url) payload.pdf_url = mod.pdf_url;
 
-    const { data, error } = await supabase
-      .from("modules")
-      .insert([payload])
-      .select()
-      .single();
+    const { data, error } = await dbGateway<DBModule>({ table: "modules", op: "insert", payload, select: "single" });
     if (error) {
       console.error("Supabase addModule error:", error.message);
       return null;
@@ -259,13 +260,13 @@ export const SupabaseService = {
     if (updates.video_url !== undefined) payload.video_url = updates.video_url;
     if (updates.pdf_url !== undefined) payload.pdf_url = updates.pdf_url;
 
-    const { error } = await supabase.from("modules").update(payload).eq("id", id);
+    const { error } = await dbGateway({ table: "modules", op: "update", payload, match: { id } });
     return !error;
   },
 
   async deleteModule(id: number): Promise<boolean> {
     if (!isSupabaseConfigured()) return false;
-    const { error } = await supabase.from("modules").delete().eq("id", id);
+    const { error } = await dbGateway({ table: "modules", op: "delete", match: { id } });
     return !error;
   },
 
@@ -282,11 +283,7 @@ export const SupabaseService = {
 
   async addQuiz(quiz: Partial<DBQuiz>): Promise<DBQuiz | null> {
     if (!isSupabaseConfigured()) return null;
-    const { data, error } = await supabase
-      .from("quizzes")
-      .insert([quiz])
-      .select()
-      .single();
+    const { data, error } = await dbGateway<DBQuiz>({ table: "quizzes", op: "insert", payload: quiz as any, select: "single" });
     if (error) {
       console.error("Supabase addQuiz error:", error.message);
       return null;
@@ -296,13 +293,13 @@ export const SupabaseService = {
 
   async updateQuiz(id: number, updates: Partial<DBQuiz>): Promise<boolean> {
     if (!isSupabaseConfigured()) return false;
-    const { error } = await supabase.from("quizzes").update(updates).eq("id", id);
+    const { error } = await dbGateway({ table: "quizzes", op: "update", payload: updates as any, match: { id } });
     return !error;
   },
 
   async deleteQuiz(id: number): Promise<boolean> {
     if (!isSupabaseConfigured()) return false;
-    const { error } = await supabase.from("quizzes").delete().eq("id", id);
+    const { error } = await dbGateway({ table: "quizzes", op: "delete", match: { id } });
     return !error;
   },
 
@@ -331,7 +328,7 @@ export const SupabaseService = {
     if (cert.user_id_code || cert.npm) payload.user_id_code = cert.user_id_code || cert.npm;
     if (cert.cert_file_url) payload.cert_file_url = cert.cert_file_url;
 
-    const { error } = await supabase.from("certificates").insert([payload]);
+    const { error } = await dbGateway({ table: "certificates", op: "insert", payload });
     if (error) {
       console.warn("Supabase createCertificate error:", error.message);
       return false;
@@ -341,30 +338,25 @@ export const SupabaseService = {
 
   async issueCertificate(id: number, fileName?: string, issueDate?: string, fileUrl?: string): Promise<boolean> {
     if (!isSupabaseConfigured()) return false;
-    const updates: any = {
+    const payload: any = {
       cert_issued: true,
       cert_file_name: fileName || "Sertifikat_Resmi.pdf",
       issue_date: issueDate || "04 September 2026",
     };
-    if (fileUrl) updates.cert_file_url = fileUrl;
+    if (fileUrl) payload.cert_file_url = fileUrl;
 
-    const { error } = await supabase
-      .from("certificates")
-      .update(updates)
-      .eq("id", id);
+    const { error } = await dbGateway({ table: "certificates", op: "update", payload, match: { id } });
     return !error;
   },
 
   async revokeCertificate(id: number): Promise<boolean> {
     if (!isSupabaseConfigured()) return false;
-    const { error } = await supabase
-      .from("certificates")
-      .update({
-        cert_issued: false,
-        cert_file_name: "",
-        issue_date: "-",
-      })
-      .eq("id", id);
+    const { error } = await dbGateway({
+      table: "certificates",
+      op: "update",
+      payload: { cert_issued: false, cert_file_name: "", issue_date: "-" },
+      match: { id },
+    });
     return !error;
   },
 
@@ -399,11 +391,7 @@ export const SupabaseService = {
     };
     if (session.desc) payload.desc = session.desc;
 
-    const { data, error } = await supabase
-      .from("zoom_sessions")
-      .insert([payload])
-      .select()
-      .single();
+    const { data, error } = await dbGateway<DBZoomSession>({ table: "zoom_sessions", op: "insert", payload, select: "single" });
     if (error) {
       console.error("Supabase addZoomSession error:", error.message);
       return null;
@@ -425,13 +413,13 @@ export const SupabaseService = {
     if (updates.status !== undefined) payload.status = updates.status;
     if (updates.desc !== undefined) payload.desc = updates.desc;
 
-    const { error } = await supabase.from("zoom_sessions").update(payload).eq("id", id);
+    const { error } = await dbGateway({ table: "zoom_sessions", op: "update", payload, match: { id } });
     return !error;
   },
 
   async deleteZoomSession(id: number): Promise<boolean> {
     if (!isSupabaseConfigured()) return false;
-    const { error } = await supabase.from("zoom_sessions").delete().eq("id", id);
+    const { error } = await dbGateway({ table: "zoom_sessions", op: "delete", match: { id } });
     return !error;
   },
 
@@ -479,7 +467,6 @@ export const SupabaseService = {
 
   async addAttendanceLog(log: Partial<DBAttendanceLog>): Promise<DBAttendanceLog | null> {
     if (!isSupabaseConfigured()) return null;
-    const client = supabaseAdmin || supabase;
 
     const proofUrl = log.proof_url || (log as any).proofUrl || "";
     const cleanMethod = (log.method || (proofUrl ? "Presensi Mandiri & SS Zoom" : "Presensi Mandiri"))
@@ -509,13 +496,8 @@ export const SupabaseService = {
       fullPayload.session_id = log.session_id;
     }
 
-    // 1. Coba insert fullPayload ke tabel "absen"
-    let res = await client.from("absen").insert([fullPayload]).select();
-
-    // Jika tabel absen belum dibuat, fallback ke attendance_logs
-    if (res.error && (res.error.code === "42P01" || res.error.message.includes("does not exist"))) {
-      res = await client.from("attendance_logs").insert([fullPayload]).select();
-    }
+    // 1. Coba insert fullPayload ke tabel "absen" via gateway mutasi
+    let res = await dbGateway<DBAttendanceLog[]>({ table: "absen", op: "insert", payload: fullPayload, select: "rows" });
 
     // 2. Jika terjadi error apa pun (FK 23503, out of range 22003, dsb), retry bertahap agar data presensi pasti tersimpan
     if (res.error) {
@@ -523,12 +505,12 @@ export const SupabaseService = {
       // Retry A: Simpan dengan session_id saja jika valid (tanpa user_id)
       const retryWithoutUserId = { ...basePayload };
       if (fullPayload.session_id) retryWithoutUserId.session_id = fullPayload.session_id;
-      res = await client.from("absen").insert([retryWithoutUserId]).select();
+      res = await dbGateway<DBAttendanceLog[]>({ table: "absen", op: "insert", payload: retryWithoutUserId, select: "rows" });
 
       // Retry B: Jika masih gagal (apapun kodenya), simpan basePayload murni (tanpa user_id & session_id)
       if (res.error) {
         console.warn("Supabase addAttendanceLog session/FK error, retrying clean basePayload:", res.error.message);
-        res = await client.from("absen").insert([basePayload]).select();
+        res = await dbGateway<DBAttendanceLog[]>({ table: "absen", op: "insert", payload: basePayload, select: "rows" });
       }
     }
 
@@ -537,7 +519,7 @@ export const SupabaseService = {
       return null;
     }
 
-    const savedRow = res.data && res.data.length > 0 ? res.data[0] : null;
+    const savedRow = res.data && res.data.length > 0 ? res.data[0] : (null as DBAttendanceLog | null);
     return savedRow;
   },
 
@@ -548,50 +530,51 @@ export const SupabaseService = {
 
   async deleteAttendanceLog(id: number): Promise<boolean> {
     if (!isSupabaseConfigured()) return false;
-    const client = supabaseAdmin || supabase;
-    // Coba hapus di tabel absen, jika gagal coba di attendance_logs
-    const { error: errAbsen } = await client.from("absen").delete().eq("id", id);
-    if (!errAbsen) return true;
-    const { error: errLogs } = await client.from("attendance_logs").delete().eq("id", id);
-    return !errLogs;
+    const { error } = await dbGateway({ table: "absen", op: "delete", match: { id } });
+    return !error;
   },
 
   async cancelAttendance(sessionId: number, userIdOrName: string | number): Promise<boolean> {
     if (!isSupabaseConfigured()) return false;
-    const client = supabaseAdmin || supabase;
-    for (const table of ["absen", "attendance_logs"]) {
-      let query = client.from(table).delete().eq("session_id", sessionId);
-      if (typeof userIdOrName === "number") {
-        query = query.eq("user_id", userIdOrName);
-      } else {
-        query = query.or(`user_id_code.eq.${userIdOrName},name.eq.${userIdOrName}`);
-      }
-      await query;
+    const match: Record<string, string | number> = { session_id: sessionId };
+    const body: {
+      table: "absen";
+      op: "delete";
+      match: Record<string, string | number>;
+      matchAny?: Array<Record<string, string | number>>;
+    } = { table: "absen", op: "delete", match };
+    if (typeof userIdOrName === "number") {
+      match.user_id = userIdOrName;
+    } else {
+      body.matchAny = [{ user_id_code: userIdOrName }, { name: userIdOrName }];
     }
-    return true;
+    const { error } = await dbGateway(body);
+    return !error;
   },
 
   async updateAttendanceVerified(id: number, verified: boolean): Promise<boolean> {
     if (!isSupabaseConfigured()) return false;
-    const client = supabaseAdmin || supabase;
-    const { error: errAbsen } = await client.from("absen").update({ verified }).eq("id", id);
-    if (!errAbsen) return true;
-    const { error: errLogs } = await client.from("attendance_logs").update({ verified }).eq("id", id);
-    return !errLogs;
+    const { error } = await dbGateway({ table: "absen", op: "update", payload: { verified }, match: { id } });
+    return !error;
   },
 
   async markAllAttended(sessionId: number, usersList: Partial<DBUser>[]): Promise<number> {
     if (!isSupabaseConfigured() || !sessionId || !usersList || usersList.length === 0) return 0;
-    const client = supabaseAdmin || supabase;
 
-    // 1. Ambil log presensi yang sudah ada untuk sesi ini di database (cek absen atau attendance_logs)
+    // 1. Ambil log presensi yang sudah ada untuk sesi ini di database absen
     let existingLogs: any[] = [];
-    const resAbsen = await client.from("absen").select("user_id, user_id_code, name").eq("session_id", sessionId);
-    if (!resAbsen.error && resAbsen.data) {
-      existingLogs = resAbsen.data;
+    const { data: resAbsen } = await supabase
+      .from("absen")
+      .select("user_id, user_id_code, name")
+      .eq("session_id", sessionId);
+    if (!(resAbsen && resAbsen.length)) {
+      const { data: resOld } = await supabase
+        .from("attendance_logs")
+        .select("user_id, user_id_code, name")
+        .eq("session_id", sessionId);
+      existingLogs = resOld || [];
     } else {
-      const resOld = await client.from("attendance_logs").select("user_id, user_id_code, name").eq("session_id", sessionId);
-      existingLogs = resOld.data || [];
+      existingLogs = resAbsen;
     }
 
     const existingNames = new Set((existingLogs || []).map((l: any) => (l.name || "").toLowerCase().trim()));
@@ -635,20 +618,16 @@ export const SupabaseService = {
 
     if (toInsert.length === 0) return 0;
 
-    let { error } = await client.from("absen").insert(toInsert);
-    if (error && (error.code === "42P01" || error.message.includes("does not exist"))) {
-      let res = await client.from("attendance_logs").insert(toInsert);
-      error = res.error;
-    }
+    let res = await dbGateway<unknown[]>({ table: "absen", op: "insert", payload: toInsert });
 
-    if (error && (error.code === "23503" || error.message.includes("foreign key"))) {
-      console.warn("Supabase markAllAttended FK warning, retrying without user_id:", error.message);
+    if (res.error && (res.error.code === "23503" || res.error.message.includes("foreign key"))) {
+      console.warn("Supabase markAllAttended FK warning, retrying without user_id:", res.error.message);
       // Percobaan 1: Tanpa user_id
       const safeItems = toInsert.map((item) => {
         const { user_id, ...rest } = item;
         return rest;
       });
-      let res = await client.from("absen").insert(safeItems);
+      res = await dbGateway<unknown[]>({ table: "absen", op: "insert", payload: safeItems });
       // Percobaan 2: Jika session_id juga melanggar FK (karena sessionId lokal tidak ada di DB), hapus session_id juga
       if (res.error && (res.error.code === "23503" || res.error.message.includes("foreign key"))) {
         console.warn("Supabase markAllAttended session FK warning, retrying pure base items:", res.error.message);
@@ -656,16 +635,12 @@ export const SupabaseService = {
           const { user_id, session_id, ...rest } = item;
           return rest;
         });
-        res = await client.from("absen").insert(safeItemsNoFk);
+        res = await dbGateway<unknown[]>({ table: "absen", op: "insert", payload: safeItemsNoFk });
       }
-      if (res.error) {
-        res = await client.from("attendance_logs").insert(safeItems);
-      }
-      error = res.error;
     }
 
-    if (error) {
-      console.error("Supabase markAllAttended error:", error.message);
+    if (res.error) {
+      console.error("Supabase markAllAttended error:", res.error.message);
       return 0;
     }
     return toInsert.length;
@@ -710,11 +685,7 @@ export const SupabaseService = {
       return { success: false, error: `Kata "${cleanWord}" sudah ada dalam kategori ${difficulty}` };
     }
 
-    const { data, error } = await supabase
-      .from("game_words")
-      .insert({ word: cleanWord, difficulty })
-      .select()
-      .single();
+    const { data, error } = await dbGateway<DBGameWord>({ table: "game_words", op: "insert", payload: { word: cleanWord, difficulty }, select: "single" });
 
     if (error) {
       return { success: false, error: error.message };
@@ -727,10 +698,7 @@ export const SupabaseService = {
     const cleanWord = word.toUpperCase().trim().replace(/[^A-Z]/g, "");
     if (!cleanWord) return { success: false, error: "Kata tidak boleh kosong dan hanya boleh alfabet A-Z" };
 
-    const { error } = await supabase
-      .from("game_words")
-      .update({ word: cleanWord, difficulty })
-      .eq("id", id);
+    const { error } = await dbGateway({ table: "game_words", op: "update", payload: { word: cleanWord, difficulty }, match: { id } });
 
     if (error) {
       return { success: false, error: error.message };
@@ -740,10 +708,7 @@ export const SupabaseService = {
 
   async deleteGameWord(id: number): Promise<boolean> {
     if (!isSupabaseConfigured()) return false;
-    const { error } = await supabase
-      .from("game_words")
-      .delete()
-      .eq("id", id);
+    const { error } = await dbGateway({ table: "game_words", op: "delete", match: { id } });
     return !error;
   },
 
@@ -801,9 +766,7 @@ export const SupabaseService = {
       return { success: true, count: 0 };
     }
 
-    const { error } = await supabase
-      .from("game_words")
-      .insert(toInsert);
+    const { error } = await dbGateway({ table: "game_words", op: "insert", payload: toInsert });
 
     if (error) {
       return { success: false, count: 0, error: error.message };
@@ -922,7 +885,6 @@ export const SupabaseService = {
 
   async saveQuizSubmission(sub: QuizSubmission): Promise<{ success: boolean; submission?: QuizSubmission; message?: string }> {
     if (!isSupabaseConfigured()) return { success: false, message: "Database tidak terhubung" };
-    const client = supabaseAdmin || supabase;
 
     const ansMeeting = Array.isArray(sub.answers) && sub.answers[0]?.meeting ? String(sub.answers[0].meeting).trim() : "";
     let cat = sub.category && sub.category !== "Umum" ? sub.category.trim() : "";
@@ -955,13 +917,13 @@ export const SupabaseService = {
       payload.user_id = sub.userId;
     }
 
-    let { error } = await client.from("quizzes_user").upsert([payload]);
+    let { error } = await dbGateway({ table: "quizzes_user", op: "upsert", payload });
 
     // Handle foreign key error if user_id doesn't match
     if (error && (error.code === "23503" || error.message?.includes("foreign key"))) {
       const safePayload = { ...payload };
       delete safePayload.user_id;
-      const res = await client.from("quizzes_user").upsert([safePayload]);
+      const res = await dbGateway({ table: "quizzes_user", op: "upsert", payload: safePayload });
       error = res.error;
     }
 
@@ -1084,7 +1046,7 @@ export const SupabaseService = {
       has_ungraded_essays: updatedSub.hasUngradedEssays,
     };
 
-    const { error } = await client.from("quizzes_user").update(payload).eq("id", submissionId);
+    const { error } = await dbGateway({ table: "quizzes_user", op: "update", payload, match: { id: submissionId } });
     if (error && (error.code === "42P01" || error.message?.includes("does not exist"))) {
       const updatedList = [...submissions];
       updatedList[subIndex] = updatedSub;
@@ -1119,7 +1081,6 @@ export const SupabaseService = {
     gradedBy?: string
   ): Promise<{ success: boolean; data?: QuizSubmission; message?: string }> {
     if (!isSupabaseConfigured()) return { success: false, message: "Database tidak terhubung" };
-    const client = supabaseAdmin || supabase;
 
     const submissions = await this.getQuizSubmissions();
     const subIndex = submissions.findIndex((s) => s.id === submissionId);
@@ -1205,7 +1166,7 @@ export const SupabaseService = {
       has_ungraded_essays: updatedSub.hasUngradedEssays,
     };
 
-    const { error } = await client.from("quizzes_user").update(payload).eq("id", submissionId);
+    const { error } = await dbGateway({ table: "quizzes_user", op: "update", payload, match: { id: submissionId } });
     if (error && (error.code === "42P01" || error.message?.includes("does not exist"))) {
       const updatedList = [...submissions];
       updatedList[subIndex] = updatedSub;
@@ -1240,7 +1201,6 @@ export const SupabaseService = {
     gradedBy?: string
   ): Promise<{ success: boolean; data?: QuizSubmission; message?: string }> {
     if (!isSupabaseConfigured()) return { success: false, message: "Database tidak terhubung" };
-    const client = supabaseAdmin || supabase;
 
     const submissions = await this.getQuizSubmissions();
     const subIndex = submissions.findIndex((s) => s.id === submissionId);
@@ -1288,7 +1248,7 @@ export const SupabaseService = {
       has_ungraded_essays: false,
     };
 
-    const { error } = await client.from("quizzes_user").update(payload).eq("id", submissionId);
+    const { error } = await dbGateway({ table: "quizzes_user", op: "update", payload, match: { id: submissionId } });
     if (error && (error.code === "42P01" || error.message?.includes("does not exist"))) {
       const updatedList = [...submissions];
       updatedList[subIndex] = updatedSub;
@@ -1317,10 +1277,9 @@ export const SupabaseService = {
 
   async deleteQuizSubmission(id?: string, userId?: number, all?: boolean): Promise<boolean> {
     if (!isSupabaseConfigured()) return false;
-    const client = supabaseAdmin || supabase;
 
     if (all) {
-      await client.from("quizzes_user").delete().neq("id", "");
+      await dbGateway({ table: "quizzes_user", op: "delete", neq: { id: "" } });
       try {
         await supabaseAdmin.storage
           .from("modul")
@@ -1330,7 +1289,7 @@ export const SupabaseService = {
           });
       } catch {}
     } else if (id) {
-      await client.from("quizzes_user").delete().eq("id", id);
+      await dbGateway({ table: "quizzes_user", op: "delete", match: { id } });
       try {
         const current = await this.getQuizSubmissions();
         const filtered = current.filter((s) => s.id !== id);
@@ -1342,7 +1301,7 @@ export const SupabaseService = {
           });
       } catch {}
     } else if (userId) {
-      await client.from("quizzes_user").delete().eq("user_id", userId);
+      await dbGateway({ table: "quizzes_user", op: "delete", match: { user_id: userId } });
     }
 
     return true;
@@ -1350,7 +1309,6 @@ export const SupabaseService = {
 
   async migrateQuizSubmissionsFromStorage(): Promise<number> {
     if (!isSupabaseConfigured()) return 0;
-    const client = supabaseAdmin || supabase;
 
     try {
       const { data, error } = await supabaseAdmin.storage
@@ -1394,13 +1352,13 @@ export const SupabaseService = {
         };
       });
 
-      let insertRes = await client.from("quizzes_user").upsert(toInsert);
+      let insertRes = await dbGateway<unknown[]>({ table: "quizzes_user", op: "upsert", payload: toInsert });
       if (insertRes.error && (insertRes.error.code === "23503" || insertRes.error.message?.includes("foreign key"))) {
         const safeItems = toInsert.map((item) => {
           const { user_id, ...rest } = item;
           return rest;
         });
-        insertRes = await client.from("quizzes_user").upsert(safeItems);
+        insertRes = await dbGateway<unknown[]>({ table: "quizzes_user", op: "upsert", payload: safeItems });
       }
 
       return insertRes.error ? 0 : toInsert.length;

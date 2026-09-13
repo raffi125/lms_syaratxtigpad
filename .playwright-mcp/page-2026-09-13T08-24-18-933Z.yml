@@ -1,0 +1,144 @@
+- generic [active] [ref=f4e1]:
+  - alert [ref=f4e2]
+  - generic [ref=f4e3]:
+    - banner [ref=f4e4]:
+      - generic [ref=f4e5]:
+        - link "Logo SYARAT X TIGPAD SYARAT X TIGPAD KOLAB BISINDO" [ref=f4e7] [cursor=pointer]:
+          - /url: /
+          - img "Logo SYARAT X TIGPAD" [ref=f4e8]
+          - generic [ref=f4e9]:
+            - generic [ref=f4e10]: SYARAT X TIGPAD
+            - generic [ref=f4e11]: KOLAB BISINDO
+        - generic [ref=f4e12]:
+          - generic [ref=f4e13]: Peserta Umum
+          - button "Notifikasi LMS" [ref=f4e17] [cursor=pointer]:
+            - generic [ref=f4e20]: "1"
+          - button "Ubah Tema Display" [ref=f4e21] [cursor=pointer]
+          - button "PQ Peserta QA Browser Peserta Umum" [ref=f4e24] [cursor=pointer]:
+            - generic [ref=f4e25]: PQ
+            - generic [ref=f4e27]:
+              - generic [ref=f4e28]: Peserta QA Browser
+              - generic [ref=f4e29]: Peserta Umum
+    - generic [ref=f4e30]:
+      - complementary [ref=f4e31]:
+        - complementary [ref=f4e32]:
+          - generic [ref=f4e36]:
+            - heading "Peserta QA Browser" [level=3] [ref=f4e37]
+            - paragraph [ref=f4e38]: Peserta Umum Aktif
+          - navigation [ref=f4e39]:
+            - generic [ref=f4e40]: Menu Utama
+            - link "Overview" [ref=f4e41] [cursor=pointer]:
+              - /url: /dashboard
+            - link "Profil Saya & Foto" [ref=f4e44] [cursor=pointer]:
+              - /url: /profile
+            - link "Modul Video & PDF" [ref=f4e47] [cursor=pointer]:
+              - /url: /modul
+            - link "Jadwal Zoom" [ref=f4e50] [cursor=pointer]:
+              - /url: /zoom
+            - link "Presensi & Absen" [ref=f4e53] [cursor=pointer]:
+              - /url: /presensi
+            - link "Kuis Evaluasi" [ref=f4e56] [cursor=pointer]:
+              - /url: /kuis
+            - link "Game BISINDO" [ref=f4e59] [cursor=pointer]:
+              - /url: /game
+            - link "Ranking Game" [ref=f4e62] [cursor=pointer]:
+              - /url: /ranking-game
+            - link "Verifikasi Sertifikat" [ref=f4e65] [cursor=pointer]:
+              - /url: /sertifikat
+            - link "Pusat Notifikasi 1" [ref=f4e68] [cursor=pointer]:
+              - /url: /notifikasi
+              - generic [ref=f4e69]: Pusat Notifikasi
+              - generic [ref=f4e72]: "1"
+          - generic [ref=f4e73]:
+            - generic [ref=f4e74]: Pusat Bantuan LMS
+            - paragraph [ref=f4e76]: Kendala presensi atau verifikasi sertifikat? Hubungi helpdesk layanan.
+      - main [ref=f4e77]:
+        - generic [ref=f4e122]:
+          - generic [ref=f4e123]:
+            - generic [ref=f4e124]:
+              - generic [ref=f4e125]:
+                - generic [ref=f4e126]: Ujian Berlangsung
+                - generic [ref=f4e129]: Mode CBT Mandiri
+                - generic [ref=f4e132]: Pertemuan 1
+              - 'heading "Pertemuan 1: Komunikasi, Inklusi & Budaya Tuli" [level=1] [ref=f4e133]'
+              - paragraph [ref=f4e134]: Evaluasi pemahaman dasar identitas Tuli, sejarah bahasa isyarat, etika berinteraksi, dan pengantar inklusi.
+            - generic [ref=f4e135]:
+              - generic [ref=f4e136]:
+                - button "Mode CBT (Per Soal)" [ref=f4e137] [cursor=pointer]
+                - button "Semua Soal" [ref=f4e140] [cursor=pointer]
+              - generic [ref=f4e145]:
+                - generic [ref=f4e146]: Sisa Waktu
+                - generic [ref=f4e147]: 22:46
+          - generic [ref=f4e148]:
+            - generic [ref=f4e149]:
+              - generic [ref=f4e151]:
+                - generic [ref=f4e152]: "Progres Lembar Jawaban:"
+                - generic [ref=f4e155]: ✓ 7 / 10 Terjawab (70%)
+              - generic [ref=f4e159]:
+                - generic [ref=f4e160]:
+                  - generic [ref=f4e161]:
+                    - generic [ref=f4e162]: "Soal #10"
+                    - generic [ref=f4e163]: dari 10 Butir
+                    - generic [ref=f4e164]: Soal Essai / Uraian
+                    - generic [ref=f4e165]: "Pertemuan 1: Komunikasi, Inklusi & Budaya Tuli"
+                    - generic [ref=f4e166]: "Tingkat: sedang"
+                  - generic [ref=f4e167]: ★ 10 Poin
+                - heading "Dalam Budaya Tuli, terdapat istilah \"The Deaf Goodbye\". Jelaskan apa itu The Deaf Goodbye dan mengapa proses tersebut memakan waktu yang lama!" [level=2] [ref=f4e170]
+                - generic [ref=f4e172]:
+                  - generic [ref=f4e173]:
+                    - generic [ref=f4e174]: "Lembar Jawaban Essai / Uraian:"
+                    - generic [ref=f4e177]: 0 Karakter
+                  - textbox "Ketikkan uraian jawaban Anda secara komprehensif di sini..." [ref=f4e178]
+                - generic [ref=f4e179]:
+                  - button "Soal Sebelumnya" [ref=f4e180] [cursor=pointer]
+                  - button "Tandai Ragu-Ragu" [ref=f4e183] [cursor=pointer]
+                  - button "Selesai & Kumpulkan Kuis ✨" [ref=f4e186] [cursor=pointer]
+            - generic [ref=f4e190]:
+              - generic [ref=f4e191]:
+                - heading "Palet Nomor Soal CBT" [level=3] [ref=f4e192]
+                - generic [ref=f4e195]: "#10 Aktif"
+              - generic [ref=f4e196]:
+                - button "1" [ref=f4e197] [cursor=pointer]
+                - button "2" [ref=f4e198] [cursor=pointer]
+                - button "3" [ref=f4e199] [cursor=pointer]
+                - button "4" [ref=f4e200] [cursor=pointer]
+                - button "5" [ref=f4e201] [cursor=pointer]
+                - button "6" [ref=f4e202] [cursor=pointer]
+                - button "7" [ref=f4e203] [cursor=pointer]
+                - button "8" [ref=f4e204] [cursor=pointer]
+                - button "9" [ref=f4e205] [cursor=pointer]
+                - button "10" [ref=f4e206] [cursor=pointer]
+              - generic [ref=f4e207]:
+                - generic [ref=f4e208]: "Keterangan Palet Soal:"
+                - generic [ref=f4e209]:
+                  - generic [ref=f4e210]: Terjawab (7)
+                  - generic [ref=f4e213]: Ragu (0)
+                  - generic [ref=f4e216]: Belum (3)
+                  - generic [ref=f4e219]: Aktif Dibuka
+              - button "Kirim Jawaban Evaluasi" [ref=f4e222] [cursor=pointer]
+          - generic [ref=f4e227]:
+            - generic [ref=f4e230]:
+              - heading "Konfirmasi Pengumpulan Kuis" [level=3] [ref=f4e231]
+              - paragraph [ref=f4e232]: Pastikan seluruh lembar jawaban telah Anda periksa dengan saksama sebelum mengumpulkan ke sistem evaluasi.
+            - generic [ref=f4e233]:
+              - generic [ref=f4e234]:
+                - generic [ref=f4e235]: Total Soal
+                - generic [ref=f4e236]: "10"
+              - generic [ref=f4e237]:
+                - generic [ref=f4e238]: Terjawab
+                - generic [ref=f4e239]: "7"
+              - generic [ref=f4e240]:
+                - generic [ref=f4e241]: Belum Diisi
+                - generic [ref=f4e242]: "3"
+              - generic [ref=f4e243]:
+                - generic [ref=f4e244]: Ragu-Ragu
+                - generic [ref=f4e245]: "0"
+            - generic [ref=f4e248]:
+              - generic [ref=f4e249]: Masih ada 3 butir soal yang belum dijawab!
+              - text: Jawaban yang dikosongkan tidak akan mendapatkan poin. Anda disarankan memeriksa kembali nomor soal tersebut.
+            - generic [ref=f4e252]:
+              - text: "Sisa Waktu Ujian:"
+              - strong [ref=f4e253]: 22:46
+            - generic [ref=f4e254]:
+              - button "← Periksa Kembali Soal" [ref=f4e255] [cursor=pointer]
+              - button "Ya, Kumpulkan Sekarang" [ref=f4e256] [cursor=pointer]

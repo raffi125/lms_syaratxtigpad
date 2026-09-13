@@ -31,18 +31,45 @@ export default function ModulPage() {
   const [formVideoUrl, setFormVideoUrl] = useState("");
   const [formPdfUrl, setFormPdfUrl] = useState("");
 
-  const getEmbedUrl = (url?: string) => {
-    if (!url) return "";
-    if (url.includes("youtube.com/embed/")) return url;
-    if (url.includes("watch?v=")) {
-      const id = url.split("watch?v=")[1]?.split("&")[0];
-      return id ? `https://www.youtube.com/embed/${id}` : url;
+  // Parser Tautan YouTube Lengkap (watch, youtu.be, shorts, live, embed, timestamps)
+  const parseYouTubeVideo = (url?: string): { isYouTube: boolean; embedUrl: string; videoId?: string } => {
+    if (!url) return { isYouTube: false, embedUrl: "" };
+    const raw = url.trim();
+    if (!raw) return { isYouTube: false, embedUrl: "" };
+
+    const normalized = raw.startsWith("http://") || raw.startsWith("https://") ? raw : `https://${raw}`;
+
+    if (normalized.includes("youtube.com/embed/") || normalized.includes("youtube-nocookie.com/embed/")) {
+      return { isYouTube: true, embedUrl: normalized };
     }
-    if (url.includes("youtu.be/")) {
-      const id = url.split("youtu.be/")[1]?.split("?")[0];
-      return id ? `https://www.youtube.com/embed/${id}` : url;
+
+    const regExp = /(?:youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/|live\/|embed\/|v\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/i;
+    const match = normalized.match(regExp);
+
+    if (match && match[1]) {
+      const videoId = match[1];
+      let startSeconds = 0;
+      const timeMatch = normalized.match(/[?&]t=([0-9hms]+)/i);
+      if (timeMatch && timeMatch[1]) {
+        const tVal = timeMatch[1];
+        if (/^\d+$/.test(tVal)) {
+          startSeconds = parseInt(tVal, 10);
+        } else {
+          const hours = (tVal.match(/(\d+)h/i) || [])[1] || "0";
+          const mins = (tVal.match(/(\d+)m/i) || [])[1] || "0";
+          const secs = (tVal.match(/(\d+)s/i) || [])[1] || "0";
+          startSeconds = parseInt(hours, 10) * 3600 + parseInt(mins, 10) * 60 + parseInt(secs, 10);
+        }
+      }
+      const startParam = startSeconds > 0 ? `&start=${startSeconds}` : "";
+      return {
+        isYouTube: true,
+        videoId,
+        embedUrl: `https://www.youtube-nocookie.com/embed/${videoId}?rel=0&modestbranding=1&playsinline=1${startParam}`,
+      };
     }
-    return url;
+
+    return { isYouTube: false, embedUrl: normalized };
   };
 
   const completedCount = modules.filter((m) => m.completed).length;
@@ -514,42 +541,85 @@ export default function ModulPage() {
         {currentModalModule && (
           <div className="space-y-4">
             {/* MODE 1: VIDEO PLAYER */}
-            {playerMode === "video" && (
-              <div id="playerView_video" className="space-y-4">
-                <div className="aspect-video w-full rounded-2xl overflow-hidden bg-black shadow-2xl relative flex items-center justify-center">
-                  {!currentModalModule.videoUrl ? (
-                    <div className="p-8 text-center space-y-3">
-                      <div className="w-14 h-14 rounded-2xl bg-slate-800 text-slate-400 flex items-center justify-center text-2xl mx-auto">
-                        <i className="fa-solid fa-video-slash"></i>
+            {playerMode === "video" && (() => {
+              const ytData = parseYouTubeVideo(currentModalModule.videoUrl);
+              return (
+                <div id="playerView_video" className="space-y-3">
+                  <div className="aspect-video w-full rounded-2xl overflow-hidden bg-black shadow-2xl relative flex items-center justify-center">
+                    {!currentModalModule.videoUrl ? (
+                      <div className="p-8 text-center space-y-3">
+                        <div className="w-14 h-14 rounded-2xl bg-slate-800 text-slate-400 flex items-center justify-center text-2xl mx-auto">
+                          <i className="fa-solid fa-video-slash"></i>
+                        </div>
+                        <div className="space-y-1">
+                          <h4 className="font-extrabold text-sm text-slate-200">Belum Ada Video Pembelajaran</h4>
+                          <p className="text-xs text-slate-500 max-w-sm">
+                            Tautan video tutorial materi ini belum diunggah oleh instruktur.
+                          </p>
+                        </div>
                       </div>
-                      <div className="space-y-1">
-                        <h4 className="font-extrabold text-sm text-slate-200">Belum Ada Video Pembelajaran</h4>
-                        <p className="text-xs text-slate-500 max-w-sm">
-                          Tautan video tutorial materi ini belum diunggah oleh instruktur.
-                        </p>
-                      </div>
+                    ) : ytData.isYouTube ? (
+                      <iframe
+                        id="youtubeIframe"
+                        className="w-full h-full border-0 rounded-2xl"
+                        src={ytData.embedUrl}
+                        title={currentModalModule.title || "YouTube video player"}
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        allowFullScreen
+                      ></iframe>
+                    ) : (
+                      <video
+                        id="html5VideoPlayer"
+                        className="w-full h-full rounded-2xl"
+                        controls
+                        src={currentModalModule.videoUrl}
+                      >
+                        Browser Anda tidak mendukung pemutar video HTML5.
+                      </video>
+                    )}
+                  </div>
+
+                  {currentModalModule.videoUrl && (
+                    <div className="flex flex-wrap items-center justify-between gap-2 px-1 text-xs">
+                      {ytData.isYouTube ? (
+                        <div className="flex items-center gap-2">
+                          <span className="px-2.5 py-1 rounded-lg bg-red-500/15 text-red-600 dark:text-red-400 font-bold text-[11px] inline-flex items-center gap-1.5 border border-red-500/20">
+                            <i className="fa-brands fa-youtube text-red-600 text-sm"></i>
+                            <span>YouTube Video Player</span>
+                          </span>
+                          {ytData.videoId && (
+                            <span className="text-[10px] font-mono text-slate-400">
+                              ID: {ytData.videoId}
+                            </span>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="px-2.5 py-1 rounded-lg bg-syarat/10 text-syarat dark:text-syarat-light font-bold text-[11px] inline-flex items-center gap-1.5 border border-syarat/20">
+                          <i className="fa-solid fa-file-video"></i>
+                          <span>Pemutar Video HTML5</span>
+                        </span>
+                      )}
+
+                      {ytData.isYouTube && (
+                        <a
+                          href={
+                            currentModalModule.videoUrl.startsWith("http")
+                              ? currentModalModule.videoUrl
+                              : `https://${currentModalModule.videoUrl}`
+                          }
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[11px] text-syarat dark:text-syarat-light font-bold hover:underline flex items-center gap-1"
+                        >
+                          <span>Buka di YouTube</span>
+                          <i className="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>
+                        </a>
+                      )}
                     </div>
-                  ) : currentModalModule.videoUrl.includes("youtube.com") || currentModalModule.videoUrl.includes("youtu.be") ? (
-                    <iframe
-                      id="youtubeIframe"
-                      className="w-full h-full border-0 rounded-2xl"
-                      src={getEmbedUrl(currentModalModule.videoUrl)}
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                    ></iframe>
-                  ) : (
-                    <video
-                      id="html5VideoPlayer"
-                      className="w-full h-full rounded-2xl"
-                      controls
-                      src={currentModalModule.videoUrl}
-                    >
-                      Browser Anda tidak mendukung pemutar video HTML5.
-                    </video>
                   )}
                 </div>
-              </div>
-            )}
+              );
+            })()}
 
             {/* MODE 2: PDF READER */}
             {playerMode === "pdf" && (
@@ -694,11 +764,28 @@ export default function ModulPage() {
                   <label className="block font-bold text-slate-700 dark:text-slate-200">
                     <i className="fa-solid fa-video text-syarat mr-1.5"></i> Berkas Video Pembelajaran
                   </label>
-                  {formVideoUrl && (
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-syarat/10 text-syarat font-bold">
-                      {formVideoUrl.includes("supabase.co") ? "Supabase Storage" : "Tautan Eksternal"}
-                    </span>
-                  )}
+                  {formVideoUrl && (() => {
+                    const parsed = parseYouTubeVideo(formVideoUrl);
+                    if (parsed.isYouTube) {
+                      return (
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-500/15 text-red-600 dark:text-red-400 flex items-center gap-1 border border-red-500/20">
+                          <i className="fa-brands fa-youtube"></i> Tautan YouTube Terdeteksi
+                        </span>
+                      );
+                    }
+                    if (formVideoUrl.includes("supabase.co")) {
+                      return (
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-syarat/10 text-syarat font-bold">
+                          Supabase Storage
+                        </span>
+                      );
+                    }
+                    return (
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold">
+                        Video URL Eksternal
+                      </span>
+                    );
+                  })()}
                 </div>
 
                 <div className="space-y-2">
@@ -720,8 +807,8 @@ export default function ModulPage() {
                     type="text"
                     value={formVideoUrl}
                     onChange={(e) => setFormVideoUrl(e.target.value)}
-                    placeholder="Atau tautan: https://youtube.com/... / https://supabase.co/..."
-                    className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border text-[11px] font-mono"
+                    placeholder="Tempel tautan YouTube (watch, youtu.be, shorts) atau URL berkas video (.mp4/.webm)..."
+                    className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border text-[11px] font-mono focus:ring-2 focus:ring-syarat outline-none"
                   />
                 </div>
               </div>

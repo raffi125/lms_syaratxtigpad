@@ -1,6 +1,45 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin, isSupabaseConfigured } from "@/lib/supabase";
 
+const ALLOWED_BUCKETS = new Set(["serti", "image", "modul"]);
+
+const ALLOWED_MIME_TYPES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+  "application/pdf",
+  "video/mp4",
+]);
+
+const ALLOWED_EXTENSIONS = new Set([
+  "jpg",
+  "jpeg",
+  "png",
+  "webp",
+  "gif",
+  "pdf",
+  "mp4",
+]);
+
+// Maximum file size: 15MB
+const MAX_FILE_SIZE = 15 * 1024 * 1024;
+
+function isPathSafe(filePath: string): boolean {
+  if (!filePath || typeof filePath !== "string") return false;
+  // Disallow directory traversal or root paths
+  if (filePath.includes("..") || filePath.startsWith("/") || filePath.includes("\\")) {
+    return false;
+  }
+  // Protect internal system directories and configurations
+  const normalized = filePath.toLowerCase().trim();
+  if (normalized.startsWith("system/") || normalized === "system") {
+    return false;
+  }
+  // Allow only alphanumeric characters, underscores, hyphens, dots, and slashes
+  return /^[a-zA-Z0-9_\-\.\/]+$/.test(filePath);
+}
+
 export async function POST(req: NextRequest) {
   if (!isSupabaseConfigured()) {
     return NextResponse.json(
@@ -22,13 +61,51 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    if (!ALLOWED_BUCKETS.has(bucket)) {
+      return NextResponse.json(
+        { success: false, error: `Bucket '${bucket}' tidak diizinkan.` },
+        { status: 400 }
+      );
+    }
+
+    if (!isPathSafe(filePath)) {
+      return NextResponse.json(
+        { success: false, error: "Jalur berkas (filePath) tidak valid atau dilarang." },
+        { status: 400 }
+      );
+    }
+
+    // Validate file size
+    if (file.size > MAX_FILE_SIZE) {
+      return NextResponse.json(
+        { success: false, error: "Ukuran berkas melebihi batas maksimal 15MB." },
+        { status: 400 }
+      );
+    }
+
+    // Validate MIME type & file extension
+    const mimeType = (file.type || "").toLowerCase();
+    const ext = filePath.includes(".") ? filePath.split(".").pop()?.toLowerCase() || "" : "";
+
+    const isMimeValid = ALLOWED_MIME_TYPES.has(mimeType);
+    const isExtValid = ALLOWED_EXTENSIONS.has(ext);
+
+    if (!isMimeValid && !isExtValid) {
+      return NextResponse.json(
+        { success: false, error: "Format berkas tidak didukung. Gunakan gambar (JPG, PNG, WebP), PDF, atau Video MP4." },
+        { status: 400 }
+      );
+    }
+
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
+
+    const contentType = isMimeValid ? mimeType : (ext === "pdf" ? "application/pdf" : ext === "mp4" ? "video/mp4" : "image/jpeg");
 
     const { error: uploadErr } = await supabaseAdmin.storage
       .from(bucket)
       .upload(filePath, buffer, {
-        contentType: file.type || "application/octet-stream",
+        contentType,
         upsert: true,
       });
 
@@ -75,6 +152,20 @@ export async function DELETE(req: NextRequest) {
     if (!path) {
       return NextResponse.json(
         { success: false, error: "Parameter path wajib diisi." },
+        { status: 400 }
+      );
+    }
+
+    if (!ALLOWED_BUCKETS.has(bucket)) {
+      return NextResponse.json(
+        { success: false, error: `Bucket '${bucket}' tidak diizinkan.` },
+        { status: 400 }
+      );
+    }
+
+    if (!isPathSafe(path)) {
+      return NextResponse.json(
+        { success: false, error: "Jalur berkas tidak valid atau dilindungi." },
         { status: 400 }
       );
     }

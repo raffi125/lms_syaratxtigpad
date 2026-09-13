@@ -1,4 +1,4 @@
-﻿export interface AlphabetMnemonic {
+export interface AlphabetMnemonic {
   letter: string;
   title: string;
   handshape: string;

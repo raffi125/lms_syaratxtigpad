@@ -45,3 +45,25 @@ const serverSecretKey = isServer
 export const supabaseAdmin = (isServer && serverSecretKey)
   ? createClient(supabaseUrl, serverSecretKey, { auth: { persistSession: false } })
   : supabase;
+
+/**
+ * Klien admin (service_role) Wajib untuk mutasi database dari API route.
+ * Fail-closed: jika kunci service role tidak tersedia, lempar error — sehingga
+ * mutasi TIDAK PERNAH jatuh ke klien anon (yang kini read-only via RLS).
+ * Hanya boleh dipanggil di sisi server (API route).
+ */
+export function requireSupabaseAdmin() {
+  if (!isServer) {
+    throw new Error("requireSupabaseAdmin hanya boleh dipanggil di sisi server (API route).");
+  }
+  const secretKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY || "";
+  if (!serverSecretKey || !secretKey || !isSupabaseConfigured()) {
+    throw new Error(
+      "SUPABASE_SERVICE_ROLE_KEY belum dikonfigurasi. Mutasi database ditolak (fail-closed)."
+    );
+  }
+  if (!supabaseAdmin || supabaseAdmin === supabase) {
+    throw new Error("Supabase admin client tidak tersedia. Mutasi database ditolak (fail-closed).");
+  }
+  return supabaseAdmin;
+}

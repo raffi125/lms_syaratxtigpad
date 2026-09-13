@@ -1,0 +1,100 @@
+- generic [active] [ref=f2e1]:
+  - alert [ref=f2e2]
+  - generic [ref=f2e3]:
+    - banner [ref=f2e4]:
+      - generic [ref=f2e5]:
+        - link "Logo SYARAT X TIGPAD SYARAT X TIGPAD KOLAB BISINDO" [ref=f2e7] [cursor=pointer]:
+          - /url: /
+          - img "Logo SYARAT X TIGPAD" [ref=f2e8]
+          - generic [ref=f2e9]:
+            - generic [ref=f2e10]: SYARAT X TIGPAD
+            - generic [ref=f2e11]: KOLAB BISINDO
+        - generic [ref=f2e12]:
+          - generic [ref=f2e13]: Peserta Umum
+          - button "Notifikasi LMS" [ref=f2e17] [cursor=pointer]:
+            - generic [ref=f2e20]: "1"
+          - button "Ubah Tema Display" [ref=f2e21] [cursor=pointer]
+          - button "PQ Peserta QA Browser Peserta Umum" [ref=f2e24] [cursor=pointer]:
+            - generic [ref=f2e25]: PQ
+            - generic [ref=f2e27]:
+              - generic [ref=f2e28]: Peserta QA Browser
+              - generic [ref=f2e29]: Peserta Umum
+    - generic [ref=f2e30]:
+      - complementary [ref=f2e31]:
+        - complementary [ref=f2e32]:
+          - generic [ref=f2e36]:
+            - heading "Peserta QA Browser" [level=3] [ref=f2e37]
+            - paragraph [ref=f2e38]: Peserta Umum Aktif
+          - navigation [ref=f2e39]:
+            - generic [ref=f2e40]: Menu Utama
+            - link "Overview" [ref=f2e41] [cursor=pointer]:
+              - /url: /dashboard
+            - link "Profil Saya & Foto" [ref=f2e44] [cursor=pointer]:
+              - /url: /profile
+            - link "Modul Video & PDF" [ref=f2e47] [cursor=pointer]:
+              - /url: /modul
+            - link "Jadwal Zoom" [ref=f2e50] [cursor=pointer]:
+              - /url: /zoom
+            - link "Presensi & Absen" [ref=f2e53] [cursor=pointer]:
+              - /url: /presensi
+            - link "Kuis Evaluasi" [ref=f2e56] [cursor=pointer]:
+              - /url: /kuis
+            - link "Game BISINDO" [ref=f2e59] [cursor=pointer]:
+              - /url: /game
+            - link "Ranking Game" [ref=f2e62] [cursor=pointer]:
+              - /url: /ranking-game
+            - link "Verifikasi Sertifikat" [ref=f2e65] [cursor=pointer]:
+              - /url: /sertifikat
+            - link "Pusat Notifikasi 1" [ref=f2e68] [cursor=pointer]:
+              - /url: /notifikasi
+              - generic [ref=f2e69]: Pusat Notifikasi
+              - generic [ref=f2e72]: "1"
+          - generic [ref=f2e73]:
+            - generic [ref=f2e74]: Pusat Bantuan LMS
+            - paragraph [ref=f2e76]: Kendala presensi atau verifikasi sertifikat? Hubungi helpdesk layanan.
+      - main [ref=f2e77]:
+        - generic [ref=f2e78]:
+          - generic [ref=f2e80]:
+            - heading "Modul Pembelajaran BISINDO" [level=1] [ref=f2e81]
+            - paragraph [ref=f2e82]: Setiap modul dilengkapi video tutorial visual, modul baca PDF, serta rangkuman materi praktis.
+          - generic [ref=f2e84]:
+            - generic [ref=f2e85]: Progress Kelulusan Kurikulum
+            - generic [ref=f2e88]: 1 dari 1 Modul Selesai (100%)
+          - generic [ref=f2e92]:
+            - generic [ref=f2e93]: Selesai
+            - generic [ref=f2e95]:
+              - generic [ref=f2e96]:
+                - generic [ref=f2e97]: Modul 1
+                - generic [ref=f2e98]: Video HD
+                - text: •
+                - generic [ref=f2e100]: Ringkasan PDF
+              - heading "Booklet Pembelajaran" [level=3] [ref=f2e102]
+              - paragraph [ref=f2e103]: Modul pengenalan BISINDO Jawa Barat tingkat pemula untuk membangun kecakapan isyarat dasar, percakapan sehari-hari, serta pemahaman budaya Tuli demi komunikasi yang inklusif.
+            - generic [ref=f2e104]:
+              - generic [ref=f2e105]: Mentor BISINDO
+              - generic [ref=f2e107]:
+                - button "Batal" [ref=f2e108] [cursor=pointer]
+                - button "Buka Materi" [ref=f2e111] [cursor=pointer]
+          - generic [ref=f2e114]:
+            - generic [ref=f2e115]:
+              - generic [ref=f2e116]:
+                - text: Menampilkan
+                - strong [ref=f2e117]: "1"
+                - text: "-"
+                - strong [ref=f2e118]: "1"
+                - text: dari
+                - strong [ref=f2e119]: "1"
+                - text: data
+              - generic [ref=f2e120]:
+                - generic [ref=f2e121]: "Baris:"
+                - combobox [ref=f2e122]:
+                  - option "5" [selected]
+                  - option "10"
+                  - option "20"
+                  - option "50"
+            - generic [ref=f2e123]:
+              - button "Halaman Pertama" [disabled] [ref=f2e124]
+              - button "Sebelumnya" [disabled] [ref=f2e126]
+              - button "1" [ref=f2e128] [cursor=pointer]
+              - button "Selanjutnya" [disabled] [ref=f2e129]
+              - button "Halaman Terakhir" [disabled] [ref=f2e131]

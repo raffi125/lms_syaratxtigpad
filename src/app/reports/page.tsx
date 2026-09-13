@@ -20,7 +20,11 @@ export default function ReportsPage() {
 
   // Pagination states for reports table
   const [reportsPage, setReportsPage] = useState(1);
-  const [reportsPageSize, setReportsPageSize] = useState(10);
+  const [reportsPageSize, setReportsPageSize] = useState(5);
+
+  // Pagination states for pertemuan breakdown
+  const [breakdownPage, setBreakdownPage] = useState(1);
+  const breakdownPageSize = 3;
 
   useEffect(() => {
     refreshFromSupabase();
@@ -108,6 +112,12 @@ export default function ReportsPage() {
     const start = (reportsPage - 1) * reportsPageSize;
     return filteredPeserta.slice(start, start + reportsPageSize);
   }, [filteredPeserta, reportsPage, reportsPageSize]);
+
+  const breakdownTotalPages = Math.max(1, Math.ceil(analytics.pertemuanBreakdown.length / breakdownPageSize));
+  const paginatedBreakdown = useMemo(() => {
+    const start = (breakdownPage - 1) * breakdownPageSize;
+    return analytics.pertemuanBreakdown.slice(start, start + breakdownPageSize);
+  }, [analytics.pertemuanBreakdown, breakdownPage, breakdownPageSize]);
 
   const handleExportQuizExcel = () => {
     if (filteredPeserta.length === 0) {
@@ -425,7 +435,7 @@ export default function ReportsPage() {
             </div>
 
             {/* List Pertemuan Breakdown */}
-            <div className="space-y-3 max-h-[430px] overflow-y-auto pr-1">
+            <div className="space-y-3">
               {analytics.pertemuanBreakdown.length === 0 ? (
                 <div className="p-8 text-center rounded-2xl bg-slate-50 dark:bg-slate-900/40 border border-dashed border-slate-200 dark:border-slate-800 text-slate-400 text-xs space-y-1.5">
                   <i className="fa-solid fa-folder-open text-2xl text-slate-300"></i>
@@ -433,7 +443,7 @@ export default function ReportsPage() {
                   <p>Materi kuis evaluasi per pertemuan akan tampil di sini saat bank soal tersedia.</p>
                 </div>
               ) : (
-                analytics.pertemuanBreakdown.map((p) => (
+                paginatedBreakdown.map((p) => (
                   <div
                     key={p.pertemuanNumber}
                     className="p-3.5 sm:p-4 rounded-2xl bg-white/80 dark:bg-slate-900/70 border border-slate-200/80 dark:border-slate-800/80 space-y-2.5 hover:border-syarat/40 transition-all shadow-sm"
@@ -487,6 +497,21 @@ export default function ReportsPage() {
                 ))
               )}
             </div>
+
+            {/* Pagination Pertemuan Breakdown */}
+            {analytics.pertemuanBreakdown.length > 0 && (
+              <div className="pt-2">
+                <Pagination
+                  currentPage={breakdownPage}
+                  totalPages={breakdownTotalPages}
+                  totalItems={analytics.pertemuanBreakdown.length}
+                  pageSize={breakdownPageSize}
+                  onPageChange={setBreakdownPage}
+                  itemLabel="silabus"
+                  compact={true}
+                />
+              </div>
+            )}
           </div>
         </div>
 

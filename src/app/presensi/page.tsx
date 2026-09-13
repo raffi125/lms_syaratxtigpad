@@ -536,7 +536,7 @@ export default function PresensiPage() {
                   <label className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
                     <i className="fa-solid fa-camera text-syarat"></i>
                     <span>Tangkapan Layar (SS) Bukti Mengikuti Zoom</span>
-                    <span className="text-[10px] font-normal text-slate-400">(Opsional / Direkomendasikan)</span>
+                    <span className="text-[10px] font-bold text-red-500">(Wajib)</span>
                   </label>
                   <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
                     Unggah tangkapan layar Zoom meeting Anda yang memperlihatkan nama Anda di room.
@@ -609,7 +609,7 @@ export default function PresensiPage() {
 
               <button
                 type="submit"
-                disabled={userHasAttendedSelectedSession || isSubmittingPresence || isUploadingProof}
+                disabled={userHasAttendedSelectedSession || isSubmittingPresence || isUploadingProof || !proofFile}
                 className={`px-5 py-2.5 rounded-xl text-xs font-extrabold flex items-center gap-2 transition-all shadow-md ${
                   userHasAttendedSelectedSession
                     ? "bg-slate-200 dark:bg-slate-800 text-slate-400 cursor-not-allowed"

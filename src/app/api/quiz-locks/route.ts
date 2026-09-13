@@ -89,10 +89,22 @@ export async function POST(req: NextRequest) {
 
     let updated: { [key: string]: boolean } = { ...current };
 
-    if (body.locks && typeof body.locks === "object") {
-      updated = { ...current, ...body.locks };
-    } else if (body.categoryKey && typeof body.locked === "boolean") {
-      updated[body.categoryKey] = body.locked;
+    const isValidCategoryKey = (k: string) =>
+      typeof k === "string" && (/^Pertemuan\s*\d+$/i.test(k.trim()) || k.trim() === "Umum");
+
+    if (body.locks && typeof body.locks === "object" && !Array.isArray(body.locks)) {
+      for (const [key, val] of Object.entries(body.locks)) {
+        if (isValidCategoryKey(key) && typeof val === "boolean") {
+          updated[key] = val;
+        }
+      }
+    } else if (body.categoryKey && typeof body.locked === "boolean" && isValidCategoryKey(body.categoryKey)) {
+      updated[body.categoryKey.trim()] = body.locked;
+    } else {
+      return NextResponse.json(
+        { success: false, error: "Payload tidak valid. Format categoryKey/locks tidak sesuai." },
+        { status: 400 }
+      );
     }
 
     const ok = await saveQuizLocks(updated);

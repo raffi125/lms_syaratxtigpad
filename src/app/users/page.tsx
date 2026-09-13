@@ -142,7 +142,7 @@ export default function UsersPage() {
 
   // Pagination states
   const [userPage, setUserPage] = useState(1);
-  const [userPageSize, setUserPageSize] = useState(10);
+  const [userPageSize, setUserPageSize] = useState(5);
 
   useEffect(() => {
     setUserPage(1);

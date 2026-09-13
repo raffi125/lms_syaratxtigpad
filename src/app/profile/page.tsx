@@ -16,6 +16,11 @@ export default function ProfilePage() {
   const [avatarPhoto, setAvatarPhoto] = useState<string | null>(currentUser.avatar_url || currentUser.avatar || null);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
 
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
+
   React.useEffect(() => {
     setName(currentUser.name || "");
     setEmail(currentUser.email || "");
@@ -63,6 +68,41 @@ export default function ProfilePage() {
       avatar_url: avatarPhoto || undefined,
     });
     showToast("Perubahan profil berhasil disimpan!", "success");
+  };
+
+  const handlePasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!newPassword || newPassword.length < 6) {
+      showToast("Kata sandi baru minimal 6 karakter!", "warning");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      showToast("Konfirmasi kata sandi tidak cocok dengan kata sandi baru!", "warning");
+      return;
+    }
+
+    setIsUpdatingPassword(true);
+    try {
+      const res = await fetch("/api/auth/password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast(data.message || "Kata sandi berhasil diperbarui!", "success");
+        setCurrentPassword("");
+        setNewPassword("");
+        setConfirmPassword("");
+      } else {
+        showToast(data.message || "Gagal memperbarui kata sandi.", "error");
+      }
+    } catch {
+      showToast("Terjadi kesalahan koneksi. Coba lagi.", "error");
+    } finally {
+      setIsUpdatingPassword(false);
+    }
   };
 
   const initials = name
@@ -344,6 +384,72 @@ export default function ProfilePage() {
             </form>
           </div>
         </div>
+
+        {currentUser.role === "peserta" && (
+          <div className="glass-card p-6 sm:p-8 rounded-3xl space-y-5">
+            <h3 className="font-bold text-base flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-4">
+              <i className="fa-solid fa-key text-tigpad"></i> Ganti Kata Sandi Login
+            </h3>
+
+            <form onSubmit={handlePasswordChange} id="passwordChangeForm" className="space-y-4 text-xs">
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                Kata sandi digunakan saat login melalui halaman masuk peserta. Jika Anda belum pernah membuat kata sandi
+                (akun dibuat oleh admin), kosongkan kolom <b>Kata Sandi Saat Ini</b>.
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block font-bold mb-1.5 text-slate-700 dark:text-slate-300">
+                    Kata Sandi Saat Ini
+                  </label>
+                  <input
+                    type="password"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    placeholder="Kosongkan jika belum pernah membuat"
+                    autoComplete="current-password"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 font-semibold shadow-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold mb-1.5 text-slate-700 dark:text-slate-300">
+                    Kata Sandi Baru (min 6 karakter)
+                  </label>
+                  <input
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="Masukkan kata sandi baru"
+                    autoComplete="new-password"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 font-semibold shadow-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold mb-1.5 text-slate-700 dark:text-slate-300">
+                    Konfirmasi Kata Sandi Baru
+                  </label>
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Ulangi kata sandi baru"
+                    autoComplete="new-password"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 font-semibold shadow-sm"
+                  />
+                </div>
+              </div>
+              <div className="pt-2 flex justify-end">
+                <button
+                  type="submit"
+                  disabled={isUpdatingPassword}
+                  className="btn-duotone px-6 py-2.5 rounded-xl font-bold shadow-md flex items-center gap-2 disabled:opacity-60"
+                >
+                  <i className={`fa-solid ${isUpdatingPassword ? "fa-circle-notch fa-spin" : "fa-lock"}`}></i>
+                  <span>{isUpdatingPassword ? "Menyimpan..." : "Perbarui Kata Sandi"}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );

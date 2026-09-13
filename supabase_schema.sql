@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS public.users (
     score INTEGER DEFAULT 80,
     progress INTEGER DEFAULT 0,
     avatar_url TEXT,
+    password_hash TEXT, -- Hash scrypt password peserta (NULL = boleh login bebas, kompatibel akun lama)
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -158,7 +159,24 @@ CREATE TABLE IF NOT EXISTS public.quizzes_user (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- AKTIFKAN ROW LEVEL SECURITY (RLS) DENGAN KEBIJAKAN AKSES TERBUKA UNTUK DEMO
+-- 10. TABEL: SUPPORT_TICKETS (Tiket Bantuan Helpdesk Tim IT - migrasi dari penyimpanan Storage JSON)
+CREATE TABLE IF NOT EXISTS public.support_tickets (
+    id TEXT PRIMARY KEY, -- e.g. TKT-IT-2026-XXXX
+    name TEXT NOT NULL,
+    email TEXT NOT NULL,
+    category TEXT NOT NULL DEFAULT 'bug_teknis',
+    priority TEXT NOT NULL DEFAULT 'sedang',
+    subject TEXT NOT NULL,
+    description TEXT NOT NULL DEFAULT '',
+    status TEXT NOT NULL DEFAULT 'Menunggu Peninjauan',
+    created_at TEXT NOT NULL DEFAULT 'Hari ini',
+    created_at_ts TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ==============================================================================
+-- ROW LEVEL SECURITY (RLS) & ACCESS POLICIES
+-- ==============================================================================
+-- Aktifkan RLS pada seluruh tabel untuk keamanan data
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.modules ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.module_completions ENABLE ROW LEVEL SECURITY;
@@ -168,33 +186,66 @@ ALTER TABLE public.absen ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.certificates ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.game_words ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.quizzes_user ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.support_tickets ENABLE ROW LEVEL SECURITY;
 
-DROP POLICY IF EXISTS "Akses publik users" ON public.users;
-CREATE POLICY "Akses publik users" ON public.users FOR ALL USING (true) WITH CHECK (true);
-
+-- 1. MODUL PEMBELAJARAN (Semua pengguna dapat membaca; TULIS hanya via gateway /api/db dengan service_role)
 DROP POLICY IF EXISTS "Akses publik modules" ON public.modules;
-CREATE POLICY "Akses publik modules" ON public.modules FOR ALL USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "Baca publik modules" ON public.modules;
+DROP POLICY IF EXISTS "Kelola modules" ON public.modules;
+CREATE POLICY "Baca publik modules" ON public.modules FOR SELECT USING (true);
 
-DROP POLICY IF EXISTS "Akses publik completions" ON public.module_completions;
-CREATE POLICY "Akses publik completions" ON public.module_completions FOR ALL USING (true) WITH CHECK (true);
-
+-- 2. BANK SOAL KUIS & GAME WORDS (Dapat dibaca semua peserta; penulisan oleh gateway service_role)
 DROP POLICY IF EXISTS "Akses publik quizzes" ON public.quizzes;
-CREATE POLICY "Akses publik quizzes" ON public.quizzes FOR ALL USING (true) WITH CHECK (true);
-
-DROP POLICY IF EXISTS "Akses publik zoom" ON public.zoom_sessions;
-CREATE POLICY "Akses publik zoom" ON public.zoom_sessions FOR ALL USING (true) WITH CHECK (true);
-
-DROP POLICY IF EXISTS "Akses publik absen" ON public.absen;
-CREATE POLICY "Akses publik absen" ON public.absen FOR ALL USING (true) WITH CHECK (true);
-
-DROP POLICY IF EXISTS "Akses publik certificates" ON public.certificates;
-CREATE POLICY "Akses publik certificates" ON public.certificates FOR ALL USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "Baca publik quizzes" ON public.quizzes;
+DROP POLICY IF EXISTS "Kelola quizzes" ON public.quizzes;
+CREATE POLICY "Baca publik quizzes" ON public.quizzes FOR SELECT USING (true);
 
 DROP POLICY IF EXISTS "Akses publik game_words" ON public.game_words;
-CREATE POLICY "Akses publik game_words" ON public.game_words FOR ALL USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "Baca publik game_words" ON public.game_words;
+DROP POLICY IF EXISTS "Kelola game_words" ON public.game_words;
+CREATE POLICY "Baca publik game_words" ON public.game_words FOR SELECT USING (true);
+
+-- 3. SESI ZOOM & PRESENSI ABSEN (Baca terbuka; tulis presensi/kelola via gateway service_role)
+DROP POLICY IF EXISTS "Akses publik zoom" ON public.zoom_sessions;
+DROP POLICY IF EXISTS "Baca publik zoom" ON public.zoom_sessions;
+DROP POLICY IF EXISTS "Kelola zoom" ON public.zoom_sessions;
+CREATE POLICY "Baca publik zoom" ON public.zoom_sessions FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Akses publik absen" ON public.absen;
+DROP POLICY IF EXISTS "Baca publik absen" ON public.absen;
+DROP POLICY IF EXISTS "Insert presensi mandiri" ON public.absen;
+DROP POLICY IF EXISTS "Kelola absen mentor" ON public.absen;
+CREATE POLICY "Baca publik absen" ON public.absen FOR SELECT USING (true);
+
+-- 4. USERS, SERTIFIKAT, & HASIL JAWABAN KUIS (quizzes_user)
+--    Sebelumnya: FOR ALL USING (true) WITH CHECK (true) → anon bisa tulis sembarang.
+--    Sekarang: SELECT saja. Semua INSERT/UPDATE/DELETE melewati /api/db (service_role) yang
+--    memvalidasi sesi kolab_session + role-matrix (admin/mentor/peserta) di sisi server.
+DROP POLICY IF EXISTS "Akses publik users" ON public.users;
+CREATE POLICY "Baca publik users" ON public.users FOR SELECT USING (true);
+
+-- PASTIKAN KOLOM password_hash ADA: tabel users sudah ada di live DB, jadi
+-- CREATE TABLE IF NOT EXISTS di atas DILEWATI dan tidak menambahkan kolom baru.
+ALTER TABLE public.users ADD COLUMN IF NOT EXISTS password_hash TEXT;
+
+-- JANGAN PERNAH expose password_hash ke klien publik. Policy SELECT di atas menyasar
+-- TABLE-level; REVOKE kolom-level ini memastikan PostgREST menolak kolom password_hash
+-- untuk peran anon/authenticated sekalipun memakai select=* . Hanya service_role
+-- (via gateway /api/db & route auth) yang dapat membaca kolom ini.
+REVOKE SELECT (password_hash) ON public.users FROM anon, authenticated;
+REVOKE INSERT (password_hash), UPDATE (password_hash) ON public.users FROM anon, authenticated;
+
+DROP POLICY IF EXISTS "Akses publik certificates" ON public.certificates;
+CREATE POLICY "Baca publik certificates" ON public.certificates FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Akses publik completions" ON public.module_completions;
+CREATE POLICY "Baca publik completions" ON public.module_completions FOR SELECT USING (true);
 
 DROP POLICY IF EXISTS "Akses publik quizzes_user" ON public.quizzes_user;
-CREATE POLICY "Akses publik quizzes_user" ON public.quizzes_user FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Baca publik quizzes_user" ON public.quizzes_user FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Akses publik support_tickets" ON public.support_tickets;
+CREATE POLICY "Baca publik support_tickets" ON public.support_tickets FOR SELECT USING (true);
 
 -- ==============================================================================
 -- MIGRASI OTOMATIS: Tambah kolom date/time & hapus tabel lama
