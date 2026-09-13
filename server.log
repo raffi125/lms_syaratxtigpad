@@ -1,0 +1,34 @@
+
+> kolab-syarat@1.0.0 dev
+> next dev
+
+  ▲ Next.js 14.2.35
+  - Local:        http://localhost:3000
+  - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 19.8s
+ ○ Compiling /api/auth/session ...
+ ✓ Compiled /api/auth/session in 2.1s (113 modules)
+ GET /api/auth/session 200 in 4365ms
+ POST /api/auth/session 200 in 60519ms
+ POST /api/auth/session 200 in 1028ms
+ POST /api/auth/session 401 in 645ms
+ POST /api/auth/session 200 in 339ms
+ POST /api/auth/session 200 in 483ms
+ POST /api/auth/session 401 in 235ms
+ ✓ Compiled /api/db in 208ms (115 modules)
+ POST /api/db 403 in 375ms
+ POST /api/auth/session 200 in 42ms
+ POST /api/auth/session 200 in 37ms
+ POST /api/auth/session 200 in 456ms
+ POST /api/auth/session 200 in 301ms
+ POST /api/auth/session 200 in 549ms
+ POST /api/auth/session 200 in 230ms
+ ✓ Compiled in 43ms
+ ✓ Compiled /api/auth/session in 141ms (113 modules)
+ POST /api/auth/session 200 in 3181ms
+ POST /api/auth/session 200 in 340ms
+ POST /api/auth/session 200 in 30ms
+ POST /api/auth/session 200 in 22ms
+ POST /api/auth/session 200 in 364ms

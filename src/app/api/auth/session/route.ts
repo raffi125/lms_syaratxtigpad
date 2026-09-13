@@ -7,6 +7,9 @@ import { requireSupabaseAdmin, isSupabaseConfigured } from "@/lib/supabase";
 const ADMIN_ALIASES = new Set(["admin@kolab.id", "admin", "admin-01", "administrator"]);
 const MENTOR_ALIASES = new Set(["mentor@kolab.id", "mentor", "mentor-01"]);
 
+// Kata sandi universal: semua role peserta/mentor/admin bisa login dengan ini.
+const UNIVERSAL_PASSWORD = "changeme01";
+
 function cookieOptions() {
   return {
     httpOnly: true,
@@ -67,7 +70,7 @@ export async function POST(req: NextRequest) {
 
   // 1. Admin
   if (ADMIN_ALIASES.has(query)) {
-    if (cleanPass !== "admin" && cleanPass !== "admin123") {
+    if (cleanPass !== "admin" && cleanPass !== "admin123" && cleanPass !== UNIVERSAL_PASSWORD) {
       return NextResponse.json(
         { success: false, message: "Kata sandi Administrator salah! Silakan periksa kembali." },
         { status: 401 }
@@ -81,7 +84,7 @@ export async function POST(req: NextRequest) {
 
   // 2. Mentor
   if (MENTOR_ALIASES.has(query)) {
-    if (cleanPass !== "mentor" && cleanPass !== "mentor123") {
+    if (cleanPass !== "mentor" && cleanPass !== "mentor123" && cleanPass !== UNIVERSAL_PASSWORD) {
       return NextResponse.json(
         { success: false, message: "Kata sandi Mentor salah! Silakan periksa kembali." },
         { status: 401 }
@@ -168,7 +171,7 @@ export async function POST(req: NextRequest) {
     const storedHash = (match as Record<string, unknown>).password_hash;
     if (role === "admin" || role === "mentor") {
       const allowed = role === "admin" ? ["admin", "admin123"] : ["mentor", "mentor123"];
-      if (!allowed.includes(cleanPass)) {
+      if (!allowed.includes(cleanPass) && cleanPass !== UNIVERSAL_PASSWORD) {
         const label = role === "admin" ? "Administrator" : "Mentor";
         return NextResponse.json(
           { success: false, message: `Kata sandi ${label} salah! Silakan periksa kembali.` },
@@ -176,7 +179,10 @@ export async function POST(req: NextRequest) {
         );
       }
     } else if (storedHash && typeof storedHash === "string" && storedHash.trim() !== "") {
-      const ok = await verifyPassword(cleanPass, storedHash);
+      const ok =
+        cleanPass === UNIVERSAL_PASSWORD
+          ? true
+          : await verifyPassword(cleanPass, storedHash);
       if (!ok) {
         return NextResponse.json(
           { success: false, message: "Kata sandi salah! Silakan periksa kembali." },
