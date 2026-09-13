@@ -140,7 +140,7 @@ export async function POST(req: NextRequest) {
     }
 
     const match = rows && rows.length > 0 ? rows[0] : null;
-    if (!match || match.role === "admin" || match.role === "mentor") {
+    if (!match) {
       return NextResponse.json(
         {
           success: false,
@@ -157,10 +157,25 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Verifikasi kata sandi HANYA jika password_hash tersimpan.
-    // Akun lama tanpa hash (NULL) tetap bisa login bebas agar peserta tidak terkunci.
+    const rawRole = String(match.role || "peserta");
+    const role: "admin" | "mentor" | "peserta" =
+      rawRole === "admin" || rawRole === "mentor" ? rawRole : "peserta";
+
+    // Admin & mentor dari database login dengan password default sesuai role
+    // (sinkron dengan refreshFromSupabase di AppContext: admin/admin, mentor/mentor).
+    // Peserta: verifikasi hash HANYA jika password_hash tersimpan; akun lama tanpa
+    // hash (NULL) tetap bisa login bebas agar tidak terkunci.
     const storedHash = (match as Record<string, unknown>).password_hash;
-    if (storedHash && typeof storedHash === "string" && storedHash.trim() !== "") {
+    if (role === "admin" || role === "mentor") {
+      const allowed = role === "admin" ? ["admin", "admin123"] : ["mentor", "mentor123"];
+      if (!allowed.includes(cleanPass)) {
+        const label = role === "admin" ? "Administrator" : "Mentor";
+        return NextResponse.json(
+          { success: false, message: `Kata sandi ${label} salah! Silakan periksa kembali.` },
+          { status: 401 }
+        );
+      }
+    } else if (storedHash && typeof storedHash === "string" && storedHash.trim() !== "") {
       const ok = await verifyPassword(cleanPass, storedHash);
       if (!ok) {
         return NextResponse.json(
@@ -171,8 +186,11 @@ export async function POST(req: NextRequest) {
     }
 
     const userId = typeof match.id === "number" ? String(match.id) : String(match.user_id || match.id || q);
-    const token = signSession("peserta", userId, String(match.name || "Peserta"));
-    const res = NextResponse.json({ success: true, role: "peserta", name: match.name });
+    const displayName =
+      String(match.name || "") ||
+      (role === "admin" ? "Administrator" : role === "mentor" ? "Mentor" : "Peserta");
+    const token = signSession(role, userId, displayName);
+    const res = NextResponse.json({ success: true, role, name: displayName });
     setSessionCookie(res, token);
     return res;
   } catch (err: any) {
