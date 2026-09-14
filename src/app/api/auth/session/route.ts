@@ -164,28 +164,33 @@ export async function POST(req: NextRequest) {
     const role: "admin" | "mentor" | "peserta" =
       rawRole === "admin" || rawRole === "mentor" ? rawRole : "peserta";
 
-    // Admin & mentor dari database login dengan password default sesuai role
-    // (sinkron dengan refreshFromSupabase di AppContext: admin/admin, mentor/mentor).
-    // Peserta: verifikasi hash HANYA jika password_hash tersimpan; akun lama tanpa
-    // hash (NULL) tetap bisa login bebas agar tidak terkunci.
+    // Semua role diperlakukan sama seperti peserta:
+    // - Jika password_hash kosong (belum pernah diset) → login bebas (kosong / apa pun).
+    // - Jika sudah ada hash → harus cocok dengan password sendiri ATAU password default role
+    //   admin/mentor (admin/admin123, mentor/mentor123) ATAU kata sandi universal.
     const storedHash = (match as Record<string, unknown>).password_hash;
-    if (role === "admin" || role === "mentor") {
-      const allowed = role === "admin" ? ["admin", "admin123"] : ["mentor", "mentor123"];
-      if (!allowed.includes(cleanPass) && cleanPass !== UNIVERSAL_PASSWORD) {
-        const label = role === "admin" ? "Administrator" : "Mentor";
-        return NextResponse.json(
-          { success: false, message: `Kata sandi ${label} salah! Silakan periksa kembali.` },
-          { status: 401 }
-        );
-      }
-    } else if (storedHash && typeof storedHash === "string" && storedHash.trim() !== "") {
+    const hasStoredHash = typeof storedHash === "string" && storedHash.trim() !== "";
+    if (hasStoredHash) {
+      const roleDefaults =
+        role === "admin"
+          ? ["admin", "admin123"]
+          : role === "mentor"
+          ? ["mentor", "mentor123"]
+          : [];
       const ok =
-        cleanPass === UNIVERSAL_PASSWORD
-          ? true
-          : await verifyPassword(cleanPass, storedHash);
+        roleDefaults.includes(cleanPass) ||
+        cleanPass === UNIVERSAL_PASSWORD ||
+        (await verifyPassword(cleanPass, storedHash));
       if (!ok) {
+        const label = role === "admin" ? "Administrator" : role === "mentor" ? "Mentor" : "peserta";
         return NextResponse.json(
-          { success: false, message: "Kata sandi salah! Silakan periksa kembali." },
+          {
+            success: false,
+            message:
+              role === "admin" || role === "mentor"
+                ? `Kata sandi ${label} salah! Silakan periksa kembali.`
+                : "Kata sandi salah! Silakan periksa kembali.",
+          },
           { status: 401 }
         );
       }

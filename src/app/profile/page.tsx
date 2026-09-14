@@ -385,7 +385,7 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {currentUser.role === "peserta" && (
+        {(currentUser.role === "peserta" || currentUser.role === "mentor") && (
           <div className="glass-card p-6 sm:p-8 rounded-3xl space-y-5">
             <h3 className="font-bold text-base flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-4">
               <i className="fa-solid fa-key text-tigpad"></i> Ganti Kata Sandi Login
@@ -393,7 +393,7 @@ export default function ProfilePage() {
 
             <form onSubmit={handlePasswordChange} id="passwordChangeForm" className="space-y-4 text-xs">
               <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                Kata sandi digunakan saat login melalui halaman masuk peserta. Jika Anda belum pernah membuat kata sandi
+                Kata sandi digunakan saat login melalui halaman masuk. Jika Anda belum pernah membuat kata sandi
                 (akun dibuat oleh admin), kosongkan kolom <b>Kata Sandi Saat Ini</b>.
               </p>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

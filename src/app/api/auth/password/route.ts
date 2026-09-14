@@ -6,11 +6,11 @@ import { requireSupabaseAdmin, isSupabaseConfigured } from "@/lib/supabase";
 // =============================================================================
 // GANTI KATA SANDI PESERTA (/api/auth/password)
 // -----------------------------------------------------------------------------
-// Peserta mengganti kata sandi akunnya sendiri dari halaman Profil.
-//  - Sesi HttpOnly wajib (peserta). Hanya baris milik sesi yang boleh diubah.
+// Peserta & mentor mengganti kata sandi akunnya sendiri dari halaman Profil.
+//  - Sesi HttpOnly wajib (peserta/mentor). Hanya baris milik sesi yang boleh diubah.
 //  - Jika password_hash tersimpan → verifikasi password saat ini.
 //  - Jika password_hash NULL (akun lama / belum punya sandi) → boleh langsung
-//    menetapkan sandi baru tanpa password saat ini (tidak mengunci peserta).
+//    menetapkan sandi baru tanpa password saat ini (tidak mengunci pengguna).
 // Dikhususkan langsung via service_role karena kolom password_hash TIDAK
 // termasuk whitelist peserta pada gateway /api/db.
 // =============================================================================
@@ -18,7 +18,7 @@ import { requireSupabaseAdmin, isSupabaseConfigured } from "@/lib/supabase";
 export async function POST(req: NextRequest) {
   const token = req.cookies.get(SESSION_COOKIE_NAME)?.value;
   const session = token ? verifySession(token) : null;
-  if (!session || session.role !== "peserta") {
+  if (!session || (session.role !== "peserta" && session.role !== "mentor")) {
     return NextResponse.json(
       { success: false, message: "Sesi tidak valid. Silakan masuk kembali." },
       { status: 401 }
