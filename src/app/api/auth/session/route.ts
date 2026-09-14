@@ -116,22 +116,44 @@ export async function POST(req: NextRequest) {
     let rows: Record<string, unknown>[] | null = null;
     let error: { message: string; code?: string } | null = null;
 
-    const first = await admin
-      .from("users")
-      .select("id, name, email, user_id, role, status, password_hash")
-      .or(`email.ilike.${q},user_id.ilike.${q},name.ilike.${q}`)
-      .limit(1);
-    rows = first.data as Record<string, unknown>[] | null;
-    error = first.error;
+    // Supabase kadang membalas 504/Gateway Timeout atau Network error yang bersifat transien
+    // (cold start serverless / beban regional). Retry beberapa kali sebelum menyerah.
+    const isTransient = (err: { message: string; code?: string } | null): boolean =>
+      Boolean(
+        err &&
+          (/gateway|timeout|504|network|etimedout|fetch failed|socket/i.test(err.message) ||
+            err.code === "PGRST301" ||
+            err.code === "PGRST300")
+      );
 
-    if (error && isColumnMissing(error)) {
-      const retry = await admin
+    const selectColumns = "id, name, email, user_id, role, status, password_hash";
+    const lookupWithHash = () =>
+      admin
+        .from("users")
+        .select(selectColumns)
+        .or(`email.ilike.${q},user_id.ilike.${q},name.ilike.${q}`)
+        .limit(1);
+    const lookupWithoutHash = () =>
+      admin
         .from("users")
         .select("id, name, email, user_id, role, status")
         .or(`email.ilike.${q},user_id.ilike.${q},name.ilike.${q}`)
         .limit(1);
-      rows = retry.data as Record<string, unknown>[] | null;
-      error = retry.error;
+
+    for (let attempt = 1, columnMissing = false; ; attempt++) {
+      const done = columnMissing ? await lookupWithoutHash() : await lookupWithHash();
+      if (!columnMissing && done.error && isColumnMissing(done.error)) {
+        columnMissing = true;
+        // Kolom password_hash belum ada di database live → ulangi tanpa kolom tersebut.
+        continue;
+      }
+      rows = done.data as Record<string, unknown>[] | null;
+      error = done.error;
+      if (columnMissing && rows && rows.length > 0) {
+        rows = [{ ...rows[0], password_hash: null }];
+      }
+      if (!error || attempt >= 3 || !isTransient(error)) break;
+      await new Promise((r) => setTimeout(r, 600 * attempt));
     }
 
     if (error) {

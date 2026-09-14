@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import Modal from "@/components/Modal";
 import Pagination from "@/components/Pagination";
@@ -8,7 +8,7 @@ import { useApp } from "@/context/AppContext";
 import { SupabaseStorageService } from "@/lib/supabaseStorage";
 
 export default function ModulPage() {
-  const { currentRole, currentUser, modules, toggleModuleComplete, addModule, updateModule, deleteModule, showToast } = useApp();
+  const { currentRole, currentUser, modules, toggleModuleComplete, addModule, updateModule, deleteModule, showToast, logActivity } = useApp();
 
   const isManager = currentRole === "mentor" || currentRole === "admin";
 
@@ -30,6 +30,88 @@ export default function ModulPage() {
   const [formTime, setFormTime] = useState("");
   const [formVideoUrl, setFormVideoUrl] = useState("");
   const [formPdfUrl, setFormPdfUrl] = useState("");
+
+  // Key for storing module lock statuses
+  const STORAGE_KEY_MODULE_LOCKS = "kolab_module_locked_status";
+
+  // Lock status state (true = locked 🔒, false = open 🔓) per module id
+  const [lockedModules, setLockedModules] = useState<{ [key: string]: boolean }>({});
+
+  // Sync lock status dengan cloud Supabase Storage + localStorage
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY_MODULE_LOCKS);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed && typeof parsed === "object") {
+            setLockedModules(parsed);
+          }
+        }
+      } catch (e) {}
+    }
+
+    fetch("/api/module-locks")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.success && data?.locks && typeof data.locks === "object") {
+          setLockedModules(data.locks);
+          if (typeof window !== "undefined") {
+            try {
+              localStorage.setItem(STORAGE_KEY_MODULE_LOCKS, JSON.stringify(data.locks));
+            } catch (e) {}
+          }
+        }
+      })
+      .catch((err) => console.warn("[module-locks] Gagal memuat status kunci modul dari cloud:", err));
+  }, []);
+
+  // Apakah sebuah modul terkunci
+  const isModuleLocked = (moduleId: number) => !!(lockedModules[String(moduleId)] ?? false);
+
+  // Toggle single module lock (Buka / Kunci) dengan persistensi cloud Supabase
+  const toggleModuleLock = (moduleId: number, moduleTitle: string) => {
+    const key = String(moduleId);
+    const isCurrentlyLocked = isModuleLocked(moduleId);
+    const nextLocked = !isCurrentlyLocked;
+    const updated = { ...lockedModules, [key]: nextLocked };
+
+    setLockedModules(updated);
+
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem(STORAGE_KEY_MODULE_LOCKS, JSON.stringify(updated));
+      } catch (e) {}
+    }
+
+    fetch("/api/module-locks", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ moduleKey: key, locked: nextLocked, locks: updated }),
+    }).catch((err) => console.error("[module-locks] Gagal menyimpan ke cloud:", err));
+
+    if (nextLocked) {
+      showToast(`🔒 Modul "${moduleTitle}" DIKUNCI. Peserta tidak dapat membuka materi ini.`, "warning");
+      logActivity({
+        title: `Mengunci Modul ${moduleTitle}`,
+        description: `Modul ${moduleTitle} dikunci oleh ${currentUser.name || "Mentor"}. Peserta tidak dapat membuka materi pembelajaran.`,
+        category: "modul",
+        statusText: "Dikunci",
+        statusBadge: "amber",
+        icon: "fa-solid fa-lock text-amber-500",
+      });
+    } else {
+      showToast(`🔓 Modul "${moduleTitle}" DIBUKA! Peserta kini dapat mempelajari materi.`, "success");
+      logActivity({
+        title: `Membuka Akses Modul ${moduleTitle}`,
+        description: `Akses modul ${moduleTitle} telah dibuka untuk peserta oleh ${currentUser.name || "Mentor"}.`,
+        category: "modul",
+        statusText: "Terbuka",
+        statusBadge: "green",
+        icon: "fa-solid fa-lock-open text-green-500",
+      });
+    }
+  };
 
   // Parser Tautan YouTube Lengkap (watch, youtu.be, shorts, live, embed, timestamps)
   const parseYouTubeVideo = (url?: string): { isYouTube: boolean; embedUrl: string; videoId?: string } => {
@@ -89,6 +171,11 @@ export default function ModulPage() {
   const currentModalModule = modules[activeModuleIndex] || modules[0];
 
   const handleOpenPlayer = (index: number) => {
+    const mod = modules[index];
+    if (!isManager && mod && isModuleLocked(mod.id)) {
+      showToast(`🔒 Modul "${mod.title}" sedang dikunci oleh mentor. Silakan tunggu mentor membuka akses.`, "warning");
+      return;
+    }
     setActiveModuleIndex(index);
     setPlayerMode("video");
     setVideoSource("youtube");
@@ -320,11 +407,14 @@ export default function ModulPage() {
             {paginatedModules.map((m, idx) => {
               const realIdx = (modulPage - 1) * modulPageSize + idx;
               const isCompleted = !isManager && m.completed;
+              const isLocked = isModuleLocked(m.id);
               return (
                 <div
                   key={m.id}
                   className={`glass-card p-6 rounded-3xl space-y-4 flex flex-col justify-between group relative overflow-hidden border-2 transition-all ${
-                    isCompleted
+                    isLocked
+                      ? "border-rose-500/25 bg-rose-500/[0.02]"
+                      : isCompleted
                       ? "border-green-500/50 bg-green-500/5"
                       : "border-transparent hover:border-slate-300 dark:hover:border-slate-700"
                   }`}
@@ -340,6 +430,15 @@ export default function ModulPage() {
                       <span className="px-2.5 py-0.5 rounded-md bg-syarat/10 text-syarat dark:text-syarat-light font-bold">
                         Modul {realIdx + 1}
                       </span>
+                      {isLocked ? (
+                        <span className="px-2.5 py-0.5 rounded-md bg-rose-500/10 text-rose-500 border border-rose-500/20 font-bold">
+                          <i className="fa-solid fa-lock mr-1"></i>Terkunci
+                        </span>
+                      ) : (
+                        <span className="px-2.5 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-bold">
+                          <i className="fa-solid fa-lock-open mr-1"></i>Terbuka
+                        </span>
+                      )}
                       <span>
                         <i className="fa-solid fa-circle-play text-syarat"></i> Video HD
                       </span>{" "}
@@ -374,6 +473,13 @@ export default function ModulPage() {
                         )}
                       </div>
                     )}
+
+                    {isLocked && !isManager && (
+                      <div className="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-[11px] flex items-center gap-2">
+                        <i className="fa-solid fa-lock text-rose-500"></i>
+                        <span>Modul ini sedang dikunci oleh mentor pengajar.</span>
+                      </div>
+                    )}
                   </div>
 
                   <div className="pt-4 border-t border-slate-100 dark:border-slate-800/80 flex flex-wrap items-center justify-between text-xs gap-2">
@@ -382,13 +488,16 @@ export default function ModulPage() {
                       {m.mentor || "Mentor BISINDO"}
                     </span>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       {!isManager ? (
                         <>
                           <button
                             onClick={() => toggleModuleComplete(m.id)}
+                            disabled={isLocked}
                             className={`px-3 py-2 rounded-xl font-bold text-xs transition-all flex items-center gap-1.5 ${
-                              isCompleted
+                              isLocked
+                                ? "bg-slate-100 dark:bg-slate-800/60 text-slate-400 cursor-not-allowed"
+                                : isCompleted
                                 ? "bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-300"
                                 : "bg-green-500/15 text-green-600 dark:text-green-400 hover:bg-green-500/30"
                             }`}
@@ -401,15 +510,42 @@ export default function ModulPage() {
                             <span>{isCompleted ? "Batal" : "Tandai Selesai"}</span>
                           </button>
 
-                          <button
-                            onClick={() => handleOpenPlayer(idx)}
-                            className="btn-duotone px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-1.5 shadow"
-                          >
-                            <i className="fa-solid fa-circle-play"></i> Buka Materi
-                          </button>
+                          {isLocked ? (
+                            <button
+                              disabled
+                              className="px-4 py-2 rounded-xl bg-rose-500/10 text-rose-500 font-bold text-xs flex items-center gap-1.5 border border-rose-500/30 cursor-not-allowed"
+                            >
+                              <i className="fa-solid fa-lock"></i> Modul Dikunci
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => handleOpenPlayer(idx)}
+                              className="btn-duotone px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-1.5 shadow"
+                            >
+                              <i className="fa-solid fa-circle-play"></i> Buka Materi
+                            </button>
+                          )}
                         </>
                       ) : (
                         <>
+                          {isLocked ? (
+                            <button
+                              onClick={() => toggleModuleLock(m.id, m.title)}
+                              className="px-3 py-2 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold text-xs hover:bg-emerald-500/20 transition-all flex items-center gap-1.5 border border-emerald-500/30"
+                              title="Buka modul ini agar peserta dapat mempelajari materi"
+                            >
+                              <i className="fa-solid fa-lock-open"></i> Buka Modul
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => toggleModuleLock(m.id, m.title)}
+                              className="px-3 py-2 rounded-xl bg-rose-500/10 text-rose-500 font-bold text-xs hover:bg-rose-500/20 transition-all flex items-center gap-1.5 border border-rose-500/30"
+                              title="Kunci modul ini agar peserta tidak dapat membuka materi"
+                            >
+                              <i className="fa-solid fa-lock"></i> Kunci Modul
+                            </button>
+                          )}
+
                           <button
                             onClick={() => handleOpenPlayer(idx)}
                             className="btn-duotone px-3.5 py-2 rounded-xl font-bold text-xs flex items-center gap-1.5 shadow"
