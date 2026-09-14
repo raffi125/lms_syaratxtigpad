@@ -196,7 +196,6 @@ export default function KuisPage() {
   const [showReviewDetail, setShowReviewDetail] = useState(true);
   const [openHints, setOpenHints] = useState<{ [key: number]: boolean }>({});
   const [essayAnswers, setEssayAnswers] = useState<{ [key: number]: string }>({});
-  const [isScoreConfidential, setIsScoreConfidential] = useState(false);
   const [userSubmissions, setUserSubmissions] = useState<QuizSubmission[]>([]);
 
   // LMS Quiz Engine: Pagination, Navigation & Modal state
@@ -288,6 +287,128 @@ export default function KuisPage() {
       })
       .catch((err) => console.warn("[quiz-locks] Gagal memuat status kunci dari cloud:", err));
   }, []);
+
+  // Key for storing score visibility status (buka/tutup nilai)
+  const STORAGE_KEY_SCORE_LOCKS = "kolab_score_visibility";
+
+  // Buka/Tutup Nilai state (true = peserta boleh melihat nilai, false = nilai ditutup mentor)
+  const [scoreLocks, setScoreLocks] = useState<{ [key: string]: boolean }>({});
+
+  // Sync buka/tutup nilai dengan cloud Supabase Storage + localStorage
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY_SCORE_LOCKS);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed && typeof parsed === "object") {
+            setScoreLocks(parsed);
+          }
+        }
+      } catch (e) {}
+    }
+
+    fetch("/api/score-locks")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.success && data?.locks && typeof data.locks === "object") {
+          setScoreLocks(data.locks);
+          if (typeof window !== "undefined") {
+            try {
+              localStorage.setItem(STORAGE_KEY_SCORE_LOCKS, JSON.stringify(data.locks));
+            } catch (e) {}
+          }
+        }
+      })
+      .catch((err) => console.warn("[score-locks] Gagal memuat status buka/tutup nilai dari cloud:", err));
+  }, []);
+
+  // Apakah nilai untuk kategori terbuka bagi peserta
+  const isScoreVisible = (catKey: string) => !!(scoreLocks[catKey] ?? false);
+
+  // Ambil nilai terbaik peserta untuk sebuah kategori kuis
+  const getScoreForCategory = (catKey: string): { completed: boolean; score: number; ungraded: boolean } => {
+    const subs = userSubmissions.filter((s) =>
+      matchQuizCategory({ category: s.category, meeting: s.quizTitle } as any, catKey)
+    );
+    if (subs.length === 0) return { completed: false, score: 0, ungraded: false };
+    const ungraded = subs.some((s) => s.hasUngradedEssays);
+    const score = Math.max(0, ...subs.map((s) => s.score ?? 0));
+    return { completed: true, score, ungraded };
+  };
+
+  // Toggle single category buka/tutup nilai dengan persistensi cloud Supabase
+  const toggleScoreVisibility = (categoryKey: string) => {
+    const isCurrentlyOpen = isScoreVisible(categoryKey);
+    const nextOpen = !isCurrentlyOpen;
+    const updated = { ...scoreLocks, [categoryKey]: nextOpen };
+
+    setScoreLocks(updated);
+
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem(STORAGE_KEY_SCORE_LOCKS, JSON.stringify(updated));
+      } catch (e) {}
+    }
+
+    fetch("/api/score-locks", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ categoryKey, locked: nextOpen, locks: updated }),
+    }).catch((err) => console.error("[score-locks] Gagal menyimpan ke cloud:", err));
+
+    if (nextOpen) {
+      showToast(`🔓 Nilai ${categoryKey} DIBUKA. Peserta kini dapat melihat skor mereka.`, "success");
+      logActivity({
+        title: `Membuka Nilai ${categoryKey}`,
+        description: `Nilai kuis ${categoryKey} kini dapat dilihat peserta oleh ${currentUser.name || "Mentor"}.`,
+        category: "kuis",
+        statusText: "Nilai Terbuka",
+        statusBadge: "green",
+        icon: "fa-solid fa-eye text-green-500",
+      });
+    } else {
+      showToast(`🔒 Nilai ${categoryKey} DITUTUP. Peserta tidak dapat melihat skor mereka.`, "warning");
+      logActivity({
+        title: `Menutup Nilai ${categoryKey}`,
+        description: `Nilai kuis ${categoryKey} kembali diprivasi dari peserta oleh ${currentUser.name || "Mentor"}.`,
+        category: "kuis",
+        statusText: "Nilai Tertutup",
+        statusBadge: "amber",
+        icon: "fa-solid fa-eye-slash text-amber-500",
+      });
+    }
+  };
+
+  // Batch buka/tutup nilai semua kategori dengan persistensi cloud Supabase
+  const setAllScoresVisible = (open: boolean) => {
+    const updated: { [key: string]: boolean } = {};
+    PERTEMUAN_LIST.forEach((p) => {
+      updated[p.categoryKey] = open;
+    });
+    customCategories.forEach((c) => {
+      updated[c] = open;
+    });
+
+    setScoreLocks(updated);
+
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem(STORAGE_KEY_SCORE_LOCKS, JSON.stringify(updated));
+      } catch (e) {}
+    }
+
+    fetch("/api/score-locks", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ locks: updated }),
+    }).catch((err) => console.error("[score-locks] Gagal batch sync ke cloud:", err));
+
+    showToast(
+      open ? "🔓 Seluruh nilai kuis DIBUKA untuk peserta." : "🔒 Seluruh nilai kuis DITUTUP dari peserta.",
+      open ? "success" : "warning"
+    );
+  };
 
   // Toggle single category lock (Buka / Kunci) dengan persistensi cloud Supabase
   const toggleCategoryLock = (categoryKey: string) => {
@@ -418,6 +539,14 @@ export default function KuisPage() {
     });
     return Array.from(customSet);
   }, [quizzes]);
+
+  // Apakah ada nilai yang terbuka untuk dilihat peserta
+  const anyScoreVisible = useMemo(
+    () =>
+      PERTEMUAN_LIST.some((p) => getScoreForCategory(p.categoryKey).completed && isScoreVisible(p.categoryKey)) ||
+      customCategories.some((c) => getScoreForCategory(c).completed && isScoreVisible(c)),
+    [userSubmissions, scoreLocks, customCategories]
+  );
 
   // Dynamic Questions belonging to the currently active quiz category
   const currentQuizQuestions = useMemo(() => {
@@ -558,9 +687,8 @@ export default function KuisPage() {
 
     const calculated = totalPossible > 0 ? Math.round((totalEarned / totalPossible) * 100) : 0;
     
-    // Nilai diprivasi dari peserta di antarmuka kuis, status tercatat Selesai
+    // Nilai dikelola mentor lewat menu Buka/Tutup Nilai, status tercatat Selesai
     setFinalScore(calculated);
-    setIsScoreConfidential(true);
     if (!hasEssays) {
       updateProfile({ score: calculated });
     }
@@ -574,7 +702,7 @@ export default function KuisPage() {
 
     logActivity({
       title: `Menyelesaikan ${quizLabel}`,
-      description: `${activeQuizTitle} selesai dikerjakan dan tersimpan di database (${currentQuizQuestions.length} butir soal). Nilai diprivasi mentor.`,
+      description: `${activeQuizTitle} selesai dikerjakan dan tersimpan di database (${currentQuizQuestions.length} butir soal). Nilai dikelola mentor lewat menu Buka/Tutup Nilai.`,
       category: "kuis",
       statusText: "Selesai",
       statusBadge: "green",
@@ -634,7 +762,7 @@ export default function KuisPage() {
     ]);
 
     showToast(
-      `${quizLabel} berhasil diselesaikan! Status: Selesai (Nilai diprivasi mentor)`,
+      `${quizLabel} berhasil diselesaikan! Status: Selesai (nilai dikelola mentor lewat menu Buka/Tutup Nilai)`,
       "success"
     );
   };
@@ -983,7 +1111,13 @@ export default function KuisPage() {
                         <i className="fa-solid fa-circle-check text-emerald-500 text-xs"></i>
                         <span>Selesai</span>
                       </div>
-                      <div className="text-[10px] text-slate-400 font-medium">Nilai diprivasi mentor</div>
+                      <div className="text-[10px] text-slate-400 font-medium">
+                        {isManager
+                          ? "Nilai dapat dikelola mentor"
+                          : anyScoreVisible
+                          ? "Nilai terbuka: dapat dilihat"
+                          : "Nilai ditutup mentor"}
+                      </div>
                     </div>
                   ) : (
                     <div>
@@ -1090,6 +1224,29 @@ export default function KuisPage() {
                   })}
                 </div>
 
+                {/* Manager: Kontrol Buka/Tutup Nilai Massal */}
+                {isManager && (
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-[11px] font-bold text-slate-500 flex items-center gap-1.5">
+                      <i className="fa-solid fa-star text-amber-500"></i> Pengaturan Nilai Peserta:
+                    </span>
+                    <button
+                      onClick={() => setAllScoresVisible(true)}
+                      className="px-3 py-1.5 rounded-xl text-[11px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/20 transition-all flex items-center gap-1.5"
+                      title="Buka seluruh nilai kuis agar dapat dilihat peserta"
+                    >
+                      <i className="fa-solid fa-eye"></i> Buka Semua Nilai
+                    </button>
+                    <button
+                      onClick={() => setAllScoresVisible(false)}
+                      className="px-3 py-1.5 rounded-xl text-[11px] font-bold bg-slate-500/10 text-slate-500 border border-slate-500/30 hover:bg-slate-500/20 transition-all flex items-center gap-1.5"
+                      title="Tutup seluruh nilai kuis dari peserta"
+                    >
+                      <i className="fa-solid fa-eye-slash"></i> Tutup Semua Nilai
+                    </button>
+                  </div>
+                )}
+
                 {/* Quiz Cards Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {/* Pertemuan 1 to 6 Quiz Cards */}
@@ -1101,6 +1258,8 @@ export default function KuisPage() {
                     const pDuration = Math.min(30, Math.max(5, Math.ceil(pQuestions.length * 2.5)));
                     const hasQuestions = pQuestions.length > 0;
                     const isLocked = lockedCategories[p.categoryKey] ?? false;
+                    const scoreInfo = getScoreForCategory(p.categoryKey);
+                    const scoreOpen = isScoreVisible(p.categoryKey);
 
                     return (
                       <div
@@ -1143,6 +1302,24 @@ export default function KuisPage() {
                               ) : (
                                 <span className="text-[10px] font-bold text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md flex items-center gap-1 border border-slate-200 dark:border-slate-700">
                                   <i className="fa-solid fa-hourglass-start"></i> Menunggu Soal
+                                </span>
+                              )}
+
+                              {/* Nilai Per Pertemuan Badge */}
+                              {scoreInfo.completed && !scoreInfo.ungraded && (
+                                isManager || scoreOpen ? (
+                                  <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md flex items-center gap-1 border border-emerald-500/20">
+                                    <i className="fa-solid fa-star text-amber-500"></i> Nilai: {scoreInfo.score}/100
+                                  </span>
+                                ) : (
+                                  <span className="text-[10px] font-bold text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md flex items-center gap-1 border border-slate-200 dark:border-slate-700">
+                                    <i className="fa-solid fa-eye-slash text-amber-500"></i> Nilai Ditutup
+                                  </span>
+                                )
+                              )}
+                              {scoreInfo.completed && scoreInfo.ungraded && (
+                                <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-md flex items-center gap-1 border border-amber-500/20">
+                                  <i className="fa-solid fa-hourglass-half text-amber-500"></i> Menunggu Nilai
                                 </span>
                               )}
                             </div>
@@ -1189,6 +1366,61 @@ export default function KuisPage() {
                               <i className={`fa-solid ${isLocked ? "fa-lock-open" : "fa-lock"}`}></i>
                               <span>{isLocked ? "Buka Akses Peserta (Mode Buka)" : "Kunci Kuis Peserta (Mode Kunci)"}</span>
                             </button>
+                          )}
+
+                          {/* Mentor / Admin Mode Buka & Tutup Nilai Toggle */}
+                          {isManager && (
+                            <button
+                              onClick={() => toggleScoreVisibility(p.categoryKey)}
+                              className={`w-full py-1.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 border ${
+                                scoreOpen
+                                  ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30 hover:bg-amber-500/20"
+                                  : "bg-slate-500/10 text-slate-500 border-slate-500/30 hover:bg-slate-500/20"
+                              }`}
+                              title={scoreOpen ? "Tutup nilai agar peserta tidak melihat skornya" : "Buka nilai agar peserta dapat melihat skornya"}
+                            >
+                              <i className={`fa-solid ${scoreOpen ? "fa-eye-slash" : "fa-eye"}`}></i>
+                              <span>{scoreOpen ? "Tutup Nilai Peserta" : "Buka Nilai Peserta"}</span>
+                            </button>
+                          )}
+
+                          {/* Ringkasan Nilai Peserta */}
+                          {!isManager && scoreInfo.completed && (
+                            <div className={`px-3 py-2 rounded-xl border text-[11px] font-bold flex items-center justify-between gap-2 ${
+                              scoreInfo.ungraded
+                                ? "bg-amber-500/10 border-amber-500/20 text-amber-600 dark:text-amber-400"
+                                : scoreOpen
+                                ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-700 dark:text-emerald-400"
+                                : "bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500"
+                            }`}>
+                              {scoreInfo.ungraded ? (
+                                <>
+                                  <span className="flex items-center gap-1.5">
+                                    <i className="fa-solid fa-hourglass-half"></i> Menunggu Penilaian Mentor
+                                  </span>
+                                  <i className="fa-solid fa-user-shield text-amber-500"></i>
+                                </>
+                              ) : scoreOpen ? (
+                                <>
+                                  <span className="flex items-center gap-1.5">
+                                    <i className="fa-solid fa-star text-amber-500"></i> Nilai Anda
+                                  </span>
+                                  <span className="text-xs font-black">
+                                    {scoreInfo.score} / 100
+                                    <span className={`ml-1.5 text-[10px] font-bold ${scoreInfo.score >= 70 ? "text-emerald-500" : "text-rose-500"}`}>
+                                      ({scoreInfo.score >= 70 ? "LULUS" : "REMIDI"})
+                                    </span>
+                                  </span>
+                                </>
+                              ) : (
+                                <>
+                                  <span className="flex items-center gap-1.5">
+                                    <i className="fa-solid fa-eye-slash text-amber-500"></i> Nilai Ditutup Mentor
+                                  </span>
+                                  <i className="fa-solid fa-lock text-slate-400"></i>
+                                </>
+                              )}
+                            </div>
                           )}
 
                           {/* Quiz Action Button */}
@@ -1251,6 +1483,8 @@ export default function KuisPage() {
                     const cDuration = Math.min(30, Math.max(5, Math.ceil(cQuestions.length * 2.5)));
                     const hasQuestions = cQuestions.length > 0;
                     const isLocked = lockedCategories[cName] ?? false;
+                    const cScoreInfo = getScoreForCategory(cName);
+                    const cScoreOpen = isScoreVisible(cName);
 
                     return (
                       <div
@@ -1289,6 +1523,24 @@ export default function KuisPage() {
                               <span className="text-[10px] font-bold text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-md flex items-center gap-1 border border-emerald-500/20">
                                 <i className="fa-solid fa-circle-check"></i> {cQuestions.length} Soal
                               </span>
+
+                              {/* Nilai Per Kategori Badge */}
+                              {cScoreInfo.completed && !cScoreInfo.ungraded && (
+                                isManager || cScoreOpen ? (
+                                  <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md flex items-center gap-1 border border-emerald-500/20">
+                                    <i className="fa-solid fa-star text-amber-500"></i> Nilai: {cScoreInfo.score}/100
+                                  </span>
+                                ) : (
+                                  <span className="text-[10px] font-bold text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md flex items-center gap-1 border border-slate-200 dark:border-slate-700">
+                                    <i className="fa-solid fa-eye-slash text-amber-500"></i> Nilai Ditutup
+                                  </span>
+                                )
+                              )}
+                              {cScoreInfo.completed && cScoreInfo.ungraded && (
+                                <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-md flex items-center gap-1 border border-amber-500/20">
+                                  <i className="fa-solid fa-hourglass-half text-amber-500"></i> Menunggu Nilai
+                                </span>
+                              )}
                             </div>
                           </div>
 
@@ -1333,6 +1585,61 @@ export default function KuisPage() {
                               <i className={`fa-solid ${isLocked ? "fa-lock-open" : "fa-lock"}`}></i>
                               <span>{isLocked ? "Buka Akses Peserta (Mode Buka)" : "Kunci Kuis Peserta (Mode Kunci)"}</span>
                             </button>
+                          )}
+
+                          {/* Mentor / Admin Mode Buka & Tutup Nilai Toggle */}
+                          {isManager && (
+                            <button
+                              onClick={() => toggleScoreVisibility(cName)}
+                              className={`w-full py-1.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 border ${
+                                cScoreOpen
+                                  ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30 hover:bg-amber-500/20"
+                                  : "bg-slate-500/10 text-slate-500 border-slate-500/30 hover:bg-slate-500/20"
+                              }`}
+                              title={cScoreOpen ? "Tutup nilai agar peserta tidak melihat skornya" : "Buka nilai agar peserta dapat melihat skornya"}
+                            >
+                              <i className={`fa-solid ${cScoreOpen ? "fa-eye-slash" : "fa-eye"}`}></i>
+                              <span>{cScoreOpen ? "Tutup Nilai Peserta" : "Buka Nilai Peserta"}</span>
+                            </button>
+                          )}
+
+                          {/* Ringkasan Nilai Peserta */}
+                          {!isManager && cScoreInfo.completed && (
+                            <div className={`px-3 py-2 rounded-xl border text-[11px] font-bold flex items-center justify-between gap-2 ${
+                              cScoreInfo.ungraded
+                                ? "bg-amber-500/10 border-amber-500/20 text-amber-600 dark:text-amber-400"
+                                : cScoreOpen
+                                ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-700 dark:text-emerald-400"
+                                : "bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500"
+                            }`}>
+                              {cScoreInfo.ungraded ? (
+                                <>
+                                  <span className="flex items-center gap-1.5">
+                                    <i className="fa-solid fa-hourglass-half"></i> Menunggu Penilaian Mentor
+                                  </span>
+                                  <i className="fa-solid fa-user-shield text-amber-500"></i>
+                                </>
+                              ) : cScoreOpen ? (
+                                <>
+                                  <span className="flex items-center gap-1.5">
+                                    <i className="fa-solid fa-star text-amber-500"></i> Nilai Anda
+                                  </span>
+                                  <span className="text-xs font-black">
+                                    {cScoreInfo.score} / 100
+                                    <span className={`ml-1.5 text-[10px] font-bold ${cScoreInfo.score >= 70 ? "text-emerald-500" : "text-rose-500"}`}>
+                                      ({cScoreInfo.score >= 70 ? "LULUS" : "REMIDI"})
+                                    </span>
+                                  </span>
+                                </>
+                              ) : (
+                                <>
+                                  <span className="flex items-center gap-1.5">
+                                    <i className="fa-solid fa-eye-slash text-amber-500"></i> Nilai Ditutup Mentor
+                                  </span>
+                                  <i className="fa-solid fa-lock text-slate-400"></i>
+                                </>
+                              )}
+                            </div>
                           )}
 
                           {/* Quiz Action Button */}
@@ -1436,7 +1743,7 @@ export default function KuisPage() {
                 <li className="flex items-start gap-2 text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 p-2 rounded-xl border border-emerald-500/20">
                   <i className="fa-solid fa-user-shield text-emerald-500 mt-0.5 shrink-0"></i>
                   <span>
-                    <strong>Privasi Nilai:</strong> Nilai numerik diprivasi dan direkap langsung oleh mentor. Setelah pengerjaan selesai, status kuis Anda akan tercatat <strong>Selesai</strong>.
+                    <strong>Penilaian Fleksibel:</strong> Nilai dapat dibuka/ditutup oleh mentor lewat menu <strong>Buka/Tutup Nilai</strong> di tiap kartu kuis. Setelah pengerjaan selesai, status kuis Anda akan tercatat <strong>Selesai</strong>.
                   </span>
                 </li>
                 <li className="flex items-start gap-2">
@@ -2297,16 +2604,41 @@ export default function KuisPage() {
                   {activeQuizTitle}
                 </p>
 
-                {/* Status Selesai Box (Nilai Diprivasi) */}
+                {/* Status Selesai Box (Nilai Diprivasi / Terbuka) */}
                 <div className="p-6 rounded-3xl bg-emerald-500/10 border-2 border-dashed border-emerald-500/30 text-center space-y-3.5">
                   <div className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-2xl bg-emerald-600 text-white text-base font-extrabold shadow-lg shadow-emerald-600/20">
                     <i className="fa-solid fa-circle-check text-lg"></i>
                     <span>Status: Selesai</span>
                   </div>
 
-                  <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed max-w-md mx-auto">
-                    Seluruh lembar jawaban kuis Anda telah berhasil dikirim dan tersimpan aman di database cloud. Demi menjaga objektivitas dan kerahasiaan evaluasi, <strong>rincian nilai kuis diprivasi</strong> dan akan direkap serta ditinjau langsung oleh mentor pengajar.
-                  </p>
+                  {isManager || isScoreVisible(activeCategory) ? (
+                    <div className="grid grid-cols-3 gap-3 max-w-md mx-auto">
+                      <div className="rounded-2xl bg-white dark:bg-slate-800/80 border border-emerald-500/20 p-3">
+                        <div className="text-[10px] uppercase font-bold text-slate-400">Nilai Akhir</div>
+                        <div className={`text-xl font-black ${finalScore >= 70 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-500"}`}>
+                          {finalScore}
+                          <span className="text-[10px] text-slate-400 font-bold">/100</span>
+                        </div>
+                      </div>
+                      <div className="rounded-2xl bg-white dark:bg-slate-800/80 border border-emerald-500/20 p-3">
+                        <div className="text-[10px] uppercase font-bold text-slate-400">Status</div>
+                        <div className={`text-sm font-black mt-1.5 ${finalScore >= 70 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-500"}`}>
+                          {finalScore >= 70 ? "LULUS" : "REMIDI"}
+                        </div>
+                      </div>
+                      <div className="rounded-2xl bg-white dark:bg-slate-800/80 border border-emerald-500/20 p-3">
+                        <div className="text-[10px] uppercase font-bold text-slate-400">Skor Tertinggi</div>
+                        <div className="text-xl font-black text-indigo-500">
+                          {getScoreForCategory(activeCategory).score}
+                          <span className="text-[10px] text-slate-400 font-bold">/100</span>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed max-w-md mx-auto">
+                      Seluruh lembar jawaban kuis Anda telah berhasil dikirim dan tersimpan aman di database cloud. Demi menjaga objektivitas dan kerahasiaan evaluasi, <strong>rincian nilai kuis ditutup sementara</strong> oleh mentor pengajar dan akan dibuka setelah penilaian rampung.
+                    </p>
+                  )}
 
                   <div className="pt-2.5 border-t border-emerald-500/20 flex flex-wrap items-center justify-center gap-4 text-xs font-semibold text-emerald-700 dark:text-emerald-400">
                     <span className="flex items-center gap-1.5">
@@ -2314,10 +2646,17 @@ export default function KuisPage() {
                       <span>{currentQuizQuestions.length} Soal Berhasil Terkirim</span>
                     </span>
                     <span>•</span>
-                    <span className="flex items-center gap-1.5">
-                      <i className="fa-solid fa-user-shield text-emerald-500"></i>
-                      <span>Nilai Diprivasi Mentor</span>
-                    </span>
+                    {isManager || isScoreVisible(activeCategory) ? (
+                      <span className="flex items-center gap-1.5">
+                        <i className="fa-solid fa-eye text-emerald-500"></i>
+                        <span>Nilai Terbuka untuk Peserta</span>
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-1.5">
+                        <i className="fa-solid fa-user-shield text-emerald-500"></i>
+                        <span>Nilai Ditutup Mentor</span>
+                      </span>
+                    )}
                     <span>•</span>
                     <span className="flex items-center gap-1.5">
                       <i className="fa-solid fa-clipboard-check text-indigo-500"></i>
@@ -2336,7 +2675,6 @@ export default function KuisPage() {
                   onClick={() => {
                     setAnswers({});
                     setEssayAnswers({});
-                    setIsScoreConfidential(false);
                     setScreen("list");
                   }}
                   className="btn-duotone px-6 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 shadow-lg"
