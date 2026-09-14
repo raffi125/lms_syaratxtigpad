@@ -10,6 +10,10 @@ const ALLOWED_MIME_TYPES = new Set([
   "image/gif",
   "application/pdf",
   "video/mp4",
+  "video/webm",
+  "video/ogg",
+  "video/quicktime",
+  "video/x-m4v",
 ]);
 
 const ALLOWED_EXTENSIONS = new Set([
@@ -20,7 +24,25 @@ const ALLOWED_EXTENSIONS = new Set([
   "gif",
   "pdf",
   "mp4",
+  "webm",
+  "ogg",
+  "mov",
+  "m4v",
 ]);
+
+const CONTENT_TYPE_BY_EXT: Record<string, string> = {
+  jpg: "image/jpeg",
+  jpeg: "image/jpeg",
+  png: "image/png",
+  webp: "image/webp",
+  gif: "image/gif",
+  pdf: "application/pdf",
+  mp4: "video/mp4",
+  webm: "video/webm",
+  ogg: "video/ogg",
+  mov: "video/quicktime",
+  m4v: "video/x-m4v",
+};
 
 // Maximum file size: 15MB
 const MAX_FILE_SIZE = 15 * 1024 * 1024;
@@ -92,7 +114,7 @@ export async function POST(req: NextRequest) {
 
     if (!isMimeValid && !isExtValid) {
       return NextResponse.json(
-        { success: false, error: "Format berkas tidak didukung. Gunakan gambar (JPG, PNG, WebP), PDF, atau Video MP4." },
+        { success: false, error: "Format berkas tidak didukung. Gunakan gambar (JPG, PNG, WebP), PDF, atau Video (MP4, WebM, MOV)." },
         { status: 400 }
       );
     }
@@ -100,7 +122,7 @@ export async function POST(req: NextRequest) {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    const contentType = isMimeValid ? mimeType : (ext === "pdf" ? "application/pdf" : ext === "mp4" ? "video/mp4" : "image/jpeg");
+    const contentType = isMimeValid ? mimeType : (CONTENT_TYPE_BY_EXT[ext] || "image/jpeg");
 
     const { error: uploadErr } = await supabaseAdmin.storage
       .from(bucket)

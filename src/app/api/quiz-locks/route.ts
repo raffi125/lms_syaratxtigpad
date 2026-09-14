@@ -90,12 +90,16 @@ export async function POST(req: NextRequest) {
     let updated: { [key: string]: boolean } = { ...current };
 
     const isValidCategoryKey = (k: string) =>
-      typeof k === "string" && (/^Pertemuan\s*\d+$/i.test(k.trim()) || k.trim() === "Umum");
+      typeof k === "string" &&
+      k.trim().length > 0 &&
+      k.trim().length <= 100 &&
+      /^[a-zA-Z0-9\s\-._&+()/'\"\\]*$/.test(k.trim());
 
     if (body.locks && typeof body.locks === "object" && !Array.isArray(body.locks)) {
       for (const [key, val] of Object.entries(body.locks)) {
-        if (isValidCategoryKey(key) && typeof val === "boolean") {
-          updated[key] = val;
+        const cleanKey = String(key).trim();
+        if (isValidCategoryKey(cleanKey) && typeof val === "boolean") {
+          updated[cleanKey] = val;
         }
       }
     } else if (body.categoryKey && typeof body.locked === "boolean" && isValidCategoryKey(body.categoryKey)) {
