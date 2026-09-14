@@ -234,10 +234,6 @@ export default function KuisPage() {
       .catch(() => {});
   }, [currentUser?.id, currentUser?.name, currentUser?.email, screen]);
 
-  // Status kuis: nilai diprivasi dari peserta, hanya menampilkan status selesai
-  const hasCompletedAny =
-    userSubmissions.length > 0 || (currentUser?.score !== undefined && currentUser.score > 0);
-
   const isCategoryCompleted = (catKey: string) => {
     return userSubmissions.some((s) =>
       matchQuizCategory({ category: s.category, meeting: s.quizTitle } as any, catKey)
@@ -539,14 +535,6 @@ export default function KuisPage() {
     });
     return Array.from(customSet);
   }, [quizzes]);
-
-  // Apakah ada nilai yang terbuka untuk dilihat peserta
-  const anyScoreVisible = useMemo(
-    () =>
-      PERTEMUAN_LIST.some((p) => getScoreForCategory(p.categoryKey).completed && isScoreVisible(p.categoryKey)) ||
-      customCategories.some((c) => getScoreForCategory(c).completed && isScoreVisible(c)),
-    [userSubmissions, scoreLocks, customCategories]
-  );
 
   // Dynamic Questions belonging to the currently active quiz category
   const currentQuizQuestions = useMemo(() => {
@@ -981,10 +969,6 @@ export default function KuisPage() {
     return filteredBankQuizzes.slice(start, start + bankPageSize);
   }, [filteredBankQuizzes, bankPage, bankPageSize]);
 
-  // Calculate Total Available Points
-  const totalQuizPoints = quizzes.reduce((sum, q) => sum + (q.points || 10), 0);
-  const totalImageQuizzes = quizzes.filter((q) => q.imageUrl && q.imageUrl.trim() !== "").length;
-
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -1057,79 +1041,7 @@ export default function KuisPage() {
               )}
             </div>
 
-            {/* Quick Metrics Bar */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              <div className="glass-card p-4 rounded-2xl border border-slate-200 dark:border-slate-800 flex items-center gap-3 shadow-sm">
-                <div className="w-10 h-10 rounded-xl bg-syarat/10 text-syarat flex items-center justify-center text-lg">
-                  <i className="fa-solid fa-clipboard-question"></i>
-                </div>
-                <div>
-                  <div className="text-[10px] uppercase font-bold text-slate-400">Total Soal</div>
-                  <div className="text-lg font-black text-slate-800 dark:text-white">
-                    {quizzes.length} Butir
-                  </div>
-                </div>
-              </div>
-
-              <div className="glass-card p-4 rounded-2xl border border-slate-200 dark:border-slate-800 flex items-center gap-3 shadow-sm">
-                <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center text-lg">
-                  <i className="fa-solid fa-star"></i>
-                </div>
-                <div>
-                  <div className="text-[10px] uppercase font-bold text-slate-400">Akumulasi Poin</div>
-                  <div className="text-lg font-black text-slate-800 dark:text-white">
-                    {totalQuizPoints} Pts
-                  </div>
-                </div>
-              </div>
-
-              <div className="glass-card p-4 rounded-2xl border border-slate-200 dark:border-slate-800 flex items-center gap-3 shadow-sm">
-                <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-500 flex items-center justify-center text-lg">
-                  <i className="fa-solid fa-image"></i>
-                </div>
-                <div>
-                  <div className="text-[10px] uppercase font-bold text-slate-400">Gestur Bergambar</div>
-                  <div className="text-lg font-black text-slate-800 dark:text-white">
-                    {totalImageQuizzes} Soal
-                  </div>
-                </div>
-              </div>
-
-              <div className="glass-card p-4 rounded-2xl border border-slate-200 dark:border-slate-800 flex items-center gap-3 shadow-sm">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg ${
-                  hasCompletedAny
-                    ? "bg-emerald-500/10 text-emerald-500"
-                    : "bg-slate-500/10 text-slate-400"
-                }`}>
-                  <i className={`fa-solid ${hasCompletedAny ? "fa-circle-check" : "fa-clipboard-check"}`}></i>
-                </div>
-                <div>
-                  <div className="text-[10px] uppercase font-bold text-slate-400">Status Kuis</div>
-                  {hasCompletedAny ? (
-                    <div>
-                      <div className="text-sm sm:text-base font-black text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5 mt-0.5">
-                        <i className="fa-solid fa-circle-check text-emerald-500 text-xs"></i>
-                        <span>Selesai</span>
-                      </div>
-                      <div className="text-[10px] text-slate-400 font-medium">
-                        {isManager
-                          ? "Nilai dapat dikelola mentor"
-                          : anyScoreVisible
-                          ? "Nilai terbuka: dapat dilihat"
-                          : "Nilai ditutup mentor"}
-                      </div>
-                    </div>
-                  ) : (
-                    <div>
-                      <div className="text-sm sm:text-base font-bold text-slate-500 dark:text-slate-400 mt-0.5">
-                        Belum Dikerjakan
-                      </div>
-                      <div className="text-[10px] text-slate-400 font-medium">Siap dievaluasi</div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
+            
 
             {/* IF NO QUIZZES IN DATABASE: CLEAN PRODUCTION EMPTY STATE */}
             {quizzes.length === 0 ? (

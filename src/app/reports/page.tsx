@@ -458,7 +458,7 @@ export default function ReportsPage() {
                             {p.title.replace(/^Pertemuan \d+:\s*/i, "")}
                           </h4>
                         </div>
-                        <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-tight">
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-tight line-clamp-1 overflow-hidden text-ellipsis" title={p.topic}>
                           {p.topic}
                         </p>
                       </div>
