@@ -243,6 +243,54 @@ export default function KuisPage() {
   // Key for storing category lock statuses
   const STORAGE_KEY_QUIZ_LOCKS = "kolab_quiz_locked_status";
 
+  // Judul & deskripsi kategori kuis yang dapat diedit mentor/admin (kustomisasi)
+  const STORAGE_KEY_QUIZ_CATEGORY_META = "kolab_quiz_category_meta";
+  const [categoryMeta, setCategoryMeta] = useState<{ [key: string]: { title?: string; shortTitle?: string; topic?: string; description?: string } }>({});
+
+  // Build effective pertemuan list: gabungan PERTEMUAN_LIST default + override dari cloud/localStorage
+  const effectivePertemuanList = useMemo<PertemuanQuizCategory[]>(() => {
+    return PERTEMUAN_LIST.map((p) => {
+      const ovr = categoryMeta[p.categoryKey];
+      if (!ovr) return p;
+      return {
+        ...p,
+        title: ovr.title?.trim() || p.title,
+        shortTitle: ovr.shortTitle?.trim() || p.shortTitle,
+        topic: ovr.topic?.trim() || p.topic,
+        description: ovr.description?.trim() || p.description,
+      };
+    });
+  }, [categoryMeta]);
+
+  // Sync judul/deskripsi kategori kuis dari cloud Supabase Storage + localStorage on mount
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY_QUIZ_CATEGORY_META);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed && typeof parsed === "object") {
+            setCategoryMeta(parsed);
+          }
+        }
+      } catch (e) {}
+    }
+
+    fetch("/api/quiz-category-meta")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.success && data?.meta && typeof data.meta === "object") {
+          setCategoryMeta(data.meta);
+          if (typeof window !== "undefined") {
+            try {
+              localStorage.setItem(STORAGE_KEY_QUIZ_CATEGORY_META, JSON.stringify(data.meta));
+            } catch (e) {}
+          }
+        }
+      })
+      .catch((err) => console.warn("[quiz-category-meta] Gagal memuat metadata kategori dari cloud:", err));
+  }, []);
+
   // Lock status state (true = locked 🔒, false = open 🔓)
   const [lockedCategories, setLockedCategories] = useState<{ [key: string]: boolean }>({
     "Pertemuan 1": false,
@@ -495,6 +543,78 @@ export default function KuisPage() {
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [manageModalOpen, setManageModalOpen] = useState(false);
   const [editingQuizId, setEditingQuizId] = useState<number | null>(null);
+
+  // Edit Judul & Deskripsi Kategori Kuis (Mentor/Admin)
+  const [editMetaModalOpen, setEditMetaModalOpen] = useState(false);
+  const [editMetaCategoryKey, setEditMetaCategoryKey] = useState<string>("");
+  const [editMetaTitle, setEditMetaTitle] = useState("");
+  const [editMetaShortTitle, setEditMetaShortTitle] = useState("");
+  const [editMetaTopic, setEditMetaTopic] = useState("");
+  const [editMetaDescription, setEditMetaDescription] = useState("");
+  const [isSavingMeta, setIsSavingMeta] = useState(false);
+
+  const openEditMetaModal = (p: PertemuanQuizCategory) => {
+    const ovr = categoryMeta[p.categoryKey] || {};
+    setEditMetaCategoryKey(p.categoryKey);
+    setEditMetaTitle(ovr.title || p.title);
+    setEditMetaShortTitle(ovr.shortTitle || p.shortTitle);
+    setEditMetaTopic(ovr.topic || p.topic);
+    setEditMetaDescription(ovr.description || p.description);
+    setEditMetaModalOpen(true);
+  };
+
+  const handleSaveCategoryMeta = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editMetaCategoryKey.trim()) return;
+
+    setIsSavingMeta(true);
+    const data = {
+      title: editMetaTitle.trim(),
+      shortTitle: editMetaShortTitle.trim(),
+      topic: editMetaTopic.trim(),
+      description: editMetaDescription.trim(),
+    };
+
+    // Update state + localStorage optimistically
+    const merged = { ...categoryMeta, [editMetaCategoryKey]: data };
+    setCategoryMeta(merged);
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem(STORAGE_KEY_QUIZ_CATEGORY_META, JSON.stringify(merged));
+      } catch (e) {}
+    }
+
+    try {
+      const res = await fetch("/api/quiz-category-meta", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ categoryKey: editMetaCategoryKey, data }),
+      });
+      const body = await res.json();
+      if (body?.success && body?.meta && typeof body.meta === "object") {
+        setCategoryMeta(body.meta);
+        if (typeof window !== "undefined") {
+          try {
+            localStorage.setItem(STORAGE_KEY_QUIZ_CATEGORY_META, JSON.stringify(body.meta));
+          } catch (e) {}
+        }
+      }
+      showToast("Judul & deskripsi kategori kuis berhasil diperbarui!", "success");
+      logActivity({
+        title: "Mengubah Judul/Deskripsi Kuis",
+        description: `${editMetaCategoryKey}: "${data.title.slice(0, 40)}..."`,
+        category: "kuis",
+        statusText: "Diperbarui",
+        statusBadge: "purple",
+        icon: "fa-solid fa-pen-to-square text-purple-500",
+      });
+    } catch (err) {
+      showToast("Gagal menyimpan metadata kategori kuis ke cloud.", "error");
+    } finally {
+      setIsSavingMeta(false);
+      setEditMetaModalOpen(false);
+    }
+  };
 
   // Form Fields
   const [newType, setNewType] = useState<"pilihan_ganda" | "essai">("pilihan_ganda");
@@ -1087,7 +1207,7 @@ export default function KuisPage() {
                     Semua Kuis ({quizzes.length} Soal)
                   </button>
 
-                  {PERTEMUAN_LIST.map((p) => {
+                  {effectivePertemuanList.map((p) => {
                     const count = quizzes.filter((q) => matchQuizCategory(q, p.categoryKey)).length;
                     const isSelected = selectedCategoryTab === p.categoryKey;
                     return (
@@ -1162,7 +1282,7 @@ export default function KuisPage() {
                 {/* Quiz Cards Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {/* Pertemuan 1 to 6 Quiz Cards */}
-                  {PERTEMUAN_LIST.filter(
+                  {effectivePertemuanList.filter(
                     (p) => selectedCategoryTab === "all" || selectedCategoryTab === p.categoryKey
                   ).map((p) => {
                     const pQuestions = quizzes.filter((q) => matchQuizCategory(q, p.categoryKey));
@@ -1243,6 +1363,18 @@ export default function KuisPage() {
                           <p className="text-xs text-slate-500 leading-relaxed">
                             {p.description}
                           </p>
+
+                          {/* Mentor/Admin: Edit Judul & Deskripsi Kategori */}
+                          {isManager && (
+                            <button
+                              onClick={() => openEditMetaModal(p)}
+                              className="text-[10px] font-bold text-syarat hover:bg-syarat/10 transition-colors flex items-center gap-1.5 border border-dashed border-syarat/30 rounded-lg px-2 py-1"
+                              title="Edit judul & deskripsi kartu kuis ini"
+                            >
+                              <i className="fa-solid fa-pen-to-square text-xs"></i>
+                              <span>Edit Judul & Deskripsi</span>
+                            </button>
+                          )}
 
                           {/* Notice for participants when locked */}
                           {isLocked && !isManager && (
@@ -2853,7 +2985,7 @@ export default function KuisPage() {
                       Kategori Pertemuan Kuis <span className="text-red-500">*</span>
                     </label>
                     <div className="flex flex-wrap gap-1.5 mb-1.5">
-                      {PERTEMUAN_LIST.map((p) => {
+                      {effectivePertemuanList.map((p) => {
                         const isSelected = newCategory === p.categoryKey;
                         return (
                           <button
@@ -2861,7 +2993,7 @@ export default function KuisPage() {
                             type="button"
                             onClick={() => {
                               setNewCategory(p.categoryKey);
-                              if (!newMeeting || PERTEMUAN_LIST.some((item) => item.title === newMeeting || item.categoryKey === newMeeting)) {
+                              if (!newMeeting || effectivePertemuanList.some((item) => item.title === newMeeting || item.categoryKey === newMeeting)) {
                                 setNewMeeting(p.title);
                               }
                             }}
@@ -3314,6 +3446,109 @@ export default function KuisPage() {
         </div>
       )}
 
+      {/* MENTOR / ADMIN MODAL: EDIT JUDUL & DESKRIPSI KATEGORI KUIS */}
+      {editMetaModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm"
+            onClick={() => setEditMetaModalOpen(false)}
+          ></div>
+          <div className="glass-card p-6 rounded-3xl max-w-lg w-full relative z-10 animate-slide-up space-y-4 shadow-2xl border border-slate-200 dark:border-slate-800">
+            <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-3">
+              <div>
+                <h3 className="font-extrabold text-base text-syarat dark:text-syarat-light flex items-center gap-2">
+                  <i className="fa-solid fa-pen-to-square"></i> Edit Judul & Deskripsi Kategori
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Memperbarui judul, topik singkat, dan deskripsi yang muncul di kartu kuis ini.
+                </p>
+              </div>
+              <button
+                onClick={() => setEditMetaModalOpen(false)}
+                className="p-1 text-slate-400 hover:text-red-500 transition-colors"
+              >
+                <i className="fa-solid fa-xmark text-lg"></i>
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveCategoryMeta} className="space-y-4 text-xs">
+              <div>
+                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
+                  Judul Lengkap (Muncul di Kartu) <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={editMetaTitle}
+                  onChange={(e) => setEditMetaTitle(e.target.value)}
+                  placeholder="Contoh: Pertemuan 1: Komunikasi, Inklusi & Budaya Tuli"
+                  className="w-full px-3 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-bold focus:ring-2 focus:ring-tigpad outline-none transition"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
+                    Judul Singkat (Tab Filter) <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={editMetaShortTitle}
+                    onChange={(e) => setEditMetaShortTitle(e.target.value)}
+                    placeholder="Contoh: Pertemuan 1"
+                    className="w-full px-3 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-bold focus:ring-2 focus:ring-tigpad outline-none transition"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
+                    Topik Singkat (Badge/Filter Bank)
+                  </label>
+                  <input
+                    type="text"
+                    value={editMetaTopic}
+                    onChange={(e) => setEditMetaTopic(e.target.value)}
+                    placeholder="Contoh: Komunikasi, Inklusi & Budaya Tuli"
+                    className="w-full px-3 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-bold focus:ring-2 focus:ring-tigpad outline-none transition"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
+                  Deskripsi (Muncul di Bawah Judul Kartu)
+                </label>
+                <textarea
+                  rows={2}
+                  value={editMetaDescription}
+                  onChange={(e) => setEditMetaDescription(e.target.value)}
+                  placeholder="Tuliskan ringkasan materi yang diuji pada kuis ini..."
+                  className="w-full px-3 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs leading-relaxed focus:ring-2 focus:ring-tigpad outline-none transition resize-none"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-3 border-t border-slate-200 dark:border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setEditMetaModalOpen(false)}
+                  className="px-4 py-2.5 rounded-xl text-xs font-bold border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSavingMeta}
+                  className="btn-duotone px-5 py-2.5 rounded-xl text-xs font-bold shadow flex items-center gap-2"
+                >
+                  <i className={`fa-solid ${isSavingMeta ? "fa-spinner fa-spin" : "fa-cloud-arrow-up"}`}></i>
+                  <span>{isSavingMeta ? "Menyimpan..." : "Simpan Perubahan"}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* MENTOR / ADMIN MODAL: MANAGE QUESTION BANK */}
       {manageModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -3377,13 +3612,13 @@ export default function KuisPage() {
                 className="px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-semibold"
               >
                 <option value="Semua">Semua Kategori & Pertemuan</option>
-                {PERTEMUAN_LIST.map((p) => (
+                {effectivePertemuanList.map((p) => (
                   <option key={p.id} value={p.categoryKey}>
                     {p.shortTitle}: {p.topic}
                   </option>
                 ))}
                 {distinctMeetings
-                  .filter((m) => !PERTEMUAN_LIST.some((p) => p.categoryKey.toLowerCase() === m.toLowerCase() || p.title.toLowerCase() === m.toLowerCase()))
+                  .filter((m) => !effectivePertemuanList.some((p) => p.categoryKey.toLowerCase() === m.toLowerCase() || p.title.toLowerCase() === m.toLowerCase()))
                   .map((m) => (
                     <option key={m} value={m}>
                       {m}
