@@ -197,6 +197,7 @@ export default function KuisPage() {
   const [openHints, setOpenHints] = useState<{ [key: number]: boolean }>({});
   const [essayAnswers, setEssayAnswers] = useState<{ [key: number]: string }>({});
   const [userSubmissions, setUserSubmissions] = useState<QuizSubmission[]>([]);
+  const [showExitConfirm, setShowExitConfirm] = useState(false);
 
   // LMS Quiz Engine: Pagination, Navigation & Modal state
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
@@ -720,6 +721,20 @@ export default function KuisPage() {
     const dynamicMinutes = Math.min(30, Math.max(5, Math.ceil(targetQuestions.length * 2.5)));
     setTimeLeft(dynamicMinutes * 60);
     setScreen("start");
+  };
+
+  // Anti-curang: keluar dari ujian aktif = seluruh progres lembar jawaban dihapus & kuis dimulai ulang dari nol
+  const exitQuizToZero = () => {
+    setAnswers({});
+    setEssayAnswers({});
+    setFlaggedQuestions({});
+    setOpenHints({});
+    setCurrentQuestionIndex(0);
+    setQuizViewMode("single");
+    setValidationError(false);
+    setShowExitConfirm(false);
+    setPreviewImageUrl(null);
+    setScreen("list");
   };
 
   const handleSelectAnswer = (qId: number, optionIdx: number) => {
@@ -1897,6 +1912,17 @@ export default function KuisPage() {
                   </button>
                 </div>
 
+                {/* Anti-curang: Keluar Ujian — hapus seluruh progres lembar jawaban & mulai ulang dari nol */}
+                <button
+                  type="button"
+                  onClick={() => setShowExitConfirm(true)}
+                  className="px-3 py-2.5 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm flex items-center gap-2 transition shadow-sm"
+                  title="Kunci anti-curang: keluar dari ujian aktif menghapus seluruh lembar jawaban & kuis dimulai ulang dari nol"
+                >
+                  <i className="fa-solid fa-door-open"></i>
+                  <span className="hidden sm:inline">Keluar Ujian</span>
+                </button>
+
                 {/* Countdown Timer */}
                 <div className="p-2.5 sm:p-3 rounded-2xl bg-white dark:bg-slate-900 text-slate-800 dark:text-white font-mono flex items-center gap-2.5 border border-slate-200 dark:border-slate-800 shadow-sm">
                   <i className={`fa-solid fa-stopwatch text-lg ${timeLeft < 180 ? "text-red-500 animate-bounce" : "text-tigpad animate-pulse"}`}></i>
@@ -2494,6 +2520,37 @@ export default function KuisPage() {
             </div>
 
             {/* POP UP 1: LMS MODAL KONFIRMASI PENGUMPULAN KUIS */}
+            {/* Modal Keluar Ujian (anti-curang: mulai ulang dari nol) */}
+            {showExitConfirm && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm" onClick={() => setShowExitConfirm(false)}></div>
+                <div className="relative bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-md p-6">
+                  <button type="button" onClick={() => setShowExitConfirm(false)} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-lg" title="Batal">
+                    <i className="fa-solid fa-xmark"></i>
+                  </button>
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-rose-100 dark:bg-rose-500/15 text-rose-600 dark:text-rose-400 flex items-center justify-center text-xl shrink-0">
+                      <i className="fa-solid fa-door-open"></i>
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-black text-slate-900 dark:text-white">Keluar dari Ujian?</h3>
+                      <p className="mt-1.5 text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+                        Perilaku ini terdeteksi sebagai tindakan anti-curang: seluruh lembar jawaban Anda akan <b className="text-rose-600">dihapus permanen</b> dan kuis mulai ulang dari nol.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="mt-6 flex flex-col-reverse sm:flex-row gap-3">
+                    <button type="button" onClick={() => setShowExitConfirm(false)} className="flex-1 py-3 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold text-sm hover:bg-slate-200 dark:hover:bg-slate-700 transition">
+                      Batal, Lanjut Ujian
+                    </button>
+                    <button type="button" onClick={exitQuizToZero} className="flex-1 py-3 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm transition">
+                      Ya, Mulai Ulang Dari Nol
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {isSubmitModalOpen && (
               <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
                 <div

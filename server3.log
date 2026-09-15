@@ -1,0 +1,84 @@
+
+> kolab-syarat@1.0.0 dev
+> next dev
+
+  ▲ Next.js 14.2.35
+  - Local:        http://localhost:3000
+  - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 26.7s
+ ○ Compiling /kuis ...
+
+🌼   [35mdaisyUI[39m [2m4.12.24[22m
+├─ [32m✔︎[39m 2 themes added[2m		https://daisyui.com/docs/themes[22m
+╰─ [32m❤︎[39m [0mSupport daisyUI project:[0m	[2mhttps://opencollective.com/daisyui[22m
+
+
+🌼   [35mdaisyUI[39m [2m4.12.24[22m
+├─ [32m✔︎[39m 2 themes added[2m		https://daisyui.com/docs/themes[22m
+╰─ [32m❤︎[39m [0mSupport daisyUI project:[0m	[2mhttps://opencollective.com/daisyui[22m
+
+ ✓ Compiled /kuis in 48s (669 modules)
+ GET /kuis 200 in 8460ms
+ ✓ Compiled in 2.5s (333 modules)
+ GET /kuis 200 in 129ms
+ ○ Compiling /login ...
+ ✓ Compiled /login in 958ms (392 modules)
+ ✓ Compiled in 391ms (321 modules)
+ GET /api/quiz-locks 200 in 3828ms
+ GET /api/quiz-locks 200 in 32ms
+ GET /api/score-locks 200 in 4031ms
+ GET /api/score-locks 200 in 35ms
+ GET /api/quiz-category-meta 200 in 4720ms
+ GET /api/quiz-category-meta 200 in 31ms
+ GET /login 200 in 631ms
+ GET /kuis 200 in 458ms
+ ○ Compiling /api/auth/session ...
+ ✓ Compiled /api/auth/session in 1979ms (406 modules)
+ POST /api/auth/session 401 in 4292ms
+ GET /kuis 200 in 552ms
+ GET /kuis 200 in 665ms
+ ○ Compiling /api/quiz-locks ...
+ ✓ Compiled /api/quiz-locks in 2.9s (396 modules)
+ ✓ Compiled (400 modules)
+ GET /api/quiz-locks 200 in 6875ms
+ GET /api/score-locks 200 in 6891ms
+ GET /api/quiz-category-meta 200 in 7096ms
+ GET /api/quiz-locks 200 in 346ms
+ GET /api/quiz-category-meta 200 in 363ms
+ GET /api/score-locks 200 in 434ms
+ GET /kuis 200 in 1319ms
+ GET /kuis 200 in 479ms
+ GET /api/quiz-category-meta 200 in 321ms
+ GET /api/quiz-locks 200 in 392ms
+ GET /api/score-locks 200 in 485ms
+ GET /api/quiz-category-meta 200 in 584ms
+ GET /api/quiz-locks 200 in 879ms
+ GET /api/score-locks 200 in 892ms
+ GET /kuis 200 in 60ms
+ GET /kuis 200 in 275ms
+ GET /kuis 200 in 424ms
+ ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ ✓ Compiled in 6.7s (657 modules)
+ GET /kuis 200 in 4429ms
+ ○ Compiling /api/score-locks ...
+ ✓ Compiled /api/score-locks in 1001ms (396 modules)
+ ✓ Compiled (400 modules)
+ GET /api/score-locks 200 in 3907ms
+ GET /api/quiz-locks 200 in 3913ms
+ GET /api/score-locks 200 in 28ms
+ GET /api/quiz-locks 200 in 32ms
+ GET /api/quiz-category-meta 200 in 4021ms
+ GET /api/quiz-category-meta 200 in 24ms
+ ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ ✓ Compiled in 5.4s (657 modules)
+ GET /kuis 200 in 2553ms
+ ✓ Compiled /api/quiz-locks in 253ms (396 modules)
+ ✓ Compiled (400 modules)
+ GET /api/quiz-category-meta 200 in 3406ms
+ GET /api/score-locks 200 in 3417ms
+ GET /api/quiz-locks 200 in 3465ms
+ GET /api/quiz-category-meta 200 in 64ms
+ GET /api/score-locks 200 in 68ms
+ GET /api/quiz-locks 200 in 41ms
